@@ -1,0 +1,4 @@
+interface:
+  display_name: "Generate W00X Besoins ADR"
+  short_description: "Generate TeamPulse W00X needs and ADRs"
+  default_prompt: "Use $generate-w00x-besoins-adr to generate besoin and ADR Markdown files from this TeamPulse roadmap row."

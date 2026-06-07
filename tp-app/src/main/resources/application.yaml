@@ -1,0 +1,6 @@
+spring:
+  application:
+    name: tp-app
+
+  modulith:
+    detection-strategy: explicitly-annotated

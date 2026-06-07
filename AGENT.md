@@ -4,16 +4,16 @@
 Ce document decrit l'organisation du projet pour une architecture clean/hexagonale simple, sans DDD lourd. Il sert de reference pour tous les modules.
 
 ## Vue d'ensemble
-- `app` : module bootstrap (demarrage Spring, wiring, configuration globale).
-- `common` : module partage (types transverses, erreurs communes, utilitaires simples).
-- `identity`, `organization`, `team` : modules metier, chacun avec ses couches internes.
+- `tp-app` : module bootstrap (demarrage Spring, wiring, configuration globale).
+- `tp-common` : module partage (types transverses, erreurs communes, utilitaires simples).
+- `tp-identity`, `tp-organization`, `tp-team` : modules metier, chacun avec ses couches internes.
 
 Regles de dependances (toujours vers l'interieur) :
 - `infrastructure` -> `application` -> `domain`
-- `app` depend des modules metier
-- Les modules metier ne dependent pas de `app`
-- `common` est une dependance de tous les modules
-- `common` ne depend d'aucun module du projet
+- `tp-app` depend des modules metier
+- Les modules metier ne dependent pas de `tp-app`
+- `tp-common` est une dependance de tous les modules
+- `tp-common` ne depend d'aucun module du projet
 
 ## Module partage (tp-common)
 **But** : centraliser les types et outils transverses, sans logique metier.
@@ -259,16 +259,16 @@ public class TpAppApplication {
 - Garder la logique metier dans `domain` et `application`.
 - Utiliser des ports (`in`/`out`) pour isoler l'infrastructure.
 - Mapper les DTOs dans `infrastructure/web`.
-- Garder `app` comme point d'entree unique.
-- Mettre dans `common` seulement du partage transverse (pas de logique metier).
+- Garder `tp-app` comme point d'entree unique.
+- Mettre dans `tp-common` seulement du partage transverse (pas de logique metier).
 
 ### A ne pas faire
 - Ne pas appeler directement JPA dans `domain` ou `application`.
 - Ne pas mettre de logique metier dans les controllers.
 - Ne pas faire depend `domain` ou `application` de `infrastructure`.
 - Ne pas dupliquer des regles metier dans plusieurs modules.
-- Ne pas mettre d'adapters ou de logique metier specifique dans `common`.
-- Ne pas faire depend `common` d'un autre module du projet.
+- Ne pas mettre d'adapters ou de logique metier specifique dans `tp-common`.
+- Ne pas faire depend `tp-common` d'un autre module du projet.
 
 ## ADR obligatoire par ticket W00X
 
@@ -316,8 +316,8 @@ Exemples :
 ```text
 docs/adr/W001/ADR-W001-T01-backend-multi-module.md
 docs/adr/W001/ADR-W001-T02-docker-compose-local.md
-docs/adr/W001/ADR-W001-T03-modele-tenant-org-id.md
-docs/adr/W001/ADR-W001-T04-migration-flyway-initiale.md
+docs/adr/W001/ADR-W001-T03-flyway-schema-initial.md
+docs/adr/W001/ADR-W001-T04-multi-tenancy-org-id.md
 ```
 
 ### Regle d'execution agent
@@ -413,7 +413,6 @@ Un ticket W00X est termine uniquement si :
 ## Checklist rapide avant un commit
 - Le code metier reste dans `domain`/`application`.
 - Les adapters sont dans `infrastructure`.
-- `app` ne contient que bootstrap et configuration.
-- `common` ne depend de rien d'autre et reste framework-agnostic.
+- `tp-app` ne contient que bootstrap et configuration.
+- `tp-common` ne depend de rien d'autre et reste framework-agnostic.
 - L'ADR du ticket est present et coherent avec l'implementation.
-

@@ -1,0 +1,206 @@
+/* ============================================================
+   TeamPulse — design system du deck
+   Fond "salle de monitoring", accent pouls teal, écarts en ambre.
+   ============================================================ */
+
+:root {
+  --tp-ink: #0a0f1c; /* fond principal */
+  --tp-surface: #121b30; /* cartes / blocs */
+  --tp-surface-2: #182338; /* survol / en-têtes */
+  --tp-line: #24304a; /* bordures fines */
+  --tp-pulse: #2dd4bf; /* signature : le pouls */
+  --tp-blue: #60a5fa; /* secondaire, hérite du bleu historique */
+  --tp-amber: #fbbf24; /* écarts / points de vigilance */
+  --tp-text: #e6edf7;
+  --tp-muted: #8494b3;
+}
+
+/* ---------- base ---------- */
+.slidev-layout {
+  background:
+    radial-gradient(
+      1200px 600px at 85% -10%,
+      rgba(45, 212, 191, 0.06),
+      transparent 60%
+    ),
+    var(--tp-ink);
+  color: var(--tp-text);
+  font-family: "Inter", sans-serif;
+}
+
+.slidev-layout h1,
+.slidev-layout h2,
+.slidev-layout h3 {
+  font-family: "Space Grotesk", sans-serif;
+  color: var(--tp-text);
+  letter-spacing: -0.02em;
+}
+
+.slidev-layout h1 {
+  font-weight: 600;
+}
+.slidev-layout h2 {
+  font-weight: 600;
+  font-size: 1.7rem;
+}
+
+.slidev-layout a {
+  color: var(--tp-blue);
+}
+
+.slidev-layout strong {
+  color: var(--tp-pulse);
+  font-weight: 600;
+}
+
+/* ---------- kicker (eyebrow) ---------- */
+.tp-kicker {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--tp-pulse);
+}
+
+/* ---------- cover ---------- */
+.tp-cover {
+  display: flex;
+  align-items: center;
+}
+.tp-cover-inner h1 {
+  font-size: 4.2rem;
+  line-height: 1.05;
+  margin: 0.6rem 0 0;
+}
+.tp-pulse-text {
+  color: var(--tp-pulse);
+}
+.tp-subtitle {
+  color: var(--tp-muted);
+  font-size: 1.15rem;
+  max-width: 34rem;
+  margin-top: 0.4rem;
+}
+.tp-cover-meta {
+  display: flex;
+  gap: 0.6rem;
+  margin-top: 1.6rem;
+}
+
+/* ---------- sections ---------- */
+.tp-section h1 {
+  font-size: 3rem;
+}
+.tp-section .tp-kicker {
+  display: block;
+  margin-bottom: 0.4rem;
+}
+
+/* ---------- badges de statut ---------- */
+.tp-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.7rem;
+  padding: 0.22rem 0.6rem;
+  border-radius: 999px;
+  border: 1px solid var(--tp-line);
+  white-space: nowrap;
+}
+.tp-badge--done {
+  color: var(--tp-pulse);
+  border-color: rgba(45, 212, 191, 0.4);
+  background: rgba(45, 212, 191, 0.08);
+}
+.tp-badge--doc {
+  color: var(--tp-blue);
+  border-color: rgba(96, 165, 250, 0.35);
+  background: rgba(96, 165, 250, 0.07);
+}
+.tp-badge--warn {
+  color: var(--tp-amber);
+  border-color: rgba(251, 191, 36, 0.35);
+  background: rgba(251, 191, 36, 0.07);
+}
+
+/* ---------- cartes ---------- */
+.tp-card {
+  background: var(--tp-surface);
+  border: 1px solid var(--tp-line);
+  border-radius: 10px;
+  padding: 0.9rem 1.1rem;
+}
+.tp-card--warn {
+  border-left: 3px solid var(--tp-amber);
+}
+.tp-card--pulse {
+  border-left: 3px solid var(--tp-pulse);
+}
+.tp-card h3 {
+  margin-top: 0;
+  font-size: 1rem;
+}
+
+.tp-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.8rem;
+}
+
+/* ---------- tableaux ---------- */
+.slidev-layout table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.86rem;
+}
+.slidev-layout th {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--tp-muted);
+  border-bottom: 1px solid var(--tp-line);
+  padding: 0.45rem 0.6rem;
+  text-align: left;
+}
+.slidev-layout td {
+  border-bottom: 1px solid rgba(36, 48, 74, 0.6);
+  padding: 0.42rem 0.6rem;
+}
+.slidev-layout tr:hover td {
+  background: var(--tp-surface-2);
+}
+
+/* ---------- code ---------- */
+.slidev-layout :not(pre) > code {
+  font-family: "JetBrains Mono", monospace;
+  background: var(--tp-surface);
+  border: 1px solid var(--tp-line);
+  border-radius: 4px;
+  padding: 0.1em 0.35em;
+  font-size: 0.85em;
+  color: var(--tp-pulse);
+}
+.slidev-layout pre {
+  border: 1px solid var(--tp-line);
+  border-radius: 10px;
+  background: var(--tp-surface) !important;
+}
+
+/* ---------- divers ---------- */
+.small {
+  font-size: 0.82rem;
+}
+.muted {
+  color: var(--tp-muted);
+}
+
+.tp-footref {
+  position: absolute;
+  bottom: 1.1rem;
+  left: 3.5rem;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.65rem;
+  color: var(--tp-muted);
+}
