@@ -1,0 +1,19 @@
+{
+  "name": "teampulse-slides",
+  "private": true,
+  "scripts": {
+    "dev": "slidev --open",
+    "build": "slidev build",
+    "export": "slidev export",
+    "export:pdf": "slidev export --with-clicks",
+    "format": "prettier --write ."
+  },
+  "dependencies": {
+    "@slidev/cli": "^52.16.0",
+    "@slidev/theme-default": "^0.25.0",
+    "vue": "^3.5.39"
+  },
+  "devDependencies": {
+    "prettier": "^3.9.4"
+  }
+}
