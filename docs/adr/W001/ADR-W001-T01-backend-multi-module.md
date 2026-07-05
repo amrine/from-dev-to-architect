@@ -20,7 +20,7 @@ Nous voulons eviter la complexite operationnelle des micro-services tout en cons
 - Les modules metier produisent des JAR bibliotheques.
 - Les modules metier dependent de `tp-common`.
 - `tp-common` ne depend d'aucun module metier.
-- Utiliser Java 21 et Spring Boot 4.0.x.
+- Utiliser Java 25 et Spring Boot 4.1.x.
 - Utiliser Spring Modulith pour definir et verifier les frontieres metier.
 - `tp-app` porte `@SpringBootApplication` et `@Modulithic`.
 - Les modules logiques Spring Modulith sont `common`, `organization`, `identity` et `team`.

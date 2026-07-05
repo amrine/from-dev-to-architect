@@ -29,10 +29,10 @@ transition: fade
 <span class="tp-badge tp-badge--warn">action · ce weekend</span>
 </div>
 
-<div class="tp-card tp-card--warn">
-<h3>W001 · Aligner la roadmap sur la politique de versions</h3>
-<p class="small muted">Roadmap Excel : Spring Boot <code>3.5+</code> (EOL) · code : <code>4.0.6</code>. Cible : dernière génération stable — <code>4.1.x</code>. Mettre à jour l'Excel et le parent Maven.</p>
-<span class="tp-badge tp-badge--warn">action · roadmap Excel + pom</span>
+<div class="tp-card tp-card--pulse">
+<h3>W001 · Politique de versions alignée</h3>
+<p class="small muted">Code Maven : Java <code>25</code> et Spring Boot <code>4.1.0</code>. La cible pédagogique reste la génération stable <code>4.1.x</code>.</p>
+<span class="tp-badge tp-badge--done">résolu · parent Maven</span>
 </div>
 
 <div class="tp-card tp-card--pulse">

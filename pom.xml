@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>4.0.6</version>
+        <version>4.1.0</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
 
@@ -26,10 +26,10 @@
     </modules>
 
     <properties>
-        <java.version>21</java.version>
+        <java.version>25</java.version>
         <spring-modulith.version>2.0.6</spring-modulith.version>
         <lombok.version>1.18.46</lombok.version>
-        <spring-boot-starter.version>4.0.6</spring-boot-starter.version>
+        <spring-boot-starter.version>4.1.0</spring-boot-starter.version>
         <postgresql.version>42.7.11</postgresql.version>
         <flyway-postgresql.version>12.8.1</flyway-postgresql.version>
     </properties>
