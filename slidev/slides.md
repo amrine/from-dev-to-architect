@@ -48,31 +48,25 @@ Generated zones are bounded with AUTO-GENERATED markers and can be refreshed tic
 -->
 
 ---
-
 src: ./pages/index.md
 ---
 
 ---
-
 src: ./pages/program/vision.md
 ---
 
 ---
-
 src: ./pages/program/teampulse.md
 ---
 
 ---
-
 src: ./pages/program/evolution.md
 ---
 
 ---
-
 src: ./pages/weeks/W001.md
 ---
 
 ---
-
 src: ./pages/coherence.md
 ---

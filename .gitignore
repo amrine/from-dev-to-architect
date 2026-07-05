@@ -32,5 +32,6 @@ build/
 ### VS Code ###
 .vscode/
 ./docker/postgresql/
-./slidev/node_modules/
+/slidev/node_modules/
+/slidev/dist/
 /ztmp/

@@ -2,10 +2,10 @@
   "name": "teampulse-slides",
   "private": true,
   "scripts": {
-    "dev": "slidev --open",
-    "build": "slidev build",
-    "export": "slidev export",
-    "export:pdf": "slidev export --with-clicks",
+    "dev": "slidev slides.md --open",
+    "build": "slidev build slides.md",
+    "export": "slidev export slides.md",
+    "export:pdf": "slidev export slides.md --with-clicks",
     "format": "prettier --write ."
   },
   "dependencies": {
