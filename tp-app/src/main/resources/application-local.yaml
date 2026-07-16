@@ -1,0 +1,5 @@
+spring:
+  datasource:
+    url: ${TEAM_PULSE_DB_URL:jdbc:postgresql://localhost:5432/teampulse}
+    username: ${TEAM_PULSE_DB_USERNAME:teampulse}
+    password: ${TEAM_PULSE_DB_PASSWORD:teampulse}

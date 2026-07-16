@@ -1,12 +1,12 @@
 <!--
   TEMPLATE de semaine — copier vers pages/weeks/Wxxx.md
-  Pattern narratif : Problématique → Découpage → Pourquoi ce découpage → deep dive Txx par Txx.
+  Pattern narratif : Situation → Risques → Besoins → Garanties → Contraintes →
+  Révélation Wxxx → Contrat pédagogique → Preuves → Découpage → Architecture → deep dives.
   Les incohérences NE vont PAS ici : elles vont dans pages/coherence.md
   (zone AUTO-GENERATED:Wxxx-COHERENCE), dernier slide du deck.
 -->
 
 ---
-
 layout: center
 class: tp-section
 routeAlias: wxxx
@@ -15,33 +15,34 @@ transition: fade
 
 <!-- AUTO-GENERATED:Wxxx:START -->
 
-<span class="tp-kicker">Semaine xxx · Phase {1|2|3}</span>
+<span class="tp-kicker">Situation initiale · {Produit ou contexte}</span>
 
-# {Titre de la semaine}
+# {Tension concrète avant la solution}
 
 <PulseLine />
 
-{Accroche : la problématique en une phrase.}
+{Scène de départ : acteurs, objectif immédiat et difficulté observable.}
 
-<div class="mt-4">
-<span class="tp-badge tp-badge--done">{n} livrés</span>
-<span class="tp-badge tp-badge--doc">{n} documentés</span>
+<v-click>
+<div class="tp-card tp-card--pulse mt-4">
+Question de départ : {question à laquelle la semaine doit répondre}.
 </div>
+</v-click>
 
 ---
 
-## Wxxx · La problématique
+## Ce qui peut mal tourner
 
 <div class="tp-grid-2">
 
 <div>
 
-**Besoin fonctionnel**
+**Dans le produit ou le métier**
 
 <v-clicks>
 
-- {Ce que le produit doit permettre / à qui ça sert}
-- {Contrainte métier structurante}
+- {Symptôme observable 1}
+- {Symptôme observable 2}
 
 </v-clicks>
 
@@ -49,12 +50,12 @@ transition: fade
 
 <div>
 
-**Besoin technique**
+**Dans le système ou l'équipe**
 
 <v-clicks>
 
-- {Ce que le système doit garantir}
-- {Contrainte technique / préparation des semaines suivantes}
+- {Symptôme observable 3}
+- {Symptôme observable 4}
 
 </v-clicks>
 
@@ -64,11 +65,111 @@ transition: fade
 
 <v-click>
 
-<div class="tp-card tp-card--pulse mt-3">
-En une phrase : {l'objectif synthétique de la semaine}.
+<div class="tp-card tp-card--warn mt-3">
+{Risque principal si le problème n'est pas traité maintenant.}
 </div>
 
 </v-click>
+
+---
+
+## Expression du besoin fonctionnel
+
+<div class="tp-card tp-card--pulse mt-3">
+En tant que {acteur}, nous voulons {capacité} afin de {valeur attendue}.
+</div>
+
+<v-clicks>
+
+- {Capacité fonctionnelle 1}
+- {Capacité fonctionnelle 2}
+- {Résultat produit attendu}
+
+</v-clicks>
+
+---
+
+## Du besoin aux garanties techniques
+
+| Qualité recherchée | Garantie attendue |
+| ------------------ | ----------------- |
+| **{Qualité 1}** | {Garantie mesurable} |
+| **{Qualité 2}** | {Garantie mesurable} |
+| **{Qualité 3}** | {Garantie mesurable} |
+
+<div class="tp-card mt-3">
+Les outils seront introduits ensuite, uniquement pour matérialiser ces garanties.
+</div>
+
+---
+
+## Contraintes et hors-périmètre
+
+<div class="tp-grid-2">
+
+<div class="tp-card tp-card--pulse">
+<h3>Contraintes Wxxx</h3>
+
+- {Contrainte structurante}
+- {Contrainte d'environnement}
+- {Contrainte de validation}
+
+</div>
+
+<div class="tp-card tp-card--warn">
+<h3>Ce que Wxxx ne cherche pas à faire</h3>
+
+- {Non-objectif 1}
+- {Non-objectif 2}
+- {Complexité volontairement différée}
+
+</div>
+
+</div>
+
+---
+layout: center
+class: tp-section
+transition: fade
+---
+
+<span class="tp-kicker">Semaine xxx · Phase {1|2|3}</span>
+
+# {Titre de la semaine}
+
+<PulseLine />
+
+{Objectif synthétique, maintenant que le problème est compris.}
+
+<div class="mt-4">
+<span class="tp-badge tp-badge--done">{n} livrés</span>
+<span class="tp-badge tp-badge--doc">{n} planifiés</span>
+</div>
+
+---
+
+## Wxxx · Le contrat pédagogique
+
+À la fin de la semaine, l'apprenant doit pouvoir :
+
+<v-clicks>
+
+- **Expliquer** {concept et différence structurante}
+- **Justifier** {décision d'architecture}
+- **Configurer** {comportement concret}
+- **Prouver** {résultat avec une validation exécutable}
+
+</v-clicks>
+
+---
+
+## Wxxx · La destination avant le chemin
+
+| Résultat attendu | Preuve observable |
+| ---------------- | ----------------- |
+| {Résultat 1} | `{commande, test ou métrique}` |
+| {Résultat 2} | `{commande, test ou métrique}` |
+| {Résultat 3} | `{commande, test ou métrique}` |
 
 ---
 
@@ -77,20 +178,36 @@ En une phrase : {l'objectif synthétique de la semaine}.
 | Ticket | Sujet   | ADR                                           | État                                                  |
 | ------ | ------- | --------------------------------------------- | ----------------------------------------------------- |
 | `T01`  | {sujet} | <span class="small muted">ADR-Wxxx-T01</span> | <span class="tp-badge tp-badge--done">terminé</span>  |
-| `T02`  | {sujet} | <span class="small muted">ADR-Wxxx-T02</span> | <span class="tp-badge tp-badge--doc">documenté</span> |
+| `T02`  | {sujet} | <span class="small muted">ADR-Wxxx-T02</span> | <span class="tp-badge tp-badge--doc">planifié</span>  |
 
 ---
 
-## Wxxx · Pourquoi ce découpage ?
+## Wxxx · L'ordre fait partie de l'architecture
 
-Chaque ticket isole **une décision d'architecture** et se livre indépendamment :
+```mermaid {scale: 0.75}
+flowchart LR
+  T01["T01<br/>{responsabilité}"] --> T02["T02<br/>{responsabilité}"]
+```
 
 <v-clicks>
 
-- `T01` — {pourquoi ce ticket vient en premier}
-- `T02` — {ce qu'il débloque / pourquoi cet ordre}
+- `T01` réduit {incertitude} avant `T02`
+- `T02` s'appuie sur {preuve produite par T01}
 
 </v-clicks>
+
+---
+
+## Wxxx · Architecture cible de la semaine
+
+```mermaid {scale: 0.65}
+flowchart LR
+  A["{acteur ou entrée}"] --> B["{système}"] --> C["{résultat}"]
+```
+
+<div class="tp-card tp-card--pulse mt-3">
+Transition : le problème, les garanties, la destination et l'ordre sont connus. Le premier ticket peut commencer.
+</div>
 
 <!-- AUTO-GENERATED:Wxxx:END -->
 

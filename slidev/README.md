@@ -47,12 +47,17 @@ pages/weeks/_TEMPLATE.md    # gabarit pour générer W002, W003, ...
 Pour ajouter une semaine : copier `_TEMPLATE.md` → `Wxxx.md`, remplacer les placeholders,
 ajouter l'include dans `slides.md` et une carte dans `pages/index.md`.
 
-## Pattern narratif d'une semaine (v3)
+## Pattern narratif d'une semaine (v4)
 
-1. **Problématique** — expression de besoin fonctionnel + technique, avant tout code.
-2. **Découpage** — tableau des tickets Txx avec ADR et état.
-3. **Pourquoi ce découpage** — la logique d'ordre : chaque ticket = une décision isolée.
-4. **Deep dive Txx par Txx** — besoin & décision → implémentation → validation & bilan.
-5. **Incohérences** — jamais au milieu du récit : elles sont regroupées dans
-   `pages/coherence.md` (dernier slide du deck), zone `AUTO-GENERATED:Wxxx-COHERENCE`
-   régénérable par semaine. Un écart corrigé disparaît à la régénération suivante.
+1. **Situation initiale** — une scène concrète et une question, sans annoncer la solution.
+2. **Risques observables** — ce qui peut mal tourner dans le produit, le code ou l'environnement.
+3. **Besoin fonctionnel** — la capacité attendue, formulée sans technologie.
+4. **Garanties techniques** — qualités mesurables avant le choix des outils.
+5. **Contraintes et non-objectifs** — limites explicites pour éviter le sur-engineering.
+6. **Révélation Wxxx** — objectif de la semaine après compréhension du problème.
+7. **Contrat pédagogique et preuves** — verbes observables, DoD et validations attendues.
+8. **Découpage et ordre** — tickets, ADR, dépendances et incertitude réduite par chaque étape.
+9. **Architecture cible** — état de fin de semaine, distinct de l'état déjà livré.
+10. **Deep dive Txx par Txx** — besoin et décision, implémentation, validation et bilan.
+11. **Incohérences ouvertes** — uniquement dans `pages/coherence.md`, zone
+    `AUTO-GENERATED:Wxxx-COHERENCE`. Un écart résolu disparaît à la régénération suivante.

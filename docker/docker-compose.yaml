@@ -1,0 +1,20 @@
+services:
+  postgres:
+    image: postgres:18-bookworm
+    container_name: teampulse-postgres
+    environment:
+      POSTGRES_DB: teampulse
+      POSTGRES_USER: teampulse
+      POSTGRES_PASSWORD: teampulse
+    ports:
+      - "5432:5432"
+    volumes:
+      - teampulse-postgres-data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U teampulse -d teampulse"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  teampulse-postgres-data:

@@ -35,7 +35,7 @@ Nous voulons eviter la complexite operationnelle des micro-services tout en cons
 - `tp-app` porte les dependances d'assemblage et d'execution globales: serveur web, Flyway et driver PostgreSQL.
 - Les modules metier portent les dependances necessaires a leurs adapters: web, validation et data-jpa.
 - `tp-common` reste sans dependance web ou JPA.
-- Le detail des schemas et migrations DB est traite dans `ADR-W001-T03`.
+- Le detail de PostgreSQL local, des schemas et des migrations DB est traite dans `ADR-W001-T02`.
 - Le detail Docker Compose local est traite dans `ADR-W001-T02`.
 
 ## Communication entre modules

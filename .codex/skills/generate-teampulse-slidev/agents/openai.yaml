@@ -1,4 +1,4 @@
 interface:
   display_name: "Generate TeamPulse Slidev"
-  short_description: "Build TeamPulse training Slidev decks"
-  default_prompt: "Use $generate-teampulse-slidev to update the TeamPulse Slidev deck for W001 or W001-T01."
+  short_description: "Cours TeamPulse progressif avec notes orales"
+  default_prompt: "Use $generate-teampulse-slidev to improve W001 with scenario-first pedagogy and complete French presenter notes for every presented slide."
