@@ -2,5 +2,13 @@ spring:
   application:
     name: tp-app
 
+  flyway:
+    enabled: false
+
   modulith:
     detection-strategy: explicitly-annotated
+
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate

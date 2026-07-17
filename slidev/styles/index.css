@@ -148,6 +148,12 @@
   gap: 0.8rem;
 }
 
+.tp-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
 /* ---------- tableaux ---------- */
 .slidev-layout table {
   width: 100%;
@@ -186,6 +192,31 @@
   border: 1px solid var(--tp-line);
   border-radius: 10px;
   background: var(--tp-surface) !important;
+}
+
+.tp-screenshot {
+  display: block;
+  width: 100%;
+  max-height: 28rem;
+  object-fit: contain;
+  background: var(--tp-surface);
+  border: 1px solid var(--tp-line);
+  border-radius: 8px;
+}
+
+.tp-screenshot-focus {
+  height: 25rem;
+  overflow: hidden;
+  background: var(--tp-surface);
+  border: 1px solid var(--tp-line);
+  border-radius: 8px;
+}
+
+.tp-screenshot-focus img {
+  display: block;
+  width: 155%;
+  max-width: none;
+  transform: translate(-31%, -28%);
 }
 
 /* ---------- divers ---------- */

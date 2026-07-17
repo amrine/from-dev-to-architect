@@ -2,9 +2,11 @@
 
 ## Purpose
 
-Build a professional Slidev deck that teaches TeamPulse progressively from `W001` onward. The deck must explain why each need exists, how it is decomposed, which architecture decisions are made, how to validate the work, and what learners should retain.
+Build a professional Slidev deck that teaches TeamPulse progressively from `W001` onward to developers who know Java, Spring, and Angular but do not yet know software architecture. The deck must explain why each need exists, how it is decomposed, which architecture decisions are made, how to validate the work, and what learners should retain.
 
-Do not make a simple Excel export. Do not copy Markdown verbatim. Transform the roadmap, besoin files, and ADR files into a training resource for developers, tech leads, architects, and DevOps learners.
+Do not make a simple Excel export. Do not copy Markdown verbatim. Transform the roadmap, besoin files, ADR files, and committed code into a scenario-first course that moves from familiar development situations to architecture decisions and executable proof.
+
+`references/pedagogical-framework.md` is the authority for learner assumptions, narrative ordering, vocabulary introduction, week and ticket progression, and pedagogical quality gates. Apply it together with this technical and visual contract.
 
 ## Execution Modes
 
@@ -37,6 +39,24 @@ Use when the user asks to update a ticket such as `W001-T03`.
 - Update the week summary if the ticket changes the week-level understanding.
 - Update ADR links and ticket navigation.
 - Avoid regenerating unrelated tickets.
+
+### Pedagogical review
+
+Use when the user asks for an opinion, analysis, or review of numbered slides.
+
+- Resolve actual Slidev numbers from slide separators and imported pages.
+- Read the surrounding slides to evaluate the transition into and out of the requested range.
+- Apply `references/pedagogical-framework.md` and report precise gaps in context, vocabulary, causality, compromise, or proof.
+- Do not edit the deck unless the user explicitly asks for changes.
+
+### Presenter-notes update
+
+Use when the user asks to add, refresh, review, or improve speaker notes.
+
+- Preserve visible slide content unless the user also requests content changes.
+- Resolve imported pages and update the notes in their source Markdown files.
+- Read surrounding slides so every note has an accurate transition.
+- Validate every presented slide, not templates or `src:` import stubs.
 
 ## Source Rules
 
@@ -103,12 +123,22 @@ ADR content may include context, decision, alternatives, positive and negative c
 
 ## Week Section Template
 
-Create a section for each week with:
+Explain the whole `WXXX` before entering its tickets. Adapt the number of slides to the content, using this progression:
 
-1. Cover: title, objective, roadmap phase, skill, expected result, stack, ticket links.
-2. Why this need exists: problem, timing, avoided risks, junior developer pitfalls, architecture contribution.
-3. Architecture view: simple Mermaid diagram when useful.
-4. Ticket breakdown: coherent with besoin files, ADRs, and roadmap fields.
+1. Contextual cover: product mission, actors, stakes, and expected change.
+2. Realistic TeamPulse situation: a scenario that makes the problem visible.
+3. Symptoms and consequences for users, developers, or operations.
+4. Functional need and future product flow.
+5. Observable guarantees, written before naming tools.
+6. Scope and constraints: explicitly distinguish what the week prepares from what it delivers.
+7. Technical mission: code, data/execution, and proof.
+8. Learning contract: understand, build, and prove.
+9. Human acceptance scene that makes the Definition of Done concrete.
+10. Ticket breakdown expressed as learning questions, including merged or missing ticket numbers.
+11. Explanation of why the ticket order matters.
+12. Target architecture, introduced only after the need, with a reading direction and defined vocabulary.
+
+Merge adjacent stages when the week is simple. Do not add filler. Keep the initial scenario alive through the section so the acceptance scene closes the story.
 
 If tickets are not explicit, propose 3 to 7 logical tickets. A common split is:
 
@@ -120,27 +150,15 @@ If tickets are not explicit, propose 3 to 7 logical tickets. A common split is:
 
 ## Ticket Section Template
 
-For each ticket, create 2 to 5 slides:
+For each ticket, create 2 to 5 focused slides that form one learning loop:
 
-### Need
+1. **Reconnect**: ticket question, week scenario, and symptom resolved.
+2. **Understand**: plain-language concept definition and bridge from familiar Java/Spring/Angular knowledge.
+3. **Choose**: credible alternatives, ADR decision, benefits, disadvantages, and conditions for revisiting the choice.
+4. **Build**: TeamPulse files, modules, endpoints, configuration, scripts, tests, and useful commands. Include code only after its purpose is understood.
+5. **Prove**: observable expected behavior, evidence, validation mechanism, and Definition of Done.
 
-Include ticket name, objective, problem solved, TeamPulse context, and expected result.
-
-### Teaching Explanation
-
-Explain the concept, why it is useful, how it applies to TeamPulse, common mistakes, and good practices.
-
-### Architecture Decision
-
-Show ADR path, decision, alternatives, consequences, architecture impact, and missing ADR warning when applicable.
-
-### Expected Implementation
-
-List files to create or modify, impacted modules, endpoints, configuration, scripts, tests, and useful commands. Include code only when it is pedagogically useful.
-
-### Validation
-
-Show checks and Definition of Done. Include ADR existence and consistency as part of DoD.
+Combine stages when appropriate, but never omit the problem, accepted compromise, or proof. Do not begin a ticket sequence with source code or configuration.
 
 ## Pedagogical Blocks
 
@@ -153,6 +171,49 @@ Use concise recurring blocks:
 - `Checklist de validation`
 - `Lien avec l'architecture globale`
 - `Pour aller plus loin`
+
+## Presenter Notes Contract
+
+Every presented slide must end with one non-empty HTML comment block that Slidev can parse as the presenter note.
+
+```markdown
+<!--
+**Message à faire passer**
+
+Conclusion essentielle.
+
+**Déroulé oral**
+
+Explication naturelle à lire ou reformuler.
+
+**Insister sur**
+
+Distinction, risque ou compromis important.
+
+**Transition**
+
+Lien causal vers la suite.
+-->
+```
+
+Technical requirements:
+
+- the note must be the last comment block of the slide;
+- put the note after an `AUTO-GENERATED:*:END` marker when that marker closes the slide;
+- never accept an `AUTO-GENERATED` marker as a parsed note;
+- keep notes in imported Markdown pages rather than `src:` stubs;
+- use Markdown inside notes and Slidev `[click]` markers when useful;
+- keep notes synchronized with visible content, click order, ADRs, committed code, and transitions;
+- do not include secrets because normal Slidev builds contain notes;
+- use `slidev build --without-notes` for a public artifact that must exclude them.
+
+Run from the repository root:
+
+```bash
+node .codex/skills/generate-teampulse-slidev/scripts/validate_presenter_notes.mjs slidev/slides.md
+```
+
+The command must report one valid presenter note for every presented slide.
 
 ## Design System
 
@@ -373,7 +434,18 @@ Check:
 6. ADR paths are coherent.
 7. Internal links are not broken.
 8. Manual content outside `AUTO-GENERATED` zones is preserved.
-9. `npm run build` passes when dependencies are available.
+9. The learner understands the problem and functional need before the architecture or tools appear.
+10. New architecture terms and acronyms are defined before their first meaningful use.
+11. Every technology maps to a stated need or guarantee, and every validation proves one.
+12. The week states what it prepares, what it delivers, and why ticket order matters.
+13. Every decision presents an accepted disadvantage or limitation.
+14. Each slide has one main teaching objective.
+15. Modified slides and fully revealed click states have no overlap, clipping, or unreadable content at `1280x720` and a small viewport such as `390x844`.
+16. Every presented slide has a specific French presenter note.
+17. No generated-zone marker is parsed as a presenter note.
+18. Notes emphasize the teaching point, follow click order where relevant, and prepare the next slide.
+19. The presenter-note validation script passes.
+20. `npm run build` passes when dependencies are available.
 
 ## Final Report Shape
 
@@ -383,6 +455,8 @@ Include:
 - ticket traité;
 - sources utilisées;
 - slides mises à jour;
+- notes présentateur ajoutées ou actualisées;
+- résultat de validation des notes;
 - ADR présents;
 - ADR manquants;
 - points d'attention;
