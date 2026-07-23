@@ -40,7 +40,8 @@ routeAlias: agenda
 <p class="small muted">Trois développeurs, trois domaines et une semaine pour construire un socle commun vérifiable.</p>
 <span class="tp-badge tp-badge--done">T01 livré</span>
 <span class="tp-badge tp-badge--done">T02 livré</span>
-  <span class="tp-badge tp-badge--doc">T04 → T07 planifiés</span>
+<span class="tp-badge tp-badge--done">T03 livré</span>
+<span class="tp-badge tp-badge--doc">T04 → T07 planifiés</span>
 </div>
 </Link>
 

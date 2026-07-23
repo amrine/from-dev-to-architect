@@ -39,12 +39,12 @@ io.tpcommon
 io.tpteam
 ├─ domain
 │  ├─ model
-│  ├─ service
-│  └─ port
-│     ├─ in
-│     └─ out
+│  └─ service
 ├─ application
-│  └─ usecase
+│  ├─ port
+│  │  ├─ in
+│  │  └─ out
+│  └─ service
 └─ infrastructure
    ├─ web
    ├─ persistence
@@ -82,12 +82,12 @@ public class Team {
 - Ne depend de rien d'autre.
 - Utilise seulement Java standard.
 
-### 2) domain/port/in (cas d'usage exposes)
+### 2) application/port/in (cas d'usage exposes)
 **Responsabilite** : interfaces d'entree pour l'application.
 
 **Exemple**
 ```java
-package io.tpteam.domain.port.in;
+package io.tpteam.application.port.in;
 
 import io.tpteam.domain.model.Team;
 
@@ -99,12 +99,12 @@ public interface CreateTeamUseCase {
 **Relations**
 - Depend de `domain/model` uniquement.
 
-### 3) domain/port/out (sorties externes)
+### 3) application/port/out (sorties externes)
 **Responsabilite** : contrats pour la persistence, messagerie, API externes.
 
 **Exemple**
 ```java
-package io.tpteam.domain.port.out;
+package io.tpteam.application.port.out;
 
 import io.tpteam.domain.model.Team;
 
@@ -117,16 +117,16 @@ public interface TeamRepository {
 - Depend de `domain/model` uniquement.
 - Pas d'implementation ici.
 
-### 4) application/usecase (orchestration)
+### 4) application/service (orchestration)
 **Responsabilite** : implemente les ports `in`, orchestre la logique avec les ports `out`.
 
 **Exemple**
 ```java
-package io.tpteam.application.usecase;
+package io.tpteam.application.service;
 
+import io.tpteam.application.port.in.CreateTeamUseCase;
+import io.tpteam.application.port.out.TeamRepository;
 import io.tpteam.domain.model.Team;
-import io.tpteam.domain.port.in.CreateTeamUseCase;
-import io.tpteam.domain.port.out.TeamRepository;
 
 public class CreateTeamService implements CreateTeamUseCase {
     private final TeamRepository repository;
@@ -144,7 +144,7 @@ public class CreateTeamService implements CreateTeamUseCase {
 ```
 
 **Relations**
-- Depend de `domain` (model + ports).
+- Depend de `application/port` et de `domain/model`.
 - Ne depend pas de `infrastructure`.
 
 ### 5) infrastructure/web (adapters entrants)
@@ -154,7 +154,7 @@ public class CreateTeamService implements CreateTeamUseCase {
 ```java
 package io.tpteam.infrastructure.web;
 
-import io.tpteam.domain.port.in.CreateTeamUseCase;
+import io.tpteam.application.port.in.CreateTeamUseCase;
 import io.tpteam.domain.model.Team;
 import org.springframework.web.bind.annotation.*;
 
@@ -187,7 +187,7 @@ public class TeamController {
 package io.tpteam.infrastructure.persistence;
 
 import io.tpteam.domain.model.Team;
-import io.tpteam.domain.port.out.TeamRepository;
+import io.tpteam.application.port.out.TeamRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -208,7 +208,7 @@ public class JpaTeamRepository implements TeamRepository {
 ```
 
 **Relations**
-- Depend de `domain` (ports + model).
+- Depend de `application` via les ports `out` et de `domain/model`.
 - Peut depend de Spring Data/JPA.
 
 ### 7) infrastructure/messaging (optionnel)
@@ -218,7 +218,7 @@ public class JpaTeamRepository implements TeamRepository {
 ```java
 package io.tpteam.infrastructure.messaging;
 
-import io.tpteam.domain.port.out.TeamEventPublisher;
+import io.tpteam.application.port.out.TeamEventPublisher;
 import org.springframework.stereotype.Component;
 
 @Component

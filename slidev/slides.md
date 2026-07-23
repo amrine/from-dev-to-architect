@@ -38,7 +38,7 @@ class: tp-cover
 <div class="tp-cover-meta" v-motion :initial="{ opacity: 0 }" :enter="{ opacity: 1, transition: { duration: 600, delay: 1100 } }">
   <span class="tp-badge tp-badge--done">Point de départ · développeur applicatif</span>
   <span class="tp-badge tp-badge--doc">Méthode · un produit fil rouge</span>
-  <span class="tp-badge tp-badge--done">W001 · T01 + T02 livrés</span>
+  <span class="tp-badge tp-badge--done">W001 · T01 + T02 + T03 livrés</span>
 </div>
 
 </div>
