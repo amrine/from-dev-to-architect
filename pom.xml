@@ -28,6 +28,7 @@
     <properties>
         <java.version>25</java.version>
         <spring-modulith.version>2.0.6</spring-modulith.version>
+        <archunit.version>1.4.2</archunit.version>
         <lombok.version>1.18.46</lombok.version>
         <spring-boot-starter.version>4.1.0</spring-boot-starter.version>
         <postgresql.version>42.7.11</postgresql.version>
