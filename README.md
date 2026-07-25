@@ -115,3 +115,10 @@ Pour lancer le test d'intégration d'un seul module :
 Remplacer `IdentityModuleTests` par `OrganizationModuleTests` ou
 `TeamModuleTests` pour cibler un autre module. Chaque test charge uniquement
 la configuration Flyway et le schéma du module concerné.
+
+
+
+## License
+
+This project is licensed under the Apache License 2.0.
+See the [LICENSE](LICENSE) file for details.
