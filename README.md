@@ -14,6 +14,9 @@ se découpe en tickets (`Txx`) portés par un ADR, et avance en trois phases :
 2. **Plateforme moderne** — Kubernetes/EKS · Kafka · Observabilité · Microservices
 3. **Enterprise** — GitOps · progressive delivery · multi-account · sécurité, DR, FinOps
 
+Le découpage complet, l'état d'avancement et les jalons sont publiés dans la
+[roadmap publique](ROADMAP.md).
+
 Rien n'est appris "dans le vide" : chaque techno sert directement TeamPulse.
 Chaque ticket produit un commit, un artefact d'architecture (ADR, runbook,
 diagramme) et une trace de décision — y compris les erreurs et incohérences
