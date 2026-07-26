@@ -15,5 +15,8 @@
   },
   "devDependencies": {
     "prettier": "^3.9.4"
+  },
+  "resolutions": {
+    "dompurify": "3.4.12"
   }
 }
