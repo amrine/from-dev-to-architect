@@ -1,5 +1,10 @@
 # TeamPulse — Deck Slidev
 
+## Démo publique
+
+La présentation interactive est publiée sur
+[GitHub Pages](https://amrine.github.io/from-dev-to-architect/).
+
 ## Structure
 
 ```

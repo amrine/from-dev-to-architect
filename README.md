@@ -25,6 +25,8 @@ corrigées en cours de route.
 📊 Le support de présentation (Slidev) régénère ses slides depuis les besoins,
 ADRs et commits du repo.
 
+🌐 [Parcourir la présentation interactive TeamPulse](https://amrine.github.io/from-dev-to-architect/).
+
 ## Environnement local
 
 ### Prérequis
