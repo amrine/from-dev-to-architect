@@ -1,7 +1,46 @@
-# AGENT.md
+# AGENTS.md
 
 ## But
 Ce document decrit l'organisation du projet pour une architecture clean/hexagonale simple, sans DDD lourd. Il sert de reference pour tous les modules.
+
+## Regles de travail des agents
+
+Avant de modifier le depot, un agent doit lire
+[CONTRIBUTING.md](CONTRIBUTING.md) et respecter les conventions de ce fichier.
+
+### Nommage obligatoire des branches
+
+Le nom d'une branche doit decrire le changement lui-meme. Il ne doit jamais
+etre prefixe par le nom d'un agent, d'un assistant ou d'un outil. Les prefixes
+`codex/`, `claude/`, `chatgpt/` et `agent/` sont notamment interdits.
+
+Sauf si l'utilisateur fournit explicitement le nom de la branche, l'agent doit
+choisir le prefixe correspondant au but principal du changement :
+
+| Changement | Format de branche |
+| --- | --- |
+| Fonctionnalite | `feat/<issue>-<description-courte>` |
+| Correction | `fix/<issue>-<description-courte>` |
+| Documentation | `docs/<issue>-<description-courte>` |
+| Tests | `test/<issue>-<description-courte>` |
+| Refactoring | `refactor/<issue>-<description-courte>` |
+| CI ou automatisation | `ci/<issue>-<description-courte>` |
+| Maintenance | `chore/<issue>-<description-courte>` |
+| Ticket de roadmap | `W00X-TYY-<description-courte>` |
+
+La partie `<issue>-` est omise lorsqu'aucune issue GitHub n'existe. La
+description doit etre en anglais, en minuscules et en kebab-case. L'identifiant
+de roadmap reste en majuscules, exactement comme dans le ticket.
+
+Avant de creer ou renommer une branche, l'agent doit verifier que :
+
+- le prefixe correspond au but principal du changement ;
+- le nom ne contient aucun prefixe d'agent ou d'outil ;
+- la branche couvre une seule issue ou un seul changement coherent ;
+- une branche de roadmap contient son identifiant `W00X-TYY`.
+
+Si le changement ne peut pas etre classe de maniere fiable, l'agent doit
+demander le type de branche a l'utilisateur avant de la creer.
 
 ## Vue d'ensemble
 - `tp-app` : module bootstrap (demarrage Spring, wiring, configuration globale).

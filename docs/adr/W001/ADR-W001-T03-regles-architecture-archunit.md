@@ -141,7 +141,7 @@ Les regles R01 a R09 sont centralisees dans une fabrique commune. R10 est verifi
 par un test qui s'assure que les memes identifiants de regles sont appliques a tous
 les modules metier decouverts.
 
-`AGENT.md` est aligne sur la decision `application.port.in` et
+`AGENTS.md` est aligne sur la decision `application.port.in` et
 `application.port.out`.
 
 Validation acceptee le 22 juillet 2026 apres l'echec controle de R01, la suppression

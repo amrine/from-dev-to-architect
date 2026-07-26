@@ -52,7 +52,7 @@ The backend is a **Maven multi-module project** (`packaging=pom` at root) where 
 - Public surfaces are declared with `@NamedInterface`: `api` (Java contracts) and `events` (Spring events). Everything else is internal by default.
 - `ModulithArchitectureTests.verifiesArchitecture()` runs `ApplicationModules.verify()` on every `mvn verify`.
 
-**Hexagonal layout inside each business module** (see `AGENT.md` for full detail and examples):
+**Hexagonal layout inside each business module** (see `AGENTS.md` for full detail and examples):
 ```
 io.teampulse.<module>
 ├── domain/model          # pure business rules, no I/O
@@ -75,7 +75,7 @@ Every roadmap ticket `W00X-TYY` requires a dedicated ADR before the ticket is co
 - Location: `docs/adr/W00X/ADR-W00X-TYY-short-name.md`
 - Besoin files: `docs/besoins/W00X/W00X-TYY-short-name.md`
 - Statuses: `Draft` → `Accepted` | `Superseded` | `Rejected`
-- ADR template and full rules are in `AGENT.md` under "ADR obligatoire par ticket W00X".
+- ADR template and full rules are in `AGENTS.md` under "ADR obligatoire par ticket W00X".
 
 Before implementing any ticket: check for the ADR, create it if absent, implement, then update the ADR to `Accepted`.
 

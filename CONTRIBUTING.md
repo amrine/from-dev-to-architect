@@ -73,7 +73,7 @@ before implementation.
 
 ## Architecture rules
 
-Read [AGENT.md](AGENT.md) before changing application code. In particular:
+Read [AGENTS.md](AGENTS.md) before changing application code. In particular:
 
 - dependencies must point inward from infrastructure to application to domain;
 - business modules must not depend on `tp-app`;
