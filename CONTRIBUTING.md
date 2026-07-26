@@ -9,6 +9,9 @@ decisions documented along the way.
 
 Both first-time and experienced contributors are welcome.
 
+By participating, you agree to follow our
+[Code of Conduct](CODE_OF_CONDUCT.md).
+
 ## Ways to contribute
 
 Beginner-friendly contributions may include:
