@@ -1,0 +1,4 @@
+* @amrine
+
+# Protection explicite du fichier CODEOWNERS
+/.github/CODEOWNERS @amrine

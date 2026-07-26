@@ -1,0 +1,92 @@
+name: Bug report
+description: Report a reproducible problem in TeamPulse, its documentation, or its learning material.
+title: "[Bug]: "
+labels:
+  - bug
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for taking the time to report a problem.
+        Issues may be written in English or French. Do not include secrets,
+        credentials, or personal data.
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Affected area
+      description: Select the area in which the problem occurs.
+      options:
+        - Backend
+        - Slidev presentation
+        - Documentation
+        - Local development environment
+        - CI or developer tooling
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: Describe what happened and why you consider it a bug.
+      placeholder: Provide a clear and concise description of the problem.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      description: Provide the smallest reliable sequence that reproduces the problem.
+      placeholder: |
+        1. Start ...
+        2. Run ...
+        3. Observe ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: Explain what you expected to happen.
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Include every version relevant to the affected area.
+      placeholder: |
+        Operating system:
+        Java:
+        Docker:
+        Node.js:
+        Yarn:
+        Commit or branch:
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or screenshots
+      description: Add relevant logs, stack traces, screenshots, or other evidence.
+      render: shell
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Pre-submission checks
+      options:
+        - label: I searched the existing issues and did not find a duplicate.
+          required: true
+        - label: I reproduced the problem on the latest relevant version or branch.
+          required: true
+        - label: I removed secrets, credentials, and personal data from this report.
+          required: true
