@@ -47,12 +47,12 @@ Le service doit apparaître avec l'état `healthy`.
 
 La configuration locale utilise les valeurs suivantes :
 
-| Paramètre | Valeur par défaut |
-|---|---|
-| URL JDBC | `jdbc:postgresql://localhost:5432/teampulse` |
-| Base | `teampulse` |
-| Utilisateur | `teampulse` |
-| Mot de passe | `teampulse` |
+| Paramètre    | Valeur par défaut                            |
+| ------------ | -------------------------------------------- |
+| URL JDBC     | `jdbc:postgresql://localhost:5432/teampulse` |
+| Base         | `teampulse`                                  |
+| Utilisateur  | `teampulse`                                  |
+| Mot de passe | `teampulse`                                  |
 
 Ces valeurs peuvent être remplacées avec les variables
 `TEAM_PULSE_DB_URL`, `TEAM_PULSE_DB_USERNAME` et
@@ -116,7 +116,14 @@ Remplacer `IdentityModuleTests` par `OrganizationModuleTests` ou
 `TeamModuleTests` pour cibler un autre module. Chaque test charge uniquement
 la configuration Flyway et le schéma du module concerné.
 
+## Contributing
 
+Contributions from both first-time and experienced contributors are welcome.
+Issues and discussions may be written in English or French.
+
+Read [CONTRIBUTING.md](CONTRIBUTING.md) before starting. Beginner-friendly
+tasks will be labelled
+[`good first issue`](https://github.com/amrine/from-dev-to-architect/labels/good%20first%20issue).
 
 ## License
 

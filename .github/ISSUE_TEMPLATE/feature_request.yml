@@ -1,0 +1,95 @@
+name: Improvement proposal
+description: Propose an improvement to TeamPulse, its documentation, or its learning material.
+title: "[Proposal]: "
+labels:
+  - enhancement
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for helping improve From Dev to Architect.
+        Issues may be written in English or French. Please describe the problem
+        before proposing a specific technology or implementation.
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      description: Select the main area affected by the proposal.
+      options:
+        - Backend
+        - Frontend
+        - Infrastructure or delivery
+        - Security or observability
+        - Slidev presentation
+        - Documentation
+        - Developer experience
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or opportunity
+      description: Explain the need, limitation, or learning gap this proposal addresses.
+      placeholder: Who is affected, what is difficult today, and why does it matter?
+    validations:
+      required: true
+
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Desired outcome
+      description: Describe the observable result rather than only an implementation.
+      placeholder: What should become possible or easier?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed approach
+      description: Describe a possible solution, including its expected scope.
+      placeholder: This is a starting point for discussion, not a required final design.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: architecture
+    attributes:
+      label: Architectural or roadmap impact
+      description: Indicate whether the proposal may require a requirement document or ADR.
+      options:
+        - No known impact
+        - Not sure
+        - Potential architectural impact
+        - Potential roadmap impact
+        - Potential architectural and roadmap impact
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: List other approaches or workarounds, if any.
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Contribution
+      options:
+        - label: I would like to work on this proposal after its scope is approved.
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Pre-submission checks
+      options:
+        - label: I searched the existing issues and did not find a duplicate.
+          required: true
+        - label: I understand that roadmap and architectural changes require prior discussion.
+          required: true
