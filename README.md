@@ -125,6 +125,11 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md) before starting. Beginner-friendly
 tasks will be labelled
 [`good first issue`](https://github.com/amrine/from-dev-to-architect/labels/good%20first%20issue).
 
+## Security
+
+Do not report suspected vulnerabilities through a public issue or pull request.
+Follow the private reporting instructions in [SECURITY.md](SECURITY.md).
+
 ## License
 
 This project is licensed under the Apache License 2.0.
