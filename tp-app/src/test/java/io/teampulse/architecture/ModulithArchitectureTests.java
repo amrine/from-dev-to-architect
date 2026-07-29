@@ -2,7 +2,9 @@ package io.teampulse.architecture;
 
 import io.teampulse.TpAppApplication;
 import org.junit.jupiter.api.Test;
+import org.springframework.modulith.core.ApplicationModule;
 import org.springframework.modulith.core.ApplicationModules;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ModulithArchitectureTests {
 
@@ -15,7 +17,8 @@ public class ModulithArchitectureTests {
     }
 
     @Test
-    void printsModules() {
-        modules.forEach(System.out::println);
+    void assertsExpectedModules() {
+        assertThat(modules.stream().map(ApplicationModule::getName))
+                .containsExactlyInAnyOrder("common", "identity", "organization", "team");
     }
 }
