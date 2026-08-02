@@ -42,8 +42,8 @@ Voici l'écart actuellement identifié et l'arbitrage proposé.
 <v-clicks>
 
 <div class="tp-card tp-card--warn">
-<h3>W001 · Besoins T04 → T07 à rédiger</h3>
-<p class="small muted">Les besoins existent mais n'ont pas encore été travaillés — compléter <code>docs/besoins/W001/README.md</code>.</p>
+<h3>W001 · Besoins T06 → T07 à rédiger</h3>
+<p class="small muted">T04 et T05 sont désormais documentés. Il reste à formaliser l'image exécutable et la configuration par environnement.</p>
 <span class="tp-badge tp-badge--warn">action · ce weekend</span>
 </div>
 
@@ -60,11 +60,11 @@ Chaque écart corrigé disparaît à la prochaine régénération du deck
 <!--
 **Message à faire passer**
 
-Les besoins T04 à T07 sont planifiés mais leur documentation détaillée doit encore être produite avant de les enseigner ou de les implémenter.
+Les besoins T04 et T05 sont maintenant documentés ; T06 et T07 restent planifiés sans documentation détaillée suffisante pour être enseignés ou implémentés.
 
 **Déroulé oral**
 
-Présentez cet élément comme un backlog de qualité documentaire. T01 et T02 restent livrés ; l'écart concerne la préparation des tickets suivants. L'action doit préciser un responsable ou une échéance, puis être vérifiée lors de la prochaine génération.
+Présentez cet élément comme un backlog de qualité documentaire. T01 à T03 restent livrés ; T04 et T05 disposent maintenant de leurs besoins et ADR en statut Draft. L'écart ne concerne plus que la préparation de T06 et T07. L'action doit préciser un responsable ou une échéance, puis être vérifiée lors de la prochaine génération.
 
 [click] Soulignez que la carte doit disparaître automatiquement lorsque les sources deviennent cohérentes.
 
