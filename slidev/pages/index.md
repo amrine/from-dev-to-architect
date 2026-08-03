@@ -9,7 +9,7 @@ routeAlias: agenda
 
 <PulseLine :width="260" />
 
-<div class="tp-grid-2 mt-4">
+<div class="tp-grid-2 mt-3 small">
 
 <Link to="programme">
 <div class="tp-card tp-card--pulse">
@@ -38,10 +38,9 @@ routeAlias: agenda
 <div class="tp-card tp-card--pulse">
 <h3>04 · Première mise en situation</h3>
 <p class="small muted">Trois développeurs, trois domaines et une semaine pour construire un socle commun vérifiable.</p>
-<span class="tp-badge tp-badge--done">T01 livré</span>
-<span class="tp-badge tp-badge--done">T02 livré</span>
-<span class="tp-badge tp-badge--done">T03 livré</span>
-<span class="tp-badge tp-badge--doc">T04 → T07 planifiés</span>
+<span class="tp-badge tp-badge--done">T01 → T03 livrés</span>
+<span class="tp-badge tp-badge--doc">T04 + T05 documentés</span>
+<span class="tp-badge tp-badge--doc">T06 + T07 planifiés</span>
 </div>
 </Link>
 
@@ -54,7 +53,7 @@ Le sommaire suit une progression de raisonnement : partir du métier de dévelop
 
 **Déroulé oral**
 
-Présentez rapidement les quatre étapes sans détailler les solutions. Le public doit seulement comprendre pourquoi cet ordre existe. On ne peut pas discuter d'architecture sans produit concret, et on ne peut pas comprendre W001 sans avoir défini les mots utilisés.
+Présentez rapidement les quatre étapes sans détailler les solutions. Le public doit seulement comprendre pourquoi cet ordre existe. On ne peut pas discuter d'architecture sans produit concret, et on ne peut pas comprendre W001 sans avoir défini les mots utilisés. Signalez que T04 et T05 disposent maintenant d'un besoin et d'un ADR, mais ne sont pas encore présentés comme implémentés.
 
 **Insister sur**
 
