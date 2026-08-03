@@ -4,6 +4,8 @@ import io.teampulse.TpAppApplication;
 import org.junit.jupiter.api.Test;
 import org.springframework.modulith.core.ApplicationModules;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 public class ModulithArchitectureTests {
 
     private final ApplicationModules modules =
@@ -15,7 +17,8 @@ public class ModulithArchitectureTests {
     }
 
     @Test
-    void printsModules() {
-        modules.forEach(System.out::println);
+    void assertsExpectedModules() {
+        assertThat(modules.stream().map(module -> module.getIdentifier().toString()))
+                .containsExactlyInAnyOrder("common", "identity", "organization", "team");
     }
 }
