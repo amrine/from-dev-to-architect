@@ -1,0 +1,12 @@
+package io.teampulse.identity.domain.user.error;
+
+public enum UserErrorCode {
+    NOT_FOUND,
+    INVALID_EMAIL,
+    INVALID_FIRST_NAME,
+    INVALID_LAST_NAME,
+    EMAIL_ALREADY_USED,
+    INVALID_STATUS_TRANSITION,
+    REFERENCE_GENERATION_FAILED,
+    CONCURRENT_MODIFICATION
+}

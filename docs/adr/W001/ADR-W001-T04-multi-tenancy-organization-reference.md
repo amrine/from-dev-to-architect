@@ -511,19 +511,21 @@ un adapter HTTP sans modifier le cas d'usage consommateur.
 
 ### 9. Définir les erreurs internes et leur traduction entre modules
 
-Chaque module possède dans son package interne `domain.error` une enum de codes
-stables et une seule exception métier non vérifiée :
+Chaque module subdivise sa couche `domain` par domaine fonctionnel. Dans chaque
+sous-domaine, les packages `model` et `error` sont placés au même niveau sous
+`domain.<domaine>`. Le domaine propriétaire possède une enum de codes stables
+et une seule exception métier non vérifiée :
 
 ```text
-io.teampulse.organization.domain.error
+io.teampulse.organization.domain.organization.error
 ├── OrganizationErrorCode
 └── OrganizationException
 
-io.teampulse.identity.domain.error
+io.teampulse.identity.domain.user.error
 ├── UserErrorCode
 └── UserException
 
-io.teampulse.team.domain.error
+io.teampulse.team.domain.team.error
 ├── TeamErrorCode
 └── TeamException
 ```
@@ -987,7 +989,7 @@ Option rejetée. Une enum globale couplerait les modules à des concepts qu'ils 
 possèdent pas et transformerait `tp-common` en catalogue métier. Chaque module
 conserve donc sa propre enum.
 
-### Exposer le package `domain.error` avec `@NamedInterface`
+### Exposer les packages `domain.<domaine>.error` avec `@NamedInterface`
 
 Option rejetée. Un module consommateur serait alors couplé aux erreurs internes
 du fournisseur et pourrait dépendre de détails qui ne font pas partie du
@@ -1142,7 +1144,7 @@ cette infrastructure dans le runtime.
   `OrganizationDirectoryException` dans `io.teampulse.organization.api`, déjà
   exposé par `@NamedInterface("api")`.
 - `OrganizationErrorCode` et `OrganizationException` dans le package interne
-  `io.teampulse.organization.domain.error`.
+  `io.teampulse.organization.domain.organization.error`.
 - Consommation de l'API publique `UserDirectory` pour valider les responsables.
 - Dépendance Spring Modulith limitée à `identity::user` en plus de `common`.
 
@@ -1156,7 +1158,7 @@ cette infrastructure dans le runtime.
 - `UserDirectory`, `UserAvailability` et `UserDirectoryException` dans
   `io.teampulse.identity.api.user`, exposé par `@NamedInterface("user")`.
 - `UserErrorCode` et `UserException` dans le package interne
-  `io.teampulse.identity.domain.error`.
+  `io.teampulse.identity.domain.user.error`.
 - Repositories toujours filtrés par `organizationReference`.
 - Services applicatifs déclarés avec `@Service`, validés avec `@Validated` et
   transactionnels avec `@Transactional`, sans dépendance vers JPA, Spring Data,
@@ -1167,7 +1169,7 @@ cette infrastructure dans le runtime.
 
 - Domaines `Team` et `TeamMember`.
 - `TeamErrorCode`, incluant les erreurs de `TeamMember`, et `TeamException` dans
-  le package interne `io.teampulse.team.domain.error`.
+  le package interne `io.teampulse.team.domain.team.error`.
 - Consommation de l'API publique `OrganizationDirectory` de `tp-organization`.
 - Consommation de l'API publique `UserDirectory` de `tp-identity`.
 - Vérification de l'administrateur, du manager et des membres dans le tenant.
@@ -1317,7 +1319,7 @@ cette infrastructure dans le runtime.
   `tp-identity`.
 - Vérifier que `UserDirectory`, `UserAvailability` et
   `UserDirectoryException` sont accessibles via `identity::user`, tandis que
-  `io.teampulse.identity.domain.error` reste interne.
+  `io.teampulse.identity.domain.user.error` reste interne.
 - Vérifier que `UserDirectory` rejette toute référence d'organisation ou
   d'utilisateur nulle, vide ou blanche comme violation du contrat, sans appeler
   le repository et sans produire `NOT_FOUND` ou `UserDirectoryException`.
@@ -1328,7 +1330,8 @@ cette infrastructure dans le runtime.
   d'un repository de `tp-organization`.
 - Vérifier que `OrganizationDirectory`, `OrganizationAvailability` et
   `OrganizationDirectoryException` sont accessibles via `organization::api`,
-  tandis que `io.teampulse.organization.domain.error` reste interne.
+  tandis que `io.teampulse.organization.domain.organization.error` reste
+  interne.
 - Vérifier qu'une équipe ne peut être créée que si `OrganizationDirectory`
   retourne `AVAILABLE`, et que `UNAVAILABLE` ou `NOT_FOUND` refusent la création.
 - Vérifier que chaque validation, transition, indisponibilité et conflit couvert
@@ -1394,7 +1397,7 @@ cette infrastructure dans le runtime.
   technique d'un autre module.
 - Exécuter `ApplicationModules.verify()` et vérifier que les consommateurs
   dépendent uniquement de `identity::user` et `organization::api`, jamais des
-  packages `domain.error` externes.
+  packages `domain.<domaine>.error` externes.
 - Exécuter la suite assemblée `./mvnw -pl tp-app -am test` avec Docker actif.
 
 ## Risques

@@ -453,24 +453,26 @@ conservées.
 
 ### Erreurs métier et défaillances inter-modules
 
-Chaque module possède, dans son package interne `domain.error`, une enum de
-codes d'erreur stable et une seule exception métier non vérifiée qui transporte
-obligatoirement un code, un message de diagnostic interne et, si nécessaire,
-une cause. Les enums ne portent ni message utilisateur, ni statut HTTP et ne
-sont pas placées dans `tp-common`. L'adapter web du module décidera
-ultérieurement de leur représentation externe sans exposer directement le
-message interne de l'exception.
+Chaque module subdivise sa couche `domain` par domaine fonctionnel. Dans chaque
+sous-domaine, les packages `model` et `error` sont placés au même niveau sous
+`domain.<domaine>`. Le domaine propriétaire possède une enum de codes d'erreur
+stable et une seule exception métier non vérifiée qui transporte obligatoirement
+un code, un message de diagnostic interne et, si nécessaire, une cause. Les
+enums ne portent ni message utilisateur, ni statut HTTP et ne sont pas placées
+dans `tp-common`. L'adapter web du module décidera ultérieurement de leur
+représentation externe sans exposer directement le message interne de
+l'exception.
 
 ```text
-io.teampulse.organization.domain.error
+io.teampulse.organization.domain.organization.error
 ├── OrganizationErrorCode
 └── OrganizationException
 
-io.teampulse.identity.domain.error
+io.teampulse.identity.domain.user.error
 ├── UserErrorCode
 └── UserException
 
-io.teampulse.team.domain.error
+io.teampulse.team.domain.team.error
 ├── TeamErrorCode
 └── TeamException
 ```
@@ -662,8 +664,9 @@ jamais une dépendance du module consommateur.
 - [ ] Les résultats métier attendus des APIs `Directory` sont retournés par les
       enums d'availability ; une panne technique est exposée par l'exception
       publique du contrat puis traduite par le module consommateur.
-- [ ] Aucune exception JPA, Spring ou issue du package `domain.error` d'un autre
-      module ne traverse une dépendance inter-module.
+- [ ] Aucune exception JPA, Spring ou issue du package
+      `domain.<domaine>.error` d'un autre module ne traverse une dépendance
+      inter-module.
 - [ ] Un utilisateur d'une autre organisation est retourné `NOT_FOUND`.
 - [ ] Les responsables d'une organisation ou d'une équipe doivent être
       `AVAILABLE` ; une appartenance `INVITED` accepte un utilisateur `PENDING`.
