@@ -44,7 +44,7 @@ Delivered through `main`:
 
 The next W001 sequence is:
 
-1. `W001-T04`: organization-scoped multi-tenancy with `org_id`;
+1. `W001-T04`: organization-scoped multi-tenancy with `organization_ref`;
 2. `W001-T05`: minimal users API and persistence vertical;
 3. `W001-T06`: production-oriented multi-stage container image;
 4. `W001-T07`: explicit local and LocalStack configuration profiles.

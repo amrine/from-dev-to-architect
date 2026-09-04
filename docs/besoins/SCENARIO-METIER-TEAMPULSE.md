@@ -36,7 +36,7 @@ administrer
   organisation.
 
 L'administrateur plateforme gere le contenant technique. Il peut creer,
-suspendre ou archiver une organisation et designer son premier administrateur,
+suspendre ou archiver une organisation et designer son administrateur initial,
 mais il ne peut pas consulter les equipes, les campagnes, les reponses, les
 resultats ou les actions de cette organisation.
 
@@ -45,29 +45,52 @@ resultats ou les actions de cette organisation.
 Les roles sont cumulatifs et contextualises. Ils ne forment pas une hierarchie
 donnant automatiquement acces aux donnees sensibles.
 
+Dans un meme perimetre, l'administrateur gere le contenant : utilisateurs,
+equipes, affectations, roles et fonctionnement. Le manager exploite le contenu
+metier : resultats, tendances et actions d'amelioration. L'attribution d'une
+fonction n'accorde pas automatiquement les capacites de l'autre.
+
 | Role | Perimetre | Capacites principales |
 | --- | --- | --- |
-| Administrateur plateforme | Plateforme | Creer et administrer le cycle de vie d'une organisation, designer le premier administrateur, consulter l'etat technique |
+| Administrateur plateforme | Plateforme | Creer et administrer le cycle de vie d'une organisation, designer l'administrateur initial, consulter l'etat technique |
 | Administrateur d'organisation | Une organisation | Gerer les utilisateurs, les equipes, les affectations et les roles |
 | Manager d'organisation | Une organisation | Consulter les tendances consolidees et le suivi global des actions |
-| Administrateur d'equipe | Une equipe dont il est membre | Gerer les membres et superviser le cycle des campagnes et des votes |
-| Manager d'equipe | Une equipe dont il est membre | Consulter les resultats, proposer et suivre les actions |
+| Administrateur d'equipe | Une equipe | Gerer les membres et superviser le cycle des campagnes et des votes |
+| Manager d'equipe | Une equipe | Consulter les resultats, proposer et suivre les actions |
 | Membre | Une ou plusieurs equipes de son organisation | Repondre, consulter les resultats publies, suggerer et voter |
 | Auditeur d'organisation | Une organisation | Consulter les traces administratives et de securite sans lire les contributions sensibles |
 
+Chaque organisation possede a un instant donne exactement un administrateur et
+un manager. Une meme personne peut exercer les deux fonctions.
+
+Chaque equipe possede a un instant donne exactement un administrateur et un
+manager. Une meme personne peut exercer les deux fonctions.
+
 Un administrateur d'organisation ne lit pas automatiquement les resultats d'une
-equipe. Il doit aussi etre membre ou manager dans le perimetre concerne. Un
-administrateur ou manager d'equipe est toujours membre de cette equipe.
+equipe. Il doit aussi etre membre ou manager dans le perimetre concerne. Les
+responsabilites d'administrateur et de manager d'equipe sont independantes de
+l'appartenance : chacun peut etre membre de l'equipe ou ne pas l'etre.
 
 ## Administration initiale
 
-1. L'administrateur plateforme cree une organisation.
-2. Il designe son premier administrateur d'organisation.
-3. L'administrateur d'organisation invite les utilisateurs et cree les equipes.
-4. Il designe les managers d'organisation, administrateurs d'equipe et managers
-   d'equipe.
-5. L'administrateur d'organisation ou l'administrateur d'equipe ajoute les
-   utilisateurs aux equipes autorisees.
+1. L'administrateur plateforme cree une organisation en `CREATING`.
+2. Le systeme cree ou invite l'administrateur initial dans cette organisation.
+3. Lorsque cet utilisateur est `AVAILABLE`, il designe le manager de
+   l'organisation, qui peut etre lui-meme.
+4. L'organisation devient `ACTIVE` uniquement lorsque son administrateur et son
+   manager sont tous les deux `AVAILABLE`.
+5. L'administrateur d'organisation invite les autres utilisateurs.
+6. Lorsque les responsables choisis pour une equipe sont `AVAILABLE`, il cree
+   cette equipe en fournissant son administrateur et son manager.
+7. L'equipe est creee directement en `ACTIVE`.
+8. L'administrateur d'organisation ou l'administrateur d'equipe ajoute ou invite
+   les autres membres dans les equipes autorisees.
+
+Pendant `CREATING`, seules les operations necessaires a l'initialisation de
+l'organisation sont possibles. La creation d'equipes et les fonctionnalites
+metier normales commencent apres son activation. L'identification reelle de
+l'administrateur initial et l'autorisation de ces operations seront appliquees
+avec la securite JWT.
 
 ## Campagne hebdomadaire
 
@@ -119,7 +142,9 @@ La campagne suivante permet d'evaluer si l'action a produit l'effet attendu.
 ## Retrait d'un membre
 
 Une appartenance a une equipe n'est jamais supprimee physiquement. Elle possede
-une date de debut, une date de fin et un statut.
+un `startedAt`, un `endedAt` et un statut. `startedAt` est renseigne lorsque
+l'utilisateur devient effectivement `ACTIVE`, tandis que `endedAt` est
+renseigne lorsqu'il passe a `REMOVED`.
 
 - Un retrait normal peut prendre effet a la fin du cycle en cours.
 - Un retrait urgent revoque immediatement les acces et exige un motif audite.

@@ -356,7 +356,7 @@ Exemples :
 docs/adr/W001/ADR-W001-T01-backend-multi-module.md
 docs/adr/W001/ADR-W001-T02-docker-compose-local.md
 docs/adr/W001/ADR-W001-T03-flyway-schema-initial.md
-docs/adr/W001/ADR-W001-T04-multi-tenancy-org-id.md
+docs/adr/W001/ADR-W001-T04-multi-tenancy-organization-reference.md
 ```
 
 ### Regle d'execution agent

@@ -208,7 +208,7 @@ Le domaine ne connait jamais les couches placees a sa gauche.
 
 ## Perimetre exclu
 - Creation de classes metier, entites, repositories ou controleurs factices.
-- Implementation du multi-tenancy et de `org_id`, traitee dans T04.
+- Implementation du multi-tenancy et de `organization_ref`, traitee dans T04.
 - Implementation de la premiere API fonctionnelle, traitee dans T05.
 - Regles de formatage, Checkstyle, couverture de code ou analyse Sonar.
 - Remplacement de Spring Modulith par ArchUnit.
@@ -265,7 +265,7 @@ L'apprenant doit notamment savoir expliquer :
 ## Liens avec les autres tickets
 - Depend de : W001-T01 pour la structure multi-module et les frontieres Spring Modulith.
 - Depend de : W001-T02 pour les premieres configurations techniques portees par les modules.
-- Prepare : W001-T04, qui introduira la persistence multi-tenant avec `org_id`.
+- Prepare : W001-T04, qui introduira la persistence multi-tenant avec `organization_ref`.
 - Prepare : W001-T05, qui introduira la premiere verticale API, application, domaine et persistence.
 
 ## Decision associee
