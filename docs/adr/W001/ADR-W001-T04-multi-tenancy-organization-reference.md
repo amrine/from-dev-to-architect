@@ -54,9 +54,12 @@ encore introduite et devra être revue avant Kubernetes.
 
 ### 2. Générer les références dans `tp-common`
 
-Le générateur est un composant Java pur et transverse placé dans un package
-`reference` de `tp-common`. Il ne dépend ni de Spring, ni de JPA, ni d'un module
-métier.
+Les types `ReferenceFactory`, `MonotonicReferenceFactory` et `GenerationState`
+forment un générateur Java pur et transverse placé dans le package `reference`
+de `tp-common`. Ils ne dépendent ni de Spring, ni de JPA, ni d'un module métier.
+Seul le descripteur `package-info.java` utilise Spring Modulith pour exposer ce
+package comme interface nommée `common::reference` ; cette métadonnée
+d'architecture n'entre pas dans l'implémentation du générateur.
 
 Le contrat public s'appelle `ReferenceFactory` et expose une seule opération :
 
