@@ -83,12 +83,11 @@ Exemples de tickets :
 
 ```text
 W001-T01 — Initialiser le backend multi-module
-W001-T02 — Configurer Docker Compose local
-W001-T03 — Modéliser la multi-tenancy avec org_id
-W001-T04 — Créer la migration Flyway initiale
-W001-T05 — Exposer l'API minimale Users
-W001-T06 — Ajouter les tests d'intégration backend
-W001-T07 — Documenter le démarrage local
+W001-T02 — Configurer PostgreSQL local et les schémas Flyway
+W001-T03 — Définir les règles d'architecture ArchUnit et Spring Modulith
+W001-T04 — Modéliser la multi-tenancy avec organization_ref
+W001-T05 — Ajouter les rôles contextualisés et l'API d'administration
+W001-T06 — Créer l'image Docker multi-stage
 ```
 
 ## Nommage

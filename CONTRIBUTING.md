@@ -119,7 +119,7 @@ fix/21-organization-migration
 Roadmap branches keep their ticket identifier:
 
 ```text
-W001-T04-multi-tenancy-org-id
+W001-T04-multi-tenancy-organization-reference
 ```
 
 Keep one issue or one cohesive change per branch.
