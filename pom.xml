@@ -23,6 +23,7 @@
         <module>tp-team</module>
         <module>tp-app</module>
         <module>tp-common</module>
+        <module>tp-test-support</module>
     </modules>
 
     <properties>
@@ -127,6 +128,12 @@
             </dependency>
 
             <dependency>
+                <groupId>io.teampulse</groupId>
+                <artifactId>tp-test-support</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
                 <groupId>org.springframework.modulith</groupId>
                 <artifactId>spring-modulith-starter-test</artifactId>
                 <version>${spring-modulith.version}</version>
@@ -167,7 +174,6 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
-                    <argLine>-javaagent:${settings.localRepository}/org/mockito/mockito-core/${mockito.version}/mockito-core-${mockito.version}.jar</argLine>
                     <includes>
                         <include>**/*Test.java</include>
                         <include>**/*Tests.java</include>
