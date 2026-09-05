@@ -44,9 +44,20 @@ class InternalArchitectureTests {
         );
 
         assertEquals(
-            List.of("R01", "R02", "R03", "R04", "R05", "R06", "R07", "R08", "R09"),
+            List.of(
+                "R01",
+                "R02",
+                "R03",
+                "R04",
+                "R05",
+                "R06",
+                "R07",
+                "R08",
+                "R09",
+                "R11"
+            ),
             ruleIdsByModule.getFirst(),
-            "R10 - le catalogue doit contenir toutes les règles R01 à R09"
+            "R10 - le catalogue doit contenir les règles R01 à R09 et R11"
         );
     }
 

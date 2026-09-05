@@ -21,6 +21,14 @@ import static com.tngtech.archunit.library.dependencies.SlicesRuleDefinition.sli
 
 final class BusinessModuleArchitectureRules {
 
+    private static final Set<String> ALLOWED_APPLICATION_SERVICE_SPRING_TYPES = Set.of(
+        "org.springframework.stereotype.Service",
+        "org.springframework.transaction.annotation.Isolation",
+        "org.springframework.transaction.annotation.Propagation",
+        "org.springframework.transaction.annotation.Transactional",
+        "org.springframework.validation.annotation.Validated"
+    );
+
     static final JavaClasses PRODUCTION_CLASSES = new ClassFileImporter()
         .withImportOption(new ImportOption.DoNotIncludeTests())
         .importPackages(TpAppApplication.class.getPackageName());
@@ -39,7 +47,8 @@ final class BusinessModuleArchitectureRules {
             rule(module, "R06", r06(packages)),
             rule(module, "R07", r07(packages)),
             rule(module, "R08", r08(packages)),
-            rule(module, "R09", r09(packages))
+            rule(module, "R09", r09(packages)),
+            rule(module, "R11", r11(packages))
         );
     }
 
@@ -174,6 +183,22 @@ final class BusinessModuleArchitectureRules {
             .because("la direction des dépendances vers le cœur doit rester acyclique");
     }
 
+    private static ArchRule r11(ModulePackages packages) {
+        return CompositeArchRule.of(noClasses()
+                .that().resideInAPackage(packages.applicationService())
+                .should().dependOnClassesThat().resideInAnyPackage(
+                    "jakarta.persistence..",
+                    "org.springframework.data..",
+                    packages.infrastructure(),
+                    packages.config()
+                ))
+            .and(classes()
+                .that().resideInAPackage(packages.applicationService())
+                .should(onlyDependOnAllowedSpringTypes()))
+            .as("R11 - les services applicatifs restent indépendants de la persistence et limitent leur usage de Spring")
+            .because("seules les annotations @Service, @Validated et @Transactional sont autorisées dans les services applicatifs");
+    }
+
     private static ModuleRule rule(ArchitectureModules.BusinessModule module, String id, ArchRule rule) {
         return new ModuleRule(module.name(), id, rule.allowEmptyShould(true));
     }
@@ -228,6 +253,28 @@ final class BusinessModuleArchitectureRules {
         };
     }
 
+    private static ArchCondition<JavaClass> onlyDependOnAllowedSpringTypes() {
+        return new ArchCondition<>(
+            "ne dépendre que des annotations Spring autorisées "
+                + ALLOWED_APPLICATION_SERVICE_SPRING_TYPES
+        ) {
+            @Override
+            public void check(JavaClass item, ConditionEvents events) {
+                item.getDirectDependenciesFromSelf()
+                    .stream()
+                    .map(dependency -> dependency.getTargetClass())
+                    .filter(target -> target.getPackageName().startsWith("org.springframework."))
+                    .filter(target -> !ALLOWED_APPLICATION_SERVICE_SPRING_TYPES.contains(target.getName()))
+                    .distinct()
+                    .forEach(target -> events.add(SimpleConditionEvent.violated(
+                        item,
+                        item.getName() + " dépend du type Spring non autorisé "
+                            + target.getName()
+                    )));
+            }
+        };
+    }
+
     private static DescribedPredicate<JavaClass> resideInModule(ModulePackages packages) {
         return new DescribedPredicate<>("réside dans le module " + packages.base()) {
             @Override
@@ -274,6 +321,10 @@ final class BusinessModuleArchitectureRules {
         String api,
         String events
     ) {
+
+        String applicationService() {
+            return base + ".application.service..";
+        }
 
         static ModulePackages from(ArchitectureModules.BusinessModule module) {
             String base = module.basePackage();
