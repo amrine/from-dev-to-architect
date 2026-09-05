@@ -1,6 +1,6 @@
 @ApplicationModule(
     displayName = "tp-identity",
-    allowedDependencies = { "common" }
+    allowedDependencies = { "common::context", "common::mapping", "common::reference" }
 )
 package io.teampulse.identity;
 
