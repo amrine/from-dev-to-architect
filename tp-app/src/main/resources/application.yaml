@@ -4,6 +4,8 @@ spring:
 
   flyway:
     enabled: false
+    validate-migration-naming: true
+    out-of-order: false
 
   modulith:
     detection-strategy: explicitly-annotated

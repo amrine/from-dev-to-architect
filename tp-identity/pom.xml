@@ -82,6 +82,11 @@
             <scope>test</scope>
         </dependency>
 
+        <dependency>
+            <groupId>io.teampulse</groupId>
+            <artifactId>tp-test-support</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
 </project>
