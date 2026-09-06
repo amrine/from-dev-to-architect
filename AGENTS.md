@@ -309,6 +309,24 @@ public class TpAppApplication {
 - Ne pas mettre d'adapters ou de logique metier specifique dans `tp-common`.
 - Ne pas faire depend `tp-common` d'un autre module du projet.
 
+### Resolution du tenant dans les controleurs
+
+Tout controleur qui appelle un cas d'usage tenanté doit :
+
+- injecter le contrat `TenantContextProvider` expose par `common::context`,
+  jamais une implementation concrete telle que `LocalTenantContextProvider` ;
+- appeler `current()` une seule fois par requete et transmettre exactement le
+  `TenantContext` obtenu au cas d'usage ;
+- ne jamais accepter `organizationReference` ou `tenantReference` depuis le
+  body, le path, les query parameters ou un header HTTP fourni par l'appelant ;
+- ne jamais generer lui-meme une reference de tenant ;
+- ne jamais interroger directement `tp-organization` pour determiner le tenant.
+
+Cette regle ne s'applique pas aux controleurs plateforme dont les cas d'usage
+sont explicitement non tenantés. Lorsque la resolution JWT sera introduite,
+seule l'implementation de `TenantContextProvider` changera : les controleurs et
+les cas d'usage conserveront le meme contrat.
+
 ## ADR obligatoire par ticket W00X
 
 Pour chaque ticket de la roadmap identifie par un code de type `W00X-TYY`, un ADR dedie doit etre cree.
