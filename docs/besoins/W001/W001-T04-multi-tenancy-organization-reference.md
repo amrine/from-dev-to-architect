@@ -250,20 +250,46 @@ TeamPulse doit donc disposer :
 
 ### Contexte local W001
 
-- Un service singleton fournit la référence de l'organisation courante aux flux
-  locaux tenantés.
-- Au premier appel, le service génère une référence ; les appels suivants de la
-  même exécution retournent la même valeur.
+- Le contrat transverse Java pur `TenantContextProvider` appartient au package
+  `io.teampulse.common.context`, exposé aux modules métier par l'interface
+  Spring Modulith nommée `common::context` :
+
+  ```java
+  public interface TenantContextProvider {
+      TenantContext current();
+  }
+  ```
+
+- Les futurs contrôleurs tenantés dépendent uniquement de ce contrat et
+  transmettent le `TenantContext` retourné par `current()` au cas d'usage.
+- `LocalTenantContextProvider`, placé dans `tp-app`, implémente la stratégie de
+  bootstrap W001. Il reçoit le bean `ReferenceFactory` fourni par
+  `ReferenceConfiguration` et n'instancie pas directement
+  `MonotonicReferenceFactory`.
+- `LocalTenantConfiguration`, également placée dans `tp-app`, enregistre ce
+  provider uniquement sous le profil Spring `local`. Le bean est singleton par
+  défaut dans le contexte Spring.
+- Au premier appel à `current()`, le provider génère une référence avec le
+  préfixe `ORG`, construit un unique `TenantContext`, puis retourne la même
+  instance pendant toute l'exécution. Cette initialisation lazy est thread-safe
+  afin que des appels concurrents ne déclenchent qu'une génération.
+- Si la génération échoue ou produit une référence refusée par `TenantContext`,
+  l'erreur est propagée, aucun contexte n'est mémorisé et un appel ultérieur peut
+  retenter la résolution. Aucun tenant de secours n'est fabriqué.
 - Cette valeur n'est pas conservée entre deux redémarrages et aucune organisation
   locale n'est insérée artificiellement par Flyway uniquement pour fournir un
   tenant de démonstration.
-- Cette simplification est limitée au développement local avant la sécurité JWT.
-- Le flux local construit un `TenantContext` dont la `tenantReference` contient
-  cette référence d'organisation. Le nom générique exprime le périmètre isolé
-  sans rendre `tp-common` dépendant du modèle `Organization`.
+- La stratégie est limitée au développement local. Hors du profil `local`,
+  aucun faux provider partagé n'est enregistré et une vraie stratégie devra
+  être fournie avant de câbler des contrôleurs tenantés en production.
 - `TenantContext` rend la présence du tenant explicite mais ne prouve ni
-  l'identité de l'appelant, ni ses permissions. W008 remplacera la source locale
-  par une valeur issue d'un JWT validé.
+  l'identité de l'appelant, ni ses permissions. W008 remplacera
+  `LocalTenantContextProvider` par une implémentation résolvant le contexte
+  depuis un JWT validé, sans modifier les contrôleurs ni les cas d'usage.
+- Un contrôleur tenanté n'accepte aucune `organizationReference` ou
+  `tenantReference` libre dans le body, le path, la query ou un header, ne
+  génère aucune référence et n'interroge pas directement `tp-organization` pour
+  déterminer le tenant courant.
 - Les cas d'usage plateforme ne reçoivent aucun `TenantContext`. Aucun
   `PlatformContext` vide n'est créé en W001, car il ne transporterait encore
   aucune identité ou information fiable.
@@ -618,10 +644,22 @@ jamais une dépendance du module consommateur.
 - [ ] En W001, la `tenantReference` reçue par un cas d'usage tenanté correspond
       à `Organization.reference`, puis est transmise aux ports sortants sous le
       nom métier `organizationReference`.
+- [ ] `TenantContextProvider.current()` est un contrat Java pur de
+      `common::context`, utilisable par tous les contrôleurs tenantés sans
+      dépendance à HTTP, Spring Security ou `Organization`.
 - [ ] Aucun `PlatformContext` vide n'est ajouté ; un cas d'usage plateforme
       reste un contrat non tenanté jusqu'à W008.
-- [ ] Le service local retourne une référence stable pendant une exécution et
-      peut en produire une nouvelle après redémarrage.
+- [ ] Sous le profil `local`, un unique `LocalTenantContextProvider` réutilise le
+      bean `ReferenceFactory`, génère `ORG` au premier appel et retourne la même
+      instance de `TenantContext` pendant toute l'exécution.
+- [ ] L'initialisation locale est lazy et thread-safe : des appels concurrents
+      ne provoquent qu'une génération.
+- [ ] Un échec de génération ou une référence invalide n'est jamais mémorisé,
+      ne produit aucun tenant de secours et permet une nouvelle tentative.
+- [ ] Hors du profil `local`, aucun `LocalTenantContextProvider` n'est enregistré.
+- [ ] Un contrôleur tenanté obtient son contexte via `TenantContextProvider`, le
+      transmet tel quel au cas d'usage et ne reçoit, ne génère ni ne recherche
+      librement la référence du tenant.
 - [ ] Une organisation sortie de `CREATING` et une équipe possèdent chacune
       exactement un administrateur et un manager, éventuellement identiques.
 - [ ] Une organisation `CREATING` peut être persistée sans responsables, mais ne
@@ -709,6 +747,21 @@ jamais une dépendance du module consommateur.
 - Tests unitaires de `TenantContext` et tests applicatifs prouvant que les ports
   tenantés exigent ce contexte, puis propagent sa `tenantReference` comme
   `organizationReference` vers les ports sortants.
+- Tests unitaires de `LocalTenantContextProvider` vérifiant l'initialisation
+  lazy, l'appel unique à `generate("ORG")`, la valeur de `tenantReference`, la
+  conservation de la même instance, la génération unique en concurrence et la
+  possibilité de retenter après une erreur ou une référence invalide.
+- Test de câblage Spring ciblé avec le profil `local`, vérifiant qu'un unique
+  `TenantContextProvider` utilise le vrai bean `ReferenceFactory`, retourne le
+  même contexte et produit une référence préfixée par `ORG`. Vérifier également
+  qu'aucun provider local n'est enregistré sans ce profil.
+- Les futurs tests Web des contrôleurs tenantés vérifieront que le
+  `TenantContext` fourni est transmis tel quel au cas d'usage et qu'aucune
+  référence de tenant libre n'est acceptée par l'API.
+- Ces tests du provider et de son câblage ne démarrent ni PostgreSQL ni
+  Testcontainers, car ce composant n'accède pas à la base. Les tests PostgreSQL
+  restent requis séparément pour les contraintes et l'isolation de persistance
+  de T04.
 - Tests des cas d'usage plateforme confirmant qu'ils restent non tenantés et ne
   dépendent d'aucun `PlatformContext` vide.
 - Tests vérifiant que les résultats attendus des directories sont retournés sans
@@ -725,9 +778,14 @@ jamais une dépendance du module consommateur.
 ## Artefacts attendus
 
 - Générateur de références Java dans `tp-common` et ses tests.
+- Contrat Java pur
+  `tp-common/src/main/java/io/teampulse/common/context/TenantContextProvider.java`,
+  exposé par `common::context`.
 - Modèles et contrats applicatifs des modules `organization`, `identity` et
   `team`.
-- Service de référence d'organisation courante pour le profil local.
+- `LocalTenantContextProvider` et `LocalTenantConfiguration` dans
+  `tp-app/src/main/java/io/teampulse/context`, avec leurs tests unitaires et de
+  câblage Spring.
 - API publique `UserDirectory`, enum `UserAvailability`,
   `UserDirectoryException` et implémentation locale dans `tp-identity`.
 - API publique `OrganizationDirectory`, enum `OrganizationAvailability`,

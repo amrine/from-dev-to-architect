@@ -102,6 +102,10 @@ Les tests d'intégration utilisent Testcontainers. Ils ne se connectent pas au
 PostgreSQL lancé par Docker Compose, mais démarrent une base PostgreSQL
 éphémère sur un port aléatoire.
 
+Le module `tp-test-support`, consommé uniquement avec le scope Maven `test`,
+centralise le conteneur PostgreSQL et les configurations de test réutilisables.
+Il ne fait pas partie du runtime ni du modèle applicatif Spring Modulith.
+
 Docker doit être démarré, puis la suite complète peut être lancée avec :
 
 ```bash
