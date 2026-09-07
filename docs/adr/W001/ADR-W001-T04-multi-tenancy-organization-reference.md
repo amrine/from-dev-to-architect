@@ -45,7 +45,9 @@ encore introduite et devra être revue avant Kubernetes.
   textuelle, stable et opaque.
 - `Organization.reference` devient l'identifiant du tenant dans les contrats.
 - Les modules consommateurs utilisent le nom `organizationReference` en Java et
-  la colonne `organization_ref` en PostgreSQL.
+  la colonne `organization_reference` en PostgreSQL. Ce nom reprend celui déjà
+  utilisé par `tp_identity.users` et suit la même convention que les autres
+  références persistées.
 - Aucun nouveau contrat n'utilise un identifiant technique d'organisation pour
   représenter le tenant.
 - Les colonnes de référence utilisent `TEXT`. Les règles de format et de
@@ -419,8 +421,8 @@ modifiedBy
 interne de l'équipe et les contrats externes l'adressent avec `teamReference` et
 `userReference` dans le contexte de l'organisation.
 
-La clé étrangère composite `(team_id, organization_ref)` référence
-`teams(id, organization_ref)` et empêche une appartenance de pointer vers une
+La clé étrangère composite `(team_id, organization_reference)` référence
+`teams(id, organization_reference)` et empêche une appartenance de pointer vers une
 équipe d'un autre tenant. Une requête entrante peut utiliser `teamReference` ;
 l'adapter de persistance la résout avec `organizationReference` avant de créer le
 `TeamMember`. La table `team_members` ne stocke pas `teamReference`.
@@ -652,11 +654,11 @@ autre module.
 
 ### 10. Isoler les données dans les schémas et les requêtes
 
-- `organizations` ne porte pas de colonne `organization_ref` réflexive ; sa
+- `organizations` ne porte pas de colonne `organization_reference` réflexive ; sa
   propre colonne `reference` constitue la référence du tenant.
 - `adminReference`, `managerReference` et `userReference` sont persistés dans
   `admin_reference`, `manager_reference` et `user_reference`.
-  `organizationReference` conserve la convention SQL `organization_ref`. Une
+  `organizationReference` est persistée dans `organization_reference`. Une
   future référence d'administrateur plateforme suivra
   `platformAdminReference` en Java et `platform_admin_reference` en SQL, sans
   introduire ce champ dans T04.
@@ -665,23 +667,23 @@ autre module.
   statut sans les deux références.
 - Les références d'administrateur et de manager d'une équipe sont obligatoires
   dès son insertion en `ACTIVE`.
-- `teams` expose une contrainte unique sur `(id, organization_ref)` afin de servir
-  de cible à la clé étrangère composite de `team_members`.
+- `teams` expose une contrainte unique sur `(id, organization_reference)` afin
+  de servir de cible à la clé étrangère composite de `team_members`.
 - `team_members` utilise la clé étrangère composite
-  `(team_id, organization_ref) -> teams(id, organization_ref)`.
+  `(team_id, organization_reference) -> teams(id, organization_reference)`.
 - `team_members` possède un index unique partiel sur
-  `(organization_ref, team_id, user_reference)` limité aux statuts `INVITED`,
+  `(organization_reference, team_id, user_reference)` limité aux statuts `INVITED`,
   `ACTIVE` et `SUSPENDED`.
 - `team_members.started_at` est nul pendant `INVITED` et obligatoire dans les
   statuts `ACTIVE` et `SUSPENDED`. Dans `REMOVED`, il peut rester nul uniquement
   si l'invitation n'a jamais été activée. `ended_at` est nul hors du statut
   `REMOVED` et obligatoire dans ce statut.
-- Toute table possédée par un tenant porte `organization_ref TEXT NOT NULL`.
+- Toute table possédée par un tenant porte `organization_reference TEXT NOT NULL`.
 - Les références persistées sont protégées par des contraintes `UNIQUE`.
-- Les index de lecture tenantée commencent par `organization_ref` lorsque les
-  requêtes sont filtrées par tenant.
-- Les contraintes composites incluent `organization_ref` lorsque cela empêche
-  une association entre deux tenants.
+- Les index de lecture tenantée commencent par `organization_reference` lorsque
+  les requêtes sont filtrées par tenant.
+- Les contraintes composites incluent `organization_reference` lorsque cela
+  empêche une association entre deux tenants.
 - Aucun module n'ajoute de clé étrangère vers l'identifiant technique d'un autre
   module.
 - La cohérence inter-module est vérifiée par les ports applicatifs, notamment
@@ -790,9 +792,13 @@ un contrat fourni par Spring, Jakarta Validation, JPA, Flyway ou PostgreSQL.
 Chaque comportement est testé au niveau le plus bas qui permet de l'observer
 sans simuler le framework responsable de ce comportement.
 
+Le contrat HTTP utilisateur, ses contrôleurs, DTOs, erreurs et tests seront
+réalisés dans W001-T05. T04 définit le contrat de résolution du tenant qui sera
+utilisé par ces contrôleurs et valide le provider local indépendamment de HTTP.
+
 | Couche | Tests unitaires | Tests d'intégration |
 | --- | --- | --- |
-| Contrôleurs | Tester uniquement une transformation ou une décision propre au contrôleur lorsqu'elle existe. Les DTO ou mappers non triviaux peuvent être instanciés directement. Un contrôleur limité à l'adaptation HTTP n'a pas besoin d'un test unitaire qui reproduit Spring MVC. | Utiliser un test de slice Web avec le cas d'usage substitué pour vérifier désérialisation, Jakarta Validation, construction du `TenantContext`, mapping requête/commande, codes HTTP, corps de réponse et traduction des erreurs. Conserver quelques scénarios HTTP complets avec les vrais services et PostgreSQL pour les parcours critiques, sans reproduire tous les cas métier. |
+| Contrôleurs (W001-T05) | Tester uniquement une transformation ou une décision propre au contrôleur lorsqu'elle existe. Les DTO ou mappers non triviaux peuvent être instanciés directement. Un contrôleur limité à l'adaptation HTTP n'a pas besoin d'un test unitaire qui reproduit Spring MVC. | Utiliser un test de slice Web avec le cas d'usage substitué pour vérifier désérialisation, Jakarta Validation, appel unique à `TenantContextProvider.current()` et transmission exacte du contexte obtenu, mapping requête/commande, codes HTTP, corps de réponse et traduction des erreurs. Conserver quelques scénarios HTTP complets avec les vrais services et PostgreSQL pour les parcours critiques, sans reproduire tous les cas métier. |
 | Services applicatifs | Instancier directement le service avec des ports sortants et une `ReferenceFactory` substitués. Vérifier l'orchestration, l'ordre des appels, la propagation du tenant, l'utilisation des valeurs canoniques du domaine, les erreurs métier et l'absence de persistence après un refus. | Utiliser le bean Spring proxifié pour vérifier `@Validated`, la validation en cascade des commandes, `@Transactional`, `readOnly`, le wiring et quelques interactions réelles service/repository. Ne pas attendre d'un test unitaire direct qu'il déclenche les proxies Spring. |
 | Repositories et persistence | Tester séparément un mapper lorsqu'il porte une transformation significative, ainsi que la traduction d'une exception technique par l'adapter si elle peut être isolée utilement. Ne pas mocker `JpaRepository` pour tester une simple délégation ou le fonctionnement de Spring Data. | Utiliser PostgreSQL réel avec Flyway et JPA pour vérifier migration, mapping complet, requêtes tenantées, contraintes `NOT NULL` et `UNIQUE`, unicité canonique par organisation, audit, traduction des violations et verrouillage optimiste. H2 n'est pas utilisé comme substitut aux comportements PostgreSQL. |
 
@@ -1234,7 +1240,7 @@ cette infrastructure dans le runtime.
   propriétaires.
 - Identifiants `BIGINT`, références `TEXT`, versions `BIGINT` et champs d'audit.
 - Contraintes d'unicité, de non-nullité et d'isolation tenant.
-- Index commençant par `organization_ref` pour les recherches tenantées.
+- Index commençant par `organization_reference` pour les recherches tenantées.
 - Aucune donnée métier locale insérée par une migration structurelle.
 
 ### Documentation pédagogique
@@ -1427,9 +1433,19 @@ cette infrastructure dans le runtime.
 
 ### Infrastructure de test partagée
 
-- Exécuter les six scénarios PostgreSQL réels de `tp-identity` couvrant les
-  contraintes d'unicité, l'isolation tenant, le mapping, l'audit et le
-  verrouillage optimiste.
+- Exécuter `JpaUserRepositoryAdapterIT` avec les vrais beans injectés, sans
+  spy Mockito. Les scénarios PostgreSQL couvrent le refus d'une organisation
+  nulle, les contraintes d'unicité, l'isolation tenant, le mapping, la
+  conservation de l'identifiant et de l'audit de création, ainsi que l'évolution
+  de la version et de `modifiedAt`.
+- Vérifier dans ce test d'intégration qu'un conflit entre deux transactions
+  réelles devient `CONCURRENT_MODIFICATION` à la frontière de l'adapter et
+  préserve la modification déjà commitée.
+- Exécuter `JpaUserRepositoryAdapterTest` pour vérifier qu'une collision de
+  référence devient `REFERENCE_GENERATION_FAILED` avec sa cause conservée et
+  une seule tentative d'écriture. Ce test unitaire utilise un repository mocké,
+  `ArgumentCaptor` et `times(1)` ; le test PostgreSQL conserve la vérification
+  de la collision réelle et de la préservation de l'utilisateur existant.
 - Valider les migrations par le démarrage du contexte sur une base PostgreSQL
   vide avec Flyway puis `hibernate.ddl-auto=validate`. Ne pas ajouter
   d'assertion sur `flyway_schema_history` ni sur les métadonnées internes de
@@ -1457,7 +1473,8 @@ cette infrastructure dans le runtime.
 - Exécuter `ApplicationModules.verify()` et vérifier que les consommateurs
   dépendent uniquement de `identity::user` et `organization::api`, jamais des
   packages `domain.<domaine>.error` externes.
-- Exécuter la suite assemblée `./mvnw -pl tp-app -am test` avec Docker actif.
+- Exécuter la validation globale `./mvnw --batch-mode --no-transfer-progress
+  verify` depuis la racine avec Docker actif.
 
 ## Risques
 

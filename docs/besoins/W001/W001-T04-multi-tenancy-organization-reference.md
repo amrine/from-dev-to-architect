@@ -22,8 +22,8 @@ W001-T04 - Multi-tenancy par référence d'organisation
 
 Le présent besoin abandonne l'identifiant numérique historique de
 l'organisation au profit d'une référence fonctionnelle appelée
-`organizationReference` dans les contrats Java et `organization_ref` en base de
-données.
+`organizationReference` dans les contrats Java et `organization_reference` en
+base de données.
 
 ## Contexte
 
@@ -118,6 +118,9 @@ TeamPulse doit donc disposer :
 
 ## Périmètre exclu
 
+- Contrat HTTP utilisateur (`POST /api/users`, `GET /api/users`), contrôleur,
+  DTOs, traduction des erreurs HTTP et tests Web, y compris les parcours
+  complets avec PostgreSQL : ces éléments seront réalisés dans W001-T05.
 - Authentification, émission et validation des JWT.
 - Extraction de la référence d'organisation depuis un utilisateur connecté.
 - Autorisation par rôle, `hasPermission` et contrôle de l'appartenance de
@@ -580,13 +583,13 @@ jamais une dépendance du module consommateur.
 - Toutes les références fonctionnelles sont uniques dans leur périmètre. Elles
   sont non nulles, sauf les références des responsables d'une organisation
   pendant son état `CREATING`.
-- Toute donnée tenantée porte `organization_ref TEXT NOT NULL`.
+- Toute donnée tenantée porte `organization_reference TEXT NOT NULL`.
 - Les champs Java `adminReference`, `managerReference` et `userReference` sont
   persistés respectivement dans `admin_reference`, `manager_reference` et
   `user_reference`. La convention tenant reste `organizationReference` vers
-  `organization_ref`. Si une référence d'administrateur plateforme est ajoutée
-  ultérieurement, elle suivra la même règle : `platformAdminReference` en Java
-  et `platform_admin_reference` en SQL ; T04 n'introduit pas ce champ.
+  `organization_reference`. Si une référence d'administrateur plateforme est
+  ajoutée ultérieurement, elle suivra la même règle : `platformAdminReference`
+  en Java et `platform_admin_reference` en SQL ; T04 n'introduit pas ce champ.
 - `version` est un `BIGINT` utilisé pour le verrouillage optimiste. Le choix
   ponctuel d'un verrou pessimiste reste une décision explicite d'un cas d'usage,
   pas le comportement par défaut.
@@ -635,7 +638,7 @@ jamais une dépendance du module consommateur.
 - [ ] Les modules identité et équipe ne stockent ni n'exposent l'identifiant
       technique de l'organisation.
 - [ ] Une donnée tenantée ne peut pas être persistée sans
-      `organization_ref`.
+      `organization_reference`.
 - [ ] Une recherche effectuée avec la référence de l'organisation A ne retourne
       aucune donnée de l'organisation B.
 - [ ] Tout port applicatif tenanté exige un `TenantContext` non nul dont la
@@ -657,9 +660,6 @@ jamais une dépendance du module consommateur.
 - [ ] Un échec de génération ou une référence invalide n'est jamais mémorisé,
       ne produit aucun tenant de secours et permet une nouvelle tentative.
 - [ ] Hors du profil `local`, aucun `LocalTenantContextProvider` n'est enregistré.
-- [ ] Un contrôleur tenanté obtient son contexte via `TenantContextProvider`, le
-      transmet tel quel au cas d'usage et ne reçoit, ne génère ni ne recherche
-      librement la référence du tenant.
 - [ ] Une organisation sortie de `CREATING` et une équipe possèdent chacune
       exactement un administrateur et un manager, éventuellement identiques.
 - [ ] Une organisation `CREATING` peut être persistée sans responsables, mais ne
@@ -755,9 +755,10 @@ jamais une dépendance du module consommateur.
   `TenantContextProvider` utilise le vrai bean `ReferenceFactory`, retourne le
   même contexte et produit une référence préfixée par `ORG`. Vérifier également
   qu'aucun provider local n'est enregistré sans ce profil.
-- Les futurs tests Web des contrôleurs tenantés vérifieront que le
-  `TenantContext` fourni est transmis tel quel au cas d'usage et qu'aucune
-  référence de tenant libre n'est acceptée par l'API.
+- En W001-T05, les tests Web des contrôleurs tenantés vérifieront qu'un seul
+  appel à `TenantContextProvider.current()` est effectué par requête, que le
+  contexte obtenu est transmis tel quel au cas d'usage et qu'aucune référence
+  de tenant libre n'est acceptée, générée ou recherchée par le contrôleur.
 - Ces tests du provider et de son câblage ne démarrent ni PostgreSQL ni
   Testcontainers, car ce composant n'accède pas à la base. Les tests PostgreSQL
   restent requis séparément pour les contraintes et l'isolation de persistance
@@ -771,6 +772,12 @@ jamais une dépendance du module consommateur.
   uniquement aux interfaces nommées `identity::user` et `organization::api`.
 - Tests d'intégration PostgreSQL avec deux organisations, couvrant les
   contraintes `NOT NULL`, les unicités et l'isolation des recherches.
+- Pour `User`, vérifier aussi la conservation de l'identifiant et de l'audit de
+  création, l'évolution de la version et de `modifiedAt`, ainsi que la
+  traduction d'un conflit optimiste réel en `CONCURRENT_MODIFICATION`.
+- Vérifier la traduction d'une collision de référence sans retry dans un test
+  unitaire de l'adapter ; le test PostgreSQL vérifie la collision réelle et la
+  préservation de l'utilisateur existant.
 - Exécution de tous les tests ArchUnit existants.
 - Vérification manuelle qu'aucun contrat inter-module n'expose un identifiant
   technique externe.
@@ -882,7 +889,8 @@ de RLS, de JWT et de coordination Kubernetes resteront hors de ce chapitre.
 - Dépend de : W001-T01 pour le découpage Maven multi-module.
 - Dépend de : W001-T02 pour PostgreSQL, les schémas et Flyway.
 - Dépend de : W001-T03 pour les règles d'architecture et les tests ArchUnit.
-- Prépare : W001-T05 pour les rôles et leurs affectations.
+- Prépare : W001-T05 pour les rôles et leurs affectations, ainsi que le contrat
+  HTTP utilisateur et ses tests.
 - Prépare : W002 pour les cas d'usage complets autour des équipes et membres.
 - Prépare : W008 pour JWT, la résolution réelle du contexte et les permissions.
 - Prépare : une future étape Kubernetes pour la coordination multi-nœud.
