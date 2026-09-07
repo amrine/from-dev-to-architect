@@ -10,8 +10,12 @@ import io.teampulse.testsupport.persistence.MutableAuditDateTimeProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.postgresql.util.PSQLException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.OptimisticLockingFailureException;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.Instant;
 import java.util.List;
@@ -19,6 +23,7 @@ import java.util.NoSuchElementException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -121,13 +126,14 @@ class JpaUserRepositoryAdapterIT extends AbstractIntegrationTest {
         }
 
         @Test
-        void rejectsAReferenceCollisionAcrossOrganizations() {
+        void rejectsAReferenceCollisionAcrossOrganizationsWithoutChangingTheExistingUser() {
             // GIVEN
             userRepository.create(createUser(
                 USER_REFERENCE_1,
                 ORGANIZATION_A,
                 "alice@example.com"
             ));
+            Long originalId = findEntity(ORGANIZATION_A, USER_REFERENCE_1).getId();
 
             // WHEN / THEN
             UserException exception = assertThrows(
@@ -143,11 +149,45 @@ class JpaUserRepositoryAdapterIT extends AbstractIntegrationTest {
                 UserErrorCode.REFERENCE_GENERATION_FAILED,
                 exception.getErrorCode()
             );
+            assertEquals(1L, jpaRepository.count());
+            UserEntity originalEntity = findEntity(ORGANIZATION_A, USER_REFERENCE_1);
+            assertEquals(originalId, originalEntity.getId());
+            assertEquals("alice@example.com", originalEntity.getEmail());
+            assertTrue(userRepository.findByReference(ORGANIZATION_B, USER_REFERENCE_1).isEmpty());
         }
     }
 
     @Nested
     class TenantIsolationTests {
+
+        @Test
+        void rejectsNullOrganizationReferenceInPostgreSql() {
+            // Bypass domain validation so PostgreSQL enforces the NOT NULL constraint.
+            UserEntity entity = new UserEntity()
+                .setReference(USER_REFERENCE_1)
+                .setOrganizationReference(null)
+                .setEmail("alice@example.com")
+                .setFirstName("Alice")
+                .setLastName("Smith")
+                .setStatus(UserStatus.CREATING);
+
+            DataIntegrityViolationException exception = assertThrows(
+                DataIntegrityViolationException.class,
+                () -> inTransactionTemplate(() -> jpaRepository.save(entity))
+            );
+
+            PSQLException databaseException = assertInstanceOf(
+                PSQLException.class,
+                exception.getMostSpecificCause()
+            );
+            assertEquals("23502", databaseException.getSQLState());
+            assertNotNull(databaseException.getServerErrorMessage());
+            assertEquals(
+                "organization_reference",
+                databaseException.getServerErrorMessage().getColumn()
+            );
+            assertEquals(0L, jpaRepository.count());
+        }
 
         @Test
         void scopesReadsExistenceChecksAndUpdatesToTheOrganization() {
@@ -236,6 +276,7 @@ class JpaUserRepositoryAdapterIT extends AbstractIntegrationTest {
                 USER_REFERENCE_1
             );
 
+            assertNotNull(createdEntity.getId());
             assertEquals(0L, createdEntity.getVersion());
             assertEquals("SYSTEM", createdEntity.getCreatedBy());
             assertEquals(CREATED_AT, createdEntity.getCreatedAt());
@@ -251,6 +292,7 @@ class JpaUserRepositoryAdapterIT extends AbstractIntegrationTest {
                 USER_REFERENCE_1
             );
 
+            assertEquals(createdEntity.getId(), updatedEntity.getId());
             assertEquals(1L, updatedEntity.getVersion());
             assertEquals("SYSTEM", updatedEntity.getCreatedBy());
             assertEquals(CREATED_AT, updatedEntity.getCreatedAt());
@@ -264,39 +306,49 @@ class JpaUserRepositoryAdapterIT extends AbstractIntegrationTest {
     class OptimisticLockingTests {
 
         @Test
-        void rejectsAnUpdateBasedOnAStaleEntityVersion() {
+        void translatesAnOptimisticLockConflictWithoutOverwritingTheCommittedUpdate() {
             userRepository.create(createUser(
                 USER_REFERENCE_1,
                 ORGANIZATION_A,
                 "alice@example.com"
             ));
 
-            UserEntity firstCopy = findEntity(
-                ORGANIZATION_A,
-                USER_REFERENCE_1
+            TransactionTemplate independentTransaction = new TransactionTemplate(
+                transactionTemplate.getTransactionManager()
             );
-            UserEntity staleCopy = findEntity(
-                ORGANIZATION_A,
-                USER_REFERENCE_1
+            independentTransaction.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+
+            UserException exception = assertThrows(
+                UserException.class,
+                () -> transactionTemplate.executeWithoutResult(ignored -> {
+                    UserEntity staleEntity = findEntity(ORGANIZATION_A, USER_REFERENCE_1);
+                    assertEquals(0L, staleEntity.getVersion());
+
+                    // Commit an independent update while the first persistence context
+                    // retains version 0. This makes the conflict deterministic.
+                    independentTransaction.executeWithoutResult(independentStatus -> {
+                        UserEntity currentEntity = findEntity(ORGANIZATION_A, USER_REFERENCE_1);
+                        assertNotSame(staleEntity, currentEntity);
+                        currentEntity.setLastName("First update");
+                        jpaRepository.save(currentEntity);
+                    });
+
+                    userRepository.update(User.restore(
+                        USER_REFERENCE_1,
+                        ORGANIZATION_A,
+                        "alice@example.com",
+                        "Alice",
+                        "Stale update",
+                        UserStatus.CREATING
+                    ));
+                })
             );
 
-            assertNotSame(firstCopy, staleCopy);
-            assertEquals(0L, firstCopy.getVersion());
-            assertEquals(0L, staleCopy.getVersion());
-
-            firstCopy.setLastName("First update");
-            inTransactionTemplate(() -> jpaRepository.save(firstCopy));
-
-            staleCopy.setLastName("Stale update");
-            assertThrows(
-                OptimisticLockingFailureException.class,
-                () -> inTransactionTemplate(() -> jpaRepository.save(staleCopy))
-            );
-
-            assertEquals(
-                "First update",
-                findEntity(ORGANIZATION_A, USER_REFERENCE_1).getLastName()
-            );
+            assertEquals(UserErrorCode.CONCURRENT_MODIFICATION, exception.getErrorCode());
+            assertInstanceOf(OptimisticLockingFailureException.class, exception.getCause());
+            UserEntity committedEntity = findEntity(ORGANIZATION_A, USER_REFERENCE_1);
+            assertEquals("First update", committedEntity.getLastName());
+            assertEquals(1L, committedEntity.getVersion());
         }
     }
 
