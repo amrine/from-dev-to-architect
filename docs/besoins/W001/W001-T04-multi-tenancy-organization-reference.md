@@ -137,6 +137,12 @@ TeamPulse doit donc disposer :
 - Attribution réelle de `createdBy` et `modifiedBy` à l'utilisateur authentifié.
 - `PlatformContext` vide : les cas d'usage plateforme sont simplement non
   tenantés jusqu'à l'introduction d'un contexte de sécurité justifié par W008.
+- Surveillance continue du statut des responsables dans `tp-identity` et
+  synchronisation automatique de `OrganizationStatus` après leur affectation.
+- Événement `UserAvailabilityChanged`, listener dans `tp-organization`, recherches
+  d'organisations par responsable et gestion des courses inter-modules associées.
+- Cycle de vie des abonnements et calcul de l'accès effectif à partir de leur
+  statut ; un abonnement ne modifie jamais `OrganizationStatus`.
 
 ## Règles métier / techniques
 
@@ -299,21 +305,31 @@ TeamPulse doit donc disposer :
 
 ### Modèle minimal de l'organisation
 
-`Organization` contient au minimum :
+Le modèle de domaine `Organization` contient uniquement l'état métier :
 
-- `id` ;
 - `reference` ;
 - `name` ;
-- `status` ;
 - `timezone` ;
 - `adminReference` ;
 - `managerReference` ;
+- `status`.
+
+L'identifiant technique n'appartient pas au modèle de domaine.
+`OrganizationEntity` persiste cet état métier et porte en plus l'état technique
+suivant :
+
+- `id` ;
 - `version` ;
 - `createdAt` et `createdBy` ;
 - `modifiedAt` et `modifiedBy`.
 
 Règles associées :
 
+- le nom est obligatoire, normalisé avec `strip()`, non vide après
+  normalisation et limité à 200 caractères ;
+- la casse et les espaces internes du nom sont conservés ;
+- toute commande applicative qui porte le nom applique la même limite à sa
+  valeur normalisée, sans introduire une règle divergente du domaine ;
 - `CREATING` désigne une organisation en cours de constitution et remplace le
   terme `PROVISIONING` ;
 - `ACTIVE` désigne une organisation opérationnelle ;
@@ -325,13 +341,35 @@ Règles associées :
 - `ARCHIVED` est un statut terminal ;
 - la timezone utilise un identifiant IANA valide, compatible avec
   `java.time.ZoneId` ;
-- pendant `CREATING`, les références de l'administrateur et du manager peuvent
-  être absentes ;
-- la transition vers `ACTIVE` exige un nom, une timezone, un administrateur et
-  un manager retournés `AVAILABLE` par `UserDirectory` pour cette organisation ;
-- une organisation sortie de `CREATING` conserve exactement un administrateur
-  et un manager ;
+- les responsables respectent les contraintes suivantes :
+
+  | Statut | Administrateur | Manager |
+  | --- | --- | --- |
+  | `CREATING` | optionnel | optionnel |
+  | `ACTIVE` | obligatoire et validé `AVAILABLE` | obligatoire et validé `AVAILABLE` |
+  | `SUSPENDED` | référence obligatoire | éventuellement absent |
+  | `ARCHIVED` | éventuellement absent | éventuellement absent |
+
+- le passage vers `ACTIVE`, la réactivation et le remplacement direct d'un
+  responsable exigent que les utilisateurs concernés soient retournés
+  `AVAILABLE` par `UserDirectory` au moment de l'exécution du cas d'usage ;
+- après la transaction, `tp-organization` ne surveille pas continuellement
+  `tp-identity` ; une organisation `ACTIVE` conserve seulement l'invariant
+  structurel de deux références non nulles ;
+- l'administrateur ne peut jamais être supprimé sans remplacement direct ;
+- le manager peut être retiré sans remplacement ; son retrait depuis `ACTIVE`
+  retire la référence et réalise atomiquement la transition vers `SUSPENDED` ;
+- remplacer directement un responsable ne change pas le statut ; affecter ou
+  remplacer un manager en `SUSPENDED` ne réactive pas implicitement
+  l'organisation ;
 - une même personne peut remplir les deux fonctions ;
+- une organisation `CREATING` peut être archivée sans responsables ;
+- l'archivage conserve toutes les références déjà présentes et aucune
+  responsabilité ne peut être modifiée après le passage terminal à `ARCHIVED` ;
+- la suspension ou la désactivation ultérieure d'un responsable dans
+  `tp-identity` ne suspend pas automatiquement l'organisation dans T04 ;
+- le statut d'un abonnement n'entraîne aucune transition de
+  `OrganizationStatus` ;
 - les adresses et moyens de contact ne sont pas ajoutés dans la table principale.
 
 ### Modèle minimal de l'utilisateur
@@ -523,8 +561,9 @@ REFERENCE_GENERATION_FAILED
 CONCURRENT_MODIFICATION
 ```
 
-`ACTIVATION_REQUIREMENTS_NOT_MET` couvre l'absence du nom, de la timezone ou des
-responsables nécessaires à la transition vers `ACTIVE`.
+`ACTIVATION_REQUIREMENTS_NOT_MET` couvre l'absence des références nécessaires à
+la transition vers `ACTIVE`. `INVALID_NAME` couvre un nom nul, blanc après
+`strip()` ou supérieur à 200 caractères.
 
 `UserErrorCode` contient :
 
@@ -582,23 +621,34 @@ jamais une dépendance du module consommateur.
 - Les identifiants techniques utilisent PostgreSQL `BIGINT` et Java `Long`.
 - Toutes les références fonctionnelles sont uniques dans leur périmètre. Elles
   sont non nulles, sauf les références des responsables d'une organisation
-  pendant son état `CREATING`.
+  lorsque son statut autorise explicitement leur absence.
 - Toute donnée tenantée porte `organization_reference TEXT NOT NULL`.
+- `organizations.name` utilise `TEXT NOT NULL` et une contrainte
+  `char_length(name) BETWEEN 1 AND 200`. La valeur persistée est le nom normalisé
+  par le domaine ; sa casse et ses espaces internes sont conservés.
 - Les champs Java `adminReference`, `managerReference` et `userReference` sont
   persistés respectivement dans `admin_reference`, `manager_reference` et
   `user_reference`. La convention tenant reste `organizationReference` vers
   `organization_reference`. Si une référence d'administrateur plateforme est
   ajoutée ultérieurement, elle suivra la même règle : `platformAdminReference`
   en Java et `platform_admin_reference` en SQL ; T04 n'introduit pas ce champ.
+- `organizations.admin_reference` et `organizations.manager_reference` restent
+  des colonnes nullables. Des contraintes dépendantes du statut imposent
+  `admin_reference` dans `ACTIVE` et `SUSPENDED`, et `manager_reference` dans
+  `ACTIVE`, tout en autorisant les absences définies pour `CREATING`,
+  `SUSPENDED` et `ARCHIVED`.
+- PostgreSQL ne tente pas de vérifier `AVAILABLE`, car cette information
+  appartient à `tp-identity`. Cette précondition est contrôlée ponctuellement
+  par les cas d'usage avec `UserDirectory`.
 - `version` est un `BIGINT` utilisé pour le verrouillage optimiste. Le choix
   ponctuel d'un verrou pessimiste reste une décision explicite d'un cas d'usage,
   pas le comportement par défaut.
 - `createdAt`, `createdBy`, `modifiedAt` et `modifiedBy` sont présents dès W001.
 - En l'absence d'authentification, `createdBy` et `modifiedBy` valent `SYSTEM`.
-- Pour `User`, `id`, `version` et les quatre champs d'audit restent exclusivement
-  dans `UserEntity`. Le modèle de domaine est restauré à partir des seules
-  données métier ; l'adapter met à jour l'entité JPA gérée afin de préserver la
-  version et l'audit.
+- Pour `Organization` et `User`, `id`, `version` et les quatre champs d'audit
+  restent exclusivement dans leurs entités JPA. Les modèles de domaine sont
+  restaurés à partir des seules données métier ; les adapters mettent à jour les
+  entités JPA gérées afin de préserver l'identifiant, la version et l'audit.
 - Le dispositif conserve uniquement la création et la dernière modification de
   la ligne. W012 introduira les premiers événements d'audit persistés pour la
   création de `Team` et `User`.
@@ -660,11 +710,25 @@ jamais une dépendance du module consommateur.
 - [ ] Un échec de génération ou une référence invalide n'est jamais mémorisé,
       ne produit aucun tenant de secours et permet une nouvelle tentative.
 - [ ] Hors du profil `local`, aucun `LocalTenantContextProvider` n'est enregistré.
-- [ ] Une organisation sortie de `CREATING` et une équipe possèdent chacune
-      exactement un administrateur et un manager, éventuellement identiques.
+- [ ] Le nom d'une organisation est obligatoire, normalisé avec `strip()`, non
+      vide et limité à 200 caractères après normalisation ; sa casse et ses
+      espaces internes sont conservés.
+- [ ] Toute commande applicative portant le nom et la migration PostgreSQL
+      appliquent la même limite de 200 caractères.
 - [ ] Une organisation `CREATING` peut être persistée sans responsables, mais ne
       peut devenir `ACTIVE` qu'après validation de son administrateur et de son
       manager dans la même organisation.
+- [ ] Une organisation `ACTIVE` possède deux références non nulles ; une
+      organisation `SUSPENDED` conserve obligatoirement son administrateur mais
+      peut ne plus avoir de manager.
+- [ ] L'administrateur ne peut être supprimé sans remplacement direct ; le
+      manager peut être retiré et son retrait depuis `ACTIVE` produit
+      atomiquement `ACTIVE -> SUSPENDED`.
+- [ ] Le remplacement direct d'un responsable ne modifie pas le statut et exige
+      que le nouvel utilisateur soit `AVAILABLE` au moment du cas d'usage.
+- [ ] Une organisation `CREATING` peut être archivée sans responsables ; tout
+      archivage conserve les références présentes et `ARCHIVED` interdit toute
+      transition ou modification ultérieure des responsabilités.
 - [ ] Les transitions autorisées et interdites de `Organization`, `User`, `Team`
       et `TeamMember` sont couvertes par des tests de domaine.
 - [ ] Suspendre une organisation ou une équipe ne modifie pas en cascade les
@@ -688,6 +752,8 @@ jamais une dépendance du module consommateur.
 - [ ] `OrganizationDirectory` retourne `AVAILABLE` pour `ACTIVE`, `UNAVAILABLE`
       pour `CREATING`, `SUSPENDED` et `ARCHIVED`, et `NOT_FOUND` pour une
       référence inexistante.
+- [ ] `OrganizationDirectory` déduit cette valeur du seul
+      `OrganizationStatus` persisté et ne rappelle pas `UserDirectory`.
 - [ ] La création d'une équipe est refusée lorsque son organisation est
       `UNAVAILABLE` ou `NOT_FOUND`.
 - [ ] `OrganizationErrorCode`, `UserErrorCode` et `TeamErrorCode` contiennent
@@ -706,8 +772,13 @@ jamais une dépendance du module consommateur.
       `domain.<domaine>.error` d'un autre module ne traverse une dépendance
       inter-module.
 - [ ] Un utilisateur d'une autre organisation est retourné `NOT_FOUND`.
-- [ ] Les responsables d'une organisation ou d'une équipe doivent être
-      `AVAILABLE` ; une appartenance `INVITED` accepte un utilisateur `PENDING`.
+- [ ] Le passage ou retour d'une organisation vers `ACTIVE` et le remplacement
+      direct de l'un de ses responsables exigent ponctuellement `AVAILABLE` ;
+      la création d'une équipe exige également des responsables `AVAILABLE`.
+- [ ] La suspension ou désactivation ultérieure d'un responsable ne suspend pas
+      automatiquement l'organisation dans T04.
+- [ ] Le statut d'un abonnement ne modifie jamais `OrganizationStatus` ; une
+      appartenance `INVITED` accepte un utilisateur `PENDING`.
 - [ ] Être administrateur ou manager d'une équipe n'implique aucune ligne
       `TeamMember` automatique ; chaque responsable peut être membre ou non.
 - [ ] `TeamMember` référence `Team` par `teamId` et une clé étrangère composite
@@ -723,7 +794,7 @@ jamais une dépendance du module consommateur.
       jusqu'au passage à `REMOVED`.
 - [ ] Les entités JPA persistées possèdent une version et les quatre champs
       d'audit ; ces données techniques ne sont pas exposées par le modèle de
-      domaine `User`.
+      domaine `Organization` ou `User`.
 - [ ] L'email de `User` est canonisé en minuscules sans espaces périphériques,
       limité à 254 caractères et unique par organisation sous cette forme.
 - [ ] Les prénom et nom de `User` sont non blancs après suppression des espaces
@@ -740,6 +811,14 @@ jamais une dépendance du module consommateur.
   `00`/`ZZ` et débordement à la 1 297e génération d'une même milliseconde
   logique.
 - Tests unitaires des invariants des modèles et transitions de statuts.
+- Tests unitaires des bornes du nom d'organisation : `null`, blanc après
+  `strip()`, 200 caractères acceptés, 201 refusés, casse et espaces internes
+  conservés.
+- Tests applicatifs confirmant que toute commande portant le nom accepte 200
+  caractères normalisés et en refuse 201 selon la même règle que le domaine.
+- Tests du cycle des responsables couvrant les quatre statuts, le retrait du
+  manager depuis `ACTIVE`, les remplacements sans changement de statut,
+  l'archivage avec ou sans responsables et le caractère terminal de `ARCHIVED`.
 - Tests du cycle temporel de `TeamMember`, couvrant l'invitation, l'activation,
   la suspension, le retrait et la réinvitation sur une nouvelle ligne.
 - Tests unitaires et applicatifs vérifiant les codes d'erreur retournés pour les
@@ -768,10 +847,21 @@ jamais une dépendance du module consommateur.
 - Tests vérifiant que les résultats attendus des directories sont retournés sans
   exception et qu'une panne technique est traduite en exception publique, puis
   dans le code d'erreur du module consommateur avec conservation de la cause.
+- Tests applicatifs vérifiant les appels ponctuels à `UserDirectory` lors de
+  l'activation, de la réactivation et du remplacement direct d'un responsable,
+  sans surveillance après la transaction.
+- Test de `OrganizationDirectory` confirmant que le mapping de `ACTIVE` vers
+  `AVAILABLE` n'appelle jamais `UserDirectory`.
 - Tests Spring Modulith vérifiant que les modules consommateurs accèdent
   uniquement aux interfaces nommées `identity::user` et `organization::api`.
 - Tests d'intégration PostgreSQL avec deux organisations, couvrant les
-  contraintes `NOT NULL`, les unicités et l'isolation des recherches.
+  contraintes `NOT NULL`, la limite de 200 caractères du nom, les nullabilités
+  dépendantes du statut, les unicités et l'isolation des recherches.
+- Le test PostgreSQL accepte un nom normalisé de 200 caractères et refuse une
+  insertion directe de 201 caractères.
+- Pour `Organization`, vérifier la conservation de l'identifiant et de l'audit
+  de création, l'évolution de la version et de `modifiedAt`, ainsi que la
+  traduction d'un conflit optimiste réel en `CONCURRENT_MODIFICATION`.
 - Pour `User`, vérifier aussi la conservation de l'identifiant et de l'audit de
   création, l'évolution de la version et de `modifiedAt`, ainsi que la
   traduction d'un conflit optimiste réel en `CONCURRENT_MODIFICATION`.

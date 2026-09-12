@@ -282,16 +282,23 @@ propres organisations lorsque leur scénario requiert une ligne persistée.
 
 #### `tp-organization`
 
-`Organization` est la racine du tenant. Son modèle minimal contient :
+`Organization` est la racine du tenant. Son modèle de domaine contient
+uniquement l'état métier :
 
 ```text
-id
 reference
 name
-status
 timezone
 adminReference
 managerReference
+status
+```
+
+`OrganizationEntity` persiste cet état métier et porte en plus l'état
+technique :
+
+```text
+id
 version
 createdAt
 createdBy
@@ -301,15 +308,42 @@ modifiedBy
 
 - `OrganizationStatus` contient `CREATING`, `ACTIVE`, `SUSPENDED` et `ARCHIVED`.
 - `CREATING` remplace `PROVISIONING`.
+- `name` est obligatoire, normalisé avec `strip()`, non vide après
+  normalisation et limité à 200 caractères. Sa casse et ses espaces internes
+  sont conservés.
+- Toute commande applicative qui porte le nom applique la même limite à la
+  valeur normalisée et ne définit pas une règle concurrente à celle du domaine.
 - `timezone` est validée avec `ZoneId` et stocke un identifiant IANA.
-- Une organisation est d'abord persistée en `CREATING`. Ses références
-  d'administrateur et de manager peuvent alors être absentes.
-- La transition `CREATING -> ACTIVE` exige les deux responsables, un nom et une
-  timezone valides. Les responsables doivent être retournés `AVAILABLE` par
-  `UserDirectory` pour cette organisation.
-- Une organisation sortie de `CREATING` possède exactement un administrateur et
-  un manager.
+- Une organisation est d'abord persistée en `CREATING`.
+- Les responsables respectent les contraintes suivantes :
+
+  | Statut | Administrateur | Manager |
+  | --- | --- | --- |
+  | `CREATING` | optionnel | optionnel |
+  | `ACTIVE` | obligatoire et validé `AVAILABLE` | obligatoire et validé `AVAILABLE` |
+  | `SUSPENDED` | référence obligatoire | éventuellement absent |
+  | `ARCHIVED` | éventuellement absent | éventuellement absent |
+
+- Le passage vers `ACTIVE`, la réactivation et le remplacement direct d'un
+  responsable exigent que les utilisateurs concernés soient retournés
+  `AVAILABLE` par `UserDirectory` au moment de l'exécution du cas d'usage.
+- Après la transaction, `tp-organization` ne surveille pas continuellement
+  `tp-identity`. L'invariant persistant d'une organisation `ACTIVE` porte sur
+  les deux références non nulles, pas sur une disponibilité recalculée.
+- L'administrateur ne peut jamais être supprimé sans remplacement direct.
+- Le manager peut être retiré sans remplacement. Son retrait depuis `ACTIVE`
+  supprime la référence et réalise atomiquement `ACTIVE -> SUSPENDED`.
+- Le remplacement direct d'un responsable ne change pas le statut. Affecter ou
+  remplacer un manager en `SUSPENDED` ne réactive pas automatiquement
+  l'organisation.
 - Les deux références peuvent désigner la même personne.
+- Une organisation `CREATING` peut être archivée sans responsables.
+- L'archivage conserve les références présentes et interdit ensuite toute
+  modification, car `ARCHIVED` reste terminal.
+- La suspension ou désactivation ultérieure d'un responsable dans
+  `tp-identity` ne suspend pas automatiquement l'organisation en T04.
+- Le cycle de vie d'un abonnement est indépendant et ne modifie jamais
+  `OrganizationStatus`.
 - Les transitions autorisées sont `CREATING -> ACTIVE`,
   `CREATING -> ARCHIVED`, `ACTIVE -> SUSPENDED`, `ACTIVE -> ARCHIVED`,
   `SUSPENDED -> ACTIVE` et `SUSPENDED -> ARCHIVED`.
@@ -526,6 +560,10 @@ OrganizationAvailability check(organizationReference)
 - `UNAVAILABLE` pour une organisation `CREATING`, `SUSPENDED` ou `ARCHIVED` ;
 - `NOT_FOUND` lorsque la référence n'existe pas.
 
+Ce mapping dépend uniquement du `OrganizationStatus` persisté.
+`OrganizationDirectory` ne rappelle pas `UserDirectory` et ne recalcule pas la
+disponibilité courante des responsables lors d'une consultation.
+
 Ces valeurs sont des résultats métier attendus. Une incapacité technique à
 effectuer la vérification est exposée séparément par
 `OrganizationDirectoryException`, sans révéler une exception de persistance ou
@@ -656,6 +694,9 @@ autre module.
 
 - `organizations` ne porte pas de colonne `organization_reference` réflexive ; sa
   propre colonne `reference` constitue la référence du tenant.
+- `organizations.name` utilise `TEXT NOT NULL`. La migration impose
+  `char_length(name) BETWEEN 1 AND 200`, tandis que le domaine persiste la valeur
+  normalisée par `strip()` en conservant sa casse et ses espaces internes.
 - `adminReference`, `managerReference` et `userReference` sont persistés dans
   `admin_reference`, `manager_reference` et `user_reference`.
   `organizationReference` est persistée dans `organization_reference`. Une
@@ -663,8 +704,26 @@ autre module.
   `platformAdminReference` en Java et `platform_admin_reference` en SQL, sans
   introduire ce champ dans T04.
 - Les colonnes `admin_reference` et `manager_reference` de `organizations` sont
-  nullables uniquement pendant `CREATING`. Une contrainte interdit tout autre
-  statut sans les deux références.
+  physiquement nullables. Les contraintes dépendantes du statut imposent
+  conceptuellement :
+
+  ```sql
+  CHECK (
+      status IN ('CREATING', 'ARCHIVED')
+      OR admin_reference IS NOT NULL
+  )
+
+  CHECK (
+      status <> 'ACTIVE'
+      OR manager_reference IS NOT NULL
+  )
+  ```
+
+  Elles autorisent donc un manager absent en `SUSPENDED` et les responsables
+  éventuellement absents en `CREATING` ou `ARCHIVED`.
+- La base ne vérifie ni `UserAvailability`, qui appartient à `tp-identity`, ni
+  la conservation historique des références lors de l'archivage. Les cas
+  d'usage et le domaine garantissent respectivement ces règles.
 - Les références d'administrateur et de manager d'une équipe sont obligatoires
   dès son insertion en `ACTIVE`.
 - `teams` expose une contrainte unique sur `(id, organization_reference)` afin
@@ -704,13 +763,14 @@ contrats applicatifs, les requêtes tenantées et les contraintes relationnelles
 - Les dates utilisent `Instant` en Java et un type PostgreSQL avec fuseau adapté.
 - Les champs d'audit restent dupliqués dans les mappings de chaque module :
   aucune `@MappedSuperclass` JPA n'est ajoutée à `tp-common`.
-- Pour `User`, l'identifiant technique, la version et l'audit appartiennent
-  exclusivement à `UserEntity`. Ils ne sont ni transmis aux factories du
-  domaine ni réintroduits dans `User` lors de sa restauration.
-- Le mapping MapStruct de l'adapter copie uniquement l'état métier. Une mise à
-  jour cible l'entité JPA gérée avec `@MappingTarget` et ignore explicitement
-  `id`, `version` et les champs d'audit, afin de laisser JPA et l'infrastructure
-  gérer leur cycle de vie.
+- Pour `Organization` et `User`, l'identifiant technique, la version et l'audit
+  appartiennent exclusivement à `OrganizationEntity` et `UserEntity`. Ils ne
+  sont ni transmis aux factories du domaine ni réintroduits dans les modèles
+  lors de leur restauration.
+- Les mappings MapStruct des adapters copient uniquement l'état métier. Une
+  mise à jour cible l'entité JPA gérée avec `@MappingTarget` et ignore
+  explicitement `id`, `version` et les champs d'audit, afin de laisser JPA et
+  l'infrastructure gérer leur cycle de vie.
 - La configuration MapStruct transverse est exposée par l'interface nommée
   `common::mapping`. Les modules consommateurs déclarent explicitement cette
   dépendance sans ouvrir les autres packages internes de `tp-common`.
@@ -838,12 +898,12 @@ Option rejetée. Elle donne une unicité centralisée, mais rend la génération
 dépendante de la base et empêche de créer une référence avant l'appel de
 persistance.
 
-### Porter l'identifiant JPA, la version et l'audit dans `User`
+### Porter l'identifiant JPA, la version et l'audit dans les modèles métier
 
 Option rejetée. Ces champs sont nécessaires à la persistance, mais ne
-participent à aucune règle métier de l'utilisateur. Les conserver dans
-`UserEntity` évite de coupler le domaine au cycle de vie JPA et à la stratégie
-d'audit.
+participent aux règles métier ni de `Organization`, ni de `User`. Les conserver
+dans leurs entités JPA évite de coupler le domaine au cycle de vie JPA et à la
+stratégie d'audit.
 
 ### Utiliser uniquement dix caractères aléatoires
 
@@ -934,6 +994,22 @@ Option rejetée. L'administrateur et le manager sont des utilisateurs qui ont
 eux-mêmes besoin de la référence de l'organisation. L'état `CREATING` permet de
 créer la racine du tenant, puis ses utilisateurs, avant d'activer l'organisation
 avec ses deux responsables validés.
+
+### Recalculer la disponibilité d'une organisation à chaque consultation
+
+Option rejetée pour T04. Faire appeler `UserDirectory` par
+`OrganizationDirectory` à chaque consultation rendrait la disponibilité
+dynamique, ajouterait un coût et un couplage synchrones, et ne fournirait pas de
+garantie transactionnelle commune entre les deux modules. Le directory mappe
+donc uniquement le statut persistant de l'organisation.
+
+### Synchroniser immédiatement les changements de disponibilité utilisateur
+
+Option reportée. Un événement `UserAvailabilityChanged`, son listener, les
+recherches d'organisations par responsable, l'idempotence et la gestion des
+courses inter-modules constituent un mécanisme distinct. T04 limite
+`AVAILABLE` à une précondition ponctuelle des cas d'usage qui activent,
+réactivent ou remplacent un responsable.
 
 ### Ne pas stocker `organizationReference` dans `TeamMember`
 
@@ -1095,6 +1171,8 @@ cette infrastructure dans le runtime.
   1 679 616 nonces de démarrage possibles et fonctionne sans date d'expiration
   liée à une époque fixe.
 - Les contraintes et index PostgreSQL renforcent les invariants applicatifs.
+- `OrganizationDirectory` reste stable et ne provoque pas d'appel vers
+  `tp-identity` lors des consultations.
 - `tp-common` reste framework-agnostic.
 - `UserDirectory` évite le couplage de `tp-organization` et `tp-team` avec le
   domaine ou la persistence de `tp-identity`.
@@ -1123,8 +1201,11 @@ cette infrastructure dans le runtime.
   clés d'index.
 - Les mappings d'audit et de version contiennent une duplication volontaire
   entre modules.
-- Les références des responsables d'une organisation sont temporairement
-  nullables pendant `CREATING` et exigent une contrainte dépendante du statut.
+- Les références des responsables d'une organisation sont nullables selon son
+  statut et exigent des contraintes PostgreSQL dépendantes de ce statut.
+- Un responsable validé peut devenir indisponible après la transaction.
+  L'organisation reste alors temporairement `ACTIVE` jusqu'à l'introduction
+  d'un mécanisme de synchronisation inter-module.
 - La cohérence inter-module n'est pas garantie par des clés étrangères vers les
   identifiants techniques externes.
 - Le contexte local change après redémarrage et n'est adapté qu'au développement.
@@ -1176,9 +1257,17 @@ cette infrastructure dans le runtime.
 
 ### `tp-organization`
 
-- Domaine `Organization`, statut et timezone.
+- Domaine `Organization` limité aux six propriétés métier `reference`, `name`,
+  `timezone`, `adminReference`, `managerReference` et `status`.
+- Normalisation du nom avec `strip()`, conservation de sa casse et de ses
+  espaces internes, et limite de 200 caractères dans le domaine et les
+  commandes applicatives concernées.
+- Cycle des responsables dépendant du statut, validation ponctuelle par
+  `UserDirectory` et retrait du manager depuis `ACTIVE` entraînant
+  `SUSPENDED`.
 - Ports de création et de consultation par référence.
-- Mapping de persistance avec version et audit.
+- `OrganizationEntity` portant l'identifiant technique, la version et l'audit,
+  avec un mapping qui préserve ces données lors des mises à jour.
 - Service exposant ou validant la référence d'organisation.
 - `OrganizationDirectory`, `OrganizationAvailability` et
   `OrganizationDirectoryException` dans `io.teampulse.organization.api`, déjà
@@ -1239,6 +1328,9 @@ cette infrastructure dans le runtime.
 - Tables `organizations`, `users`, `teams` et `team_members` dans leurs schémas
   propriétaires.
 - Identifiants `BIGINT`, références `TEXT`, versions `BIGINT` et champs d'audit.
+- Nom d'organisation `TEXT NOT NULL`, limité à 200 caractères.
+- Contraintes de responsables imposant l'administrateur en `ACTIVE` et
+  `SUSPENDED`, et le manager uniquement en `ACTIVE`.
 - Contraintes d'unicité, de non-nullité et d'isolation tenant.
 - Index commençant par `organization_reference` pour les recherches tenantées.
 - Aucune donnée métier locale insérée par une migration structurelle.
@@ -1361,21 +1453,37 @@ cette infrastructure dans le runtime.
 
 - Vérifier toutes les transitions autorisées et interdites de `Organization`,
   `User`, `Team` et `TeamMember`.
-- Vérifier que `User` n'expose ni identifiant JPA, ni version, ni champ d'audit,
-  et que le mapping conserve ces valeurs dans `UserEntity`.
+- Vérifier que `Organization` et `User` n'exposent ni identifiant JPA, ni
+  version, ni champ d'audit, et que leurs mappings conservent ces valeurs dans
+  les entités JPA.
+- Vérifier que le nom d'organisation est obligatoire, normalisé par `strip()`,
+  non vide et limité à 200 caractères, tout en conservant sa casse et ses
+  espaces internes.
+- Vérifier qu'une commande applicative portant le nom accepte 200 caractères
+  normalisés et en refuse 201 selon la même règle que le domaine.
 - Vérifier la canonisation et la limite de 254 caractères de l'email, ainsi que
   la suppression des espaces périphériques et la limite de 100 caractères de
   `firstName` et `lastName`.
 - Vérifier qu'une organisation `CREATING` peut être persistée sans responsables,
   puis que son activation échoue tant que les deux responsables valides ne sont
   pas affectés.
-- Vérifier les invariants administrateur/manager, y compris le cas où les deux
-  références sont identiques.
+- Vérifier la matrice des responsables pour `CREATING`, `ACTIVE`, `SUSPENDED` et
+  `ARCHIVED`, y compris le cas où les deux références sont identiques.
+- Vérifier que l'administrateur ne peut pas être supprimé sans remplacement,
+  que le manager peut être retiré et que son retrait depuis `ACTIVE` réalise
+  atomiquement `ACTIVE -> SUSPENDED`.
+- Vérifier que le remplacement direct d'un responsable exige `AVAILABLE` mais
+  ne change pas le statut, et qu'une réactivation revalide les deux
+  responsables.
+- Vérifier que l'archivage depuis `CREATING` accepte zéro, une ou deux
+  références, conserve celles qui existent et bloque ensuite toute mutation.
 - Vérifier qu'une suspension d'organisation ou d'équipe ne modifie pas en
   cascade les statuts des entités enfants.
 - Vérifier qu'aucun statut terminal ne peut être quitté.
 - Vérifier la timezone avec des identifiants IANA valides et invalides.
 - Vérifier les contraintes `NOT NULL`, `UNIQUE` et composites avec PostgreSQL.
+- Vérifier avec PostgreSQL qu'un nom normalisé de 200 caractères est accepté et
+  qu'une insertion directe de 201 caractères viole la contrainte de longueur.
 - Vérifier une concurrence de modification déclenchant le verrouillage
   optimiste.
 - Vérifier que les quatre champs d'audit sont renseignés avec `SYSTEM` en W001.
@@ -1390,6 +1498,8 @@ cette infrastructure dans le runtime.
   le repository et sans produire `NOT_FOUND` ou `UserDirectoryException`.
 - Vérifier le mapping de chaque `OrganizationStatus` vers
   `OrganizationAvailability`.
+- Vérifier que `OrganizationDirectory` mappe `ACTIVE` vers `AVAILABLE` sans
+  appeler `UserDirectory`.
 - Vérifier que `tp-team` utilise uniquement l'API publique
   `OrganizationDirectory`, sans dépendre d'une entité, d'un enum de domaine ou
   d'un repository de `tp-organization`.
@@ -1414,8 +1524,11 @@ cette infrastructure dans le runtime.
   présentation.
 - Vérifier le mapping de chaque `UserStatus` vers `UserAvailability`.
 - Vérifier qu'un utilisateur d'un autre tenant retourne `NOT_FOUND`.
-- Vérifier que seuls des responsables `AVAILABLE` permettent d'activer une
-  organisation ou de créer une équipe active.
+- Vérifier que seuls des responsables `AVAILABLE` au moment du cas d'usage
+  permettent d'activer ou réactiver une organisation, de remplacer directement
+  l'un de ses responsables ou de créer une équipe active.
+- Vérifier qu'une indisponibilité ultérieure d'un responsable ne modifie pas
+  automatiquement `OrganizationStatus` dans T04.
 - Vérifier que l'affectation d'un administrateur ou d'un manager d'équipe ne
   crée pas automatiquement de `TeamMember`, et que chacun peut être membre ou
   non indépendamment de sa responsabilité.
@@ -1500,6 +1613,9 @@ cette infrastructure dans le runtime.
   local.
 - Une organisation peut rester en `CREATING` après un provisioning incomplet ;
   un futur cas d'usage devra permettre sa reprise ou son archivage.
+- Un responsable peut devenir indisponible après sa validation ponctuelle.
+  L'organisation reste temporairement `ACTIVE`, car T04 ne fournit ni
+  surveillance continue ni transaction distribuée entre les modules.
 - `SYSTEM` ne permet pas encore d'identifier l'auteur réel d'une modification.
 - Une modification accidentelle du scope Maven ou de l'exclusion Modulith
   pourrait faire apparaître l'outillage de test dans l'architecture de
@@ -1511,6 +1627,19 @@ cette infrastructure dans le runtime.
   environnement distribué sont reportées à l'étape Kubernetes.
 - Les permissions par `hasPermission`, l'organisation issue du JWT et le contrôle
   de l'appartenance de l'utilisateur seront traités plus tard avec W008.
+- Un mécanisme ultérieur pourra suivre ce flux :
+
+  ```text
+  tp-identity
+      -> UserAvailabilityChanged
+
+  tp-organization
+      -> vérifie si l'utilisateur est administrateur ou manager
+      -> suspend l'organisation de manière idempotente
+  ```
+
+  L'événement, son listener, les requêtes par responsable, l'idempotence et la
+  gestion des courses sont hors périmètre de T04.
 - Les champs d'audit de W001 n'enregistrent que la création et le dernier état.
   W012 introduira les premiers événements persistés de création de `Team` et
   `User`. L'historisation complète devra être ajoutée par une extension de W012
