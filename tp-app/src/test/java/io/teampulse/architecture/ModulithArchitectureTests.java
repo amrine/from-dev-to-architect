@@ -6,6 +6,7 @@ import io.teampulse.common.context.TenantContextProvider;
 import io.teampulse.common.mapping.CommonMapperConfig;
 import io.teampulse.common.reference.MonotonicReferenceFactory;
 import io.teampulse.common.reference.ReferenceFactory;
+import io.teampulse.common.reference.ReferenceFormat;
 import io.teampulse.identity.api.user.UserAvailability;
 import io.teampulse.identity.api.user.UserDirectory;
 import io.teampulse.identity.api.user.UserDirectoryException;
@@ -13,7 +14,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.modulith.core.ApplicationModules;
 
 import java.util.Set;
@@ -67,6 +67,7 @@ public class ModulithArchitectureTests {
                 CommonMapperConfig.class.getName())),
             Arguments.of("reference", Set.of(
                 ReferenceFactory.class.getName(),
+                ReferenceFormat.class.getName(),
                 MonotonicReferenceFactory.class.getName()))
         );
     }

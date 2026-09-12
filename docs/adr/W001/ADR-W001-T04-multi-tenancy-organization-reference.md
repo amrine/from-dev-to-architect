@@ -56,18 +56,31 @@ encore introduite et devra être revue avant Kubernetes.
 
 ### 2. Générer les références dans `tp-common`
 
-Les types `ReferenceFactory`, `MonotonicReferenceFactory` et `GenerationState`
-forment un générateur Java pur et transverse placé dans le package `reference`
-de `tp-common`. Ils ne dépendent ni de Spring, ni de JPA, ni d'un module métier.
-Seul le descripteur `package-info.java` utilise Spring Modulith pour exposer ce
-package comme interface nommée `common::reference` ; cette métadonnée
-d'architecture n'entre pas dans l'implémentation du générateur.
+Les types `ReferenceFactory`, `MonotonicReferenceFactory`, `ReferenceFormat` et
+`GenerationState` forment le socle Java pur et transverse placé dans le package
+`reference` de `tp-common`. Ils ne dépendent ni de Spring, ni de JPA, ni d'un
+module métier. Seul le descripteur `package-info.java` utilise Spring Modulith
+pour exposer ce package comme interface nommée `common::reference` ; cette
+métadonnée d'architecture n'entre pas dans leur implémentation.
 
 Le contrat public s'appelle `ReferenceFactory` et expose une seule opération :
 
 ```java
 String generate(String prefix);
 ```
+
+La validation d'une référence existante est portée par un contrat stateless
+distinct :
+
+```java
+ReferenceFormat.matches(reference, expectedPrefix);
+```
+
+`ReferenceFormat` valide uniquement la syntaxe commune et l'égalité avec le
+préfixe attendu. Il retourne un booléen, ne connaît aucun préfixe métier et ne
+produit aucune exception propre à un module. `User`, `Organization` et les
+futurs modèles consommateurs conservent leurs constantes de préfixe et la
+traduction d'un refus dans leur contrat d'erreur.
 
 L'implémentation s'appelle `MonotonicReferenceFactory`. Ce vocabulaire est
 propre à TeamPulse. Le nom ne porte ni le suffixe technique `Impl`, ni la
@@ -142,8 +155,9 @@ suffixe             -> 00000ZA7B90B
 référence           -> ORG-2026-0908-00000ZA7B90B
 ```
 
-Le format exact des tokens est centralisé dans la factory ; aucun module métier
-ne concatène lui-même les composants.
+La construction des tokens reste centralisée dans la factory et leur grammaire
+commune dans `ReferenceFormat` ; aucun module métier ne concatène lui-même les
+composants ni ne redéfinit l'expression régulière complète.
 
 ### 3. Utiliser un algorithme monotone et non bloquant dans une JVM
 
@@ -1242,9 +1256,10 @@ cette infrastructure dans le runtime.
   nommée `common::context`.
 - Contrat `ReferenceFactory.generate(String prefix)` et implémentation
   `MonotonicReferenceFactory`.
+- Contrat stateless `ReferenceFormat.matches(reference, expectedPrefix)` pour
+  la validation syntaxique commune, sans préfixe ni erreur métier embarqués.
 - Validation stricte du préfixe `[A-Z]{3}` sans normalisation automatique.
 - Injection directe de `java.time.Clock` dans la factory.
-- Validateurs transverses de référence, sans annotation JPA.
 - `CommonMapperConfig` exposé uniquement via l'interface Spring Modulith nommée
   `mapping`.
 
@@ -1373,6 +1388,9 @@ cette infrastructure dans le runtime.
 
 - Vérifier que `ReferenceFactory` expose `generate(String prefix)` et que
   `MonotonicReferenceFactory` respecte ce contrat.
+- Vérifier que `ReferenceFormat` accepte toute référence syntaxiquement valide
+  pour le préfixe attendu, et refuse les valeurs nulles, mal formées ou issues
+  d'un autre préfixe sans dépendre des modules métier.
 - Vérifier que `ORG`, `USR` et `TEM` sont acceptés.
 - Vérifier qu'une valeur nulle, une longueur différente de trois, des
   minuscules, des espaces ou des caractères non ASCII majuscules provoquent une

@@ -22,7 +22,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.regex.Pattern;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -37,10 +36,6 @@ class MonotonicReferenceFactoryTest {
 
     private static final int TEST_NONCE =
         Integer.parseInt("A7B9", 36);
-
-    private static final Pattern REFERENCE_PATTERN = Pattern.compile(
-        "[A-Z]{3}-[0-9]{4}-[0-9]{4}-[0-9A-Z]{12}"
-    );
 
     @Nested
     class ConstructionTests {
@@ -102,7 +97,7 @@ class MonotonicReferenceFactoryTest {
             String reference = factory.generate("ORG");
 
             assertEquals(26, reference.length());
-            assertTrue(REFERENCE_PATTERN.matcher(reference).matches());
+            assertTrue(ReferenceFormat.matches(reference, "ORG"));
         }
     }
 
@@ -153,7 +148,7 @@ class MonotonicReferenceFactoryTest {
 
             assertEquals("ORG-2026-0908-00000ZA7B900", reference);
             assertEquals(26, reference.length());
-            assertTrue(REFERENCE_PATTERN.matcher(reference).matches());
+            assertTrue(ReferenceFormat.matches(reference, "ORG"));
         }
 
         @Test

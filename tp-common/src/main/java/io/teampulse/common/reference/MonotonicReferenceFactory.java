@@ -10,7 +10,6 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.IntSupplier;
-import java.util.regex.Pattern;
 
 /**
  * Thread-safe factory generating monotonic functional references within a
@@ -39,9 +38,6 @@ public final class MonotonicReferenceFactory implements ReferenceFactory {
     private static final int MAX_COUNTER = 1_295;     // 36^2 - 1
     private static final int INITIAL_COUNTER = 0;
 
-    private static final int REFERENCE_LENGTH = 26;
-
-    private static final Pattern PREFIX_PATTERN = Pattern.compile("[A-Z]{3}");
     private static final ZoneOffset UTC = ZoneOffset.UTC;
 
     private static final DateTimeFormatter YEAR_FORMATTER = DateTimeFormatter.ofPattern("uuuu", Locale.ROOT);
@@ -134,7 +130,7 @@ public final class MonotonicReferenceFactory implements ReferenceFactory {
      *                                  ASCII letters
      */
     private static void validatePrefix(String prefix) {
-        if (prefix == null || !PREFIX_PATTERN.matcher(prefix).matches()) {
+        if (ReferenceFormat.isNotValidPrefix(prefix)) {
             throw new IllegalArgumentException(
                 "prefix must contain exactly three uppercase ASCII letters"
             );
@@ -246,11 +242,9 @@ public final class MonotonicReferenceFactory implements ReferenceFactory {
         String reference =
             prefix + "-" + year + "-" + dayMonth + "-" + encodedTime + bootNonce + encodedCounter;
 
-        if (reference.length() != REFERENCE_LENGTH) {
+        if (!ReferenceFormat.matches(reference, prefix)) {
             throw new IllegalStateException(
-                "generated reference must contain exactly "
-                    + REFERENCE_LENGTH
-                    + " characters"
+                "generated reference must match the functional reference format"
             );
         }
 

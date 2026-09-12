@@ -152,6 +152,10 @@ TeamPulse doit donc disposer :
   `String generate(String prefix)`.
 - Son implémentation monotone s'appelle `MonotonicReferenceFactory`. Son
   caractère non bloquant est un détail interne et n'apparaît pas dans son nom.
+- `ReferenceFormat.matches(reference, expectedPrefix)` centralise la validation
+  syntaxique des références existantes. Ce contrat Java pur ne connaît aucun
+  préfixe métier et retourne `false` lorsque la référence, son format ou le
+  préfixe attendu ne correspondent pas.
 - Le préfixe reçu est obligatoire et doit respecter exactement `[A-Z]{3}` :
   trois lettres ASCII majuscules, sans normalisation automatique. Une valeur
   nulle, trop courte, trop longue, en minuscules ou entourée d'espaces provoque
@@ -187,9 +191,11 @@ TeamPulse doit donc disposer :
 - L'horloge est injectée afin de rendre les tests déterministes et de contrôler
   les reculs d'horloge. La source du nonce est également contrôlable dans les
   tests sans affaiblir l'utilisation de `SecureRandom` en production.
-- Les références sont stockées dans des colonnes PostgreSQL `TEXT`. Leur format
-  et leur longueur sont validés côté Java afin de permettre une évolution future
-  sans migration imposée uniquement par une taille de `VARCHAR`.
+- Les références sont stockées dans des colonnes PostgreSQL `TEXT`.
+  `ReferenceFormat` centralise leur format et leur longueur côté Java, tandis
+  que chaque module choisit le préfixe attendu et traduit un refus dans son
+  propre contrat d'erreur. Cette séparation permet une évolution future sans
+  migration imposée uniquement par une taille de `VARCHAR`.
 - Une unique instance de la factory est utilisée dans l'application. Elle
   garantit l'unicité des références qu'elle émet pendant son cycle de vie dans
   la JVM.
@@ -662,6 +668,9 @@ jamais une dépendance du module consommateur.
 
 - [ ] `ReferenceFactory` expose `String generate(String prefix)` et
       `MonotonicReferenceFactory` en fournit l'implémentation Java pure.
+- [ ] `ReferenceFormat.matches(reference, expectedPrefix)` centralise le format
+      technique sans connaître `ORG`, `USR` ou `TEM`, et les modèles métier
+      conservent le choix du préfixe ainsi que leur politique d'erreur.
 - [ ] La factory accepte un préfixe conforme à `[A-Z]{3}` et rejette par
       `IllegalArgumentException` les valeurs nulles, mal dimensionnées, en
       minuscules ou contenant des espaces, sans les normaliser.
