@@ -4,7 +4,7 @@ import io.teampulse.common.context.TenantContext;
 import io.teampulse.common.reference.ReferenceFormat;
 import io.teampulse.identity.AbstractIntegrationTest;
 import io.teampulse.identity.application.port.in.user.CreateUserCommand;
-import io.teampulse.identity.application.port.in.user.CreateUserUseCase;
+import io.teampulse.identity.application.port.in.user.UserLifecycleUseCase;
 import io.teampulse.identity.domain.user.error.UserErrorCode;
 import io.teampulse.identity.domain.user.error.UserException;
 import io.teampulse.identity.domain.user.model.User;
@@ -30,7 +30,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Import(JpaTransactionManagerProbeConfiguration.class)
-class CreateUserServiceIT extends AbstractIntegrationTest {
+class UserLifecycleServiceIT extends AbstractIntegrationTest {
 
     private static final String ORGANIZATION_A =
         "ORG-2026-3108-00000ZA7B900";
@@ -38,7 +38,7 @@ class CreateUserServiceIT extends AbstractIntegrationTest {
         "ORG-2026-3108-00000ZA7B901";
 
     @Inject
-    private CreateUserUseCase createUserUseCase;
+    private UserLifecycleUseCase userLifecycleUseCase;
 
     @Inject
     private JpaUserRepository jpaUserRepository;
@@ -52,7 +52,7 @@ class CreateUserServiceIT extends AbstractIntegrationTest {
     void rejectsNullTenantContextBeforePersisting() {
         assertThrows(
             ConstraintViolationException.class,
-            () -> createUserUseCase.create(null, validCommand())
+            () -> userLifecycleUseCase.create(null, validCommand())
         );
 
         assertEquals(0L, jpaUserRepository.count());
@@ -62,7 +62,7 @@ class CreateUserServiceIT extends AbstractIntegrationTest {
     void rejectsNullCommandBeforePersisting() {
         assertThrows(
             ConstraintViolationException.class,
-            () -> createUserUseCase.create(tenant(ORGANIZATION_A), null)
+            () -> userLifecycleUseCase.create(tenant(ORGANIZATION_A), null)
         );
 
         assertEquals(0L, jpaUserRepository.count());
@@ -73,7 +73,7 @@ class CreateUserServiceIT extends AbstractIntegrationTest {
     void rejectsBlankCommandFieldsBeforePersisting(CreateUserCommand command) {
         assertThrows(
             ConstraintViolationException.class,
-            () -> createUserUseCase.create(tenant(ORGANIZATION_A), command)
+            () -> userLifecycleUseCase.create(tenant(ORGANIZATION_A), command)
         );
 
         assertEquals(0L, jpaUserRepository.count());
@@ -81,7 +81,7 @@ class CreateUserServiceIT extends AbstractIntegrationTest {
 
     @Test
     void createsAndReturnsThePersistedUser() {
-        User createdUser = createUserUseCase.create(
+        User createdUser = userLifecycleUseCase.create(
             tenant(ORGANIZATION_A),
             new CreateUserCommand(
                 " Alice.Smith@Example.COM ",
@@ -111,7 +111,7 @@ class CreateUserServiceIT extends AbstractIntegrationTest {
 
     @Test
     void createsUserInsideAnActiveReadWriteTransaction() {
-        createUserUseCase.create(
+        userLifecycleUseCase.create(
             tenant(ORGANIZATION_A),
             validCommand()
         );
@@ -119,7 +119,7 @@ class CreateUserServiceIT extends AbstractIntegrationTest {
         TransactionManagerProbe.TransactionObservation observation =
             transactionProbe.observation();
         assertTrue(
-            observation.name().endsWith("CreateUserService.create")
+            observation.name().endsWith("UserLifecycleService.create")
         );
         assertFalse(observation.readOnly());
         assertTrue(observation.committed());
@@ -128,14 +128,14 @@ class CreateUserServiceIT extends AbstractIntegrationTest {
 
     @Test
     void rejectsCanonicalEmailAlreadyUsedInTheSameOrganization() {
-        createUserUseCase.create(
+        userLifecycleUseCase.create(
             tenant(ORGANIZATION_A),
             validCommand()
         );
 
         UserException exception = assertThrows(
             UserException.class,
-            () -> createUserUseCase.create(
+            () -> userLifecycleUseCase.create(
                 tenant(ORGANIZATION_A),
                 new CreateUserCommand(
                     " ALICE.SMITH@EXAMPLE.COM ",
@@ -151,11 +151,11 @@ class CreateUserServiceIT extends AbstractIntegrationTest {
 
     @Test
     void allowsTheSameCanonicalEmailInDifferentOrganizations() {
-        User userInOrganizationA = createUserUseCase.create(
+        User userInOrganizationA = userLifecycleUseCase.create(
             tenant(ORGANIZATION_A),
             validCommand()
         );
-        User userInOrganizationB = createUserUseCase.create(
+        User userInOrganizationB = userLifecycleUseCase.create(
             tenant(ORGANIZATION_B),
             new CreateUserCommand(
                 " ALICE.SMITH@EXAMPLE.COM ",

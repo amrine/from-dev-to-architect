@@ -5,7 +5,7 @@ import io.teampulse.identity.domain.user.model.User;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 
-public interface CreateUserUseCase {
+public interface UserLifecycleUseCase {
 
     User create(
         @NotNull TenantContext tenantContext,

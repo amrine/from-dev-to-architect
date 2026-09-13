@@ -138,6 +138,37 @@ public interface CreateTeamUseCase {
 **Relations**
 - Depend de `domain/model` uniquement.
 
+#### Granularite des ports entrants
+
+Un port entrant represente une capacite metier coherente, pas necessairement une
+seule methode. Regrouper dans une meme interface les operations qui portent la
+meme responsabilite, s'adressent aux memes consommateurs et partagent des
+contraintes d'autorisation et d'orchestration compatibles.
+
+- Conserver des methodes metier explicites, telles que `assignManager()` ou
+  `reactivate()`. Ne pas les remplacer par une methode generique pilotee par un
+  enum de role, d'action ou de statut.
+- Ne pas creer mecaniquement une interface et un service par methode lorsque ce
+  decoupage n'apporte aucune isolation fonctionnelle ou technique.
+- Pour un agregat qui possede un statut et un cycle de vie explicites, regrouper
+  sa creation et ses transitions d'etat dans un port `<Aggregate>LifecycleUseCase`.
+  La creation initialise le statut de l'agregat et constitue la premiere
+  operation de son cycle de vie.
+- Ne pas regrouper des capacites sans rapport, notamment une commande et une
+  requete, uniquement pour reduire le nombre de types.
+- Une interface mono-methode reste adaptee lorsqu'elle represente une capacite
+  autonome, possede des consommateurs ou autorisations distincts, ou doit
+  evoluer independamment.
+- Une commande peut etre partagee entre plusieurs methodes uniquement lorsque
+  son payload, sa semantique structurelle et ses validations sont identiques.
+  Le nom de chaque methode doit alors conserver l'intention metier. Separer les
+  commandes des que leurs donnees ou contraintes divergent.
+- Les contrats publics inter-modules places dans `api` restent distincts des
+  ports applicatifs internes, meme lorsque leurs signatures sont proches.
+
+Principe directeur : `un port = une capacite metier coherente`, et non
+`un port = une methode` ni `un port = tout le module`.
+
 ### 3) application/port/out (sorties externes)
 **Responsabilite** : contrats pour la persistence, messagerie, API externes.
 
