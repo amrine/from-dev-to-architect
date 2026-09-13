@@ -309,6 +309,88 @@ public class TpAppApplication {
 - Ne pas mettre d'adapters ou de logique metier specifique dans `tp-common`.
 - Ne pas faire depend `tp-common` d'un autre module du projet.
 
+## Strategie de validation du projet
+
+### Principe directeur
+
+La validation est repartie selon le proprietaire de chaque regle. Une regle est
+garantie par la couche la plus profonde capable de l'evaluer correctement. Les
+couches exterieures peuvent refuser une entree plus tot, mais elles ne deviennent
+jamais l'unique garantie d'un invariant metier.
+
+TeamPulse n'utilise pas de validateur generique par entite, tel que
+`UserValidator` ou `OrganizationValidator`, ni de classe fourre-tout telle que
+`ValidationUtils`. Une validation est extraite uniquement lorsqu'elle represente
+un concept autonome, une regle reellement transverse ou une politique applicative
+complexe ou reutilisee.
+
+### Repartition par responsabilite
+
+- Les ports entrants et leurs commandes portent les contraintes structurelles
+  Jakarta Validation : presence avec `@NotNull` ou `@NotBlank`, validation en
+  cascade avec `@Valid` et limites techniques du contrat si necessaire.
+- Les services applicatifs annotés `@Validated` executent ces contraintes
+  lorsqu'ils sont appeles au travers du bean Spring proxifie. Une instanciation
+  directe du service ne declenche pas la validation de methode. Tout service
+  applicatif declare avec `@Service` doit donc aussi porter `@Validated`.
+- Les value objects transverses, comme `TenantContext`, garantissent aussi leurs
+  propres invariants a la construction afin de rester valides hors de Spring.
+- Les modeles du domaine restent Java purs et sont valides par construction,
+  restauration et apres chaque operation metier. Ils possedent la normalisation,
+  les formats metier, les invariants entre champs et les transitions de statut.
+- Une regle qui exige un repository, un `Directory`, une horloge ou un autre
+  systeme est orchestree par la couche application au travers d'un port. Elle
+  represente une verification ponctuelle du cas d'usage, pas un invariant que
+  l'agregat pourrait garantir continuellement.
+- PostgreSQL constitue la derniere defense des invariants persistants exprimables
+  localement avec `NOT NULL`, `CHECK`, `UNIQUE`, cles et verrouillage optimiste.
+  Il ne valide pas les disponibilites inter-modules ni les transitions metier.
+- Les adapters traduisent explicitement les violations de contraintes connues
+  dans le vocabulaire d'erreur du module. Une violation inconnue reste une erreur
+  technique.
+
+La normalisation precede la validation lorsqu'elle appartient au contrat metier,
+par exemple `strip()` pour un nom ou la mise en minuscules d'un email. Une valeur
+censee etre canonique, telle qu'une reference ou une timezone, n'est pas corrigee
+silencieusement lorsqu'elle est invalide.
+
+### Mutualisation dans `tp-common`
+
+Une validation ne peut entrer dans `tp-common` que si elle est simultanement :
+
+- identique pour tous ses consommateurs ;
+- independante d'un domaine metier ;
+- sans acces externe ;
+- independante de Spring et de JPA ;
+- sans code d'erreur propre a un module.
+
+La regle reste placee avec le concept qu'elle protege, par exemple
+`common.reference.ReferenceFormat`. Un resultat transverse reste neutre ; le
+module consommateur choisit son prefixe metier et traduit le refus dans sa propre
+exception. Lorsqu'une regle metier doit etre partagee, son module proprietaire
+expose un contrat public cible au lieu de la deplacer dans `tp-common`.
+
+### Execution, erreurs et tests
+
+- Les validations sont fail-fast par couche et toute ecriture intervient apres
+  les verifications connues du cas d'usage.
+- Une erreur de contrat Jakarta, un refus metier, un resultat inter-module et une
+  defaillance technique restent des categories distinctes.
+- Chaque module possede ses codes d'erreur metier. `tp-common` ne centralise pas
+  les catalogues d'erreurs des modules.
+- Les causes techniques sont conservees et ne sont jamais transformees en refus
+  metier arbitraire.
+- Chaque regle possede ses tests de reference dans sa couche proprietaire : tests
+  unitaires sans Spring pour le domaine, bean proxifie pour Jakarta Validation et
+  les transactions, PostgreSQL reel pour les garanties de persistence, et tests
+  Web limites au contrat HTTP.
+- ArchUnit controle les frontieres structurelles. Les tests comportementaux, et
+  non ArchUnit, prouvent les invariants et les traductions d'erreurs.
+
+Avant d'ajouter une validation, verifier sa couche proprietaire, son besoin d'I/O,
+son caractere reellement transverse et le test de reference qui prouve son
+comportement.
+
 ### Resolution du tenant dans les controleurs
 
 Tout controleur qui appelle un cas d'usage tenanté doit :
