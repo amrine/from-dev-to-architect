@@ -4,7 +4,9 @@ import io.teampulse.organization.domain.organization.error.OrganizationErrorCode
 import io.teampulse.organization.domain.organization.error.OrganizationException;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.function.Executable;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 
@@ -26,6 +28,12 @@ class OrganizationTest {
 
     private static final String MANAGER_REFERENCE =
         "USR-2026-0908-00000ZA7B901";
+
+    private static final String OTHER_ADMIN_REFERENCE =
+        "USR-2026-0908-00000ZA7B902";
+
+    private static final String OTHER_MANAGER_REFERENCE =
+        "USR-2026-0908-00000ZA7B903";
 
     private static final String TIMEZONE = "Europe/Paris";
 
@@ -304,11 +312,655 @@ class OrganizationTest {
         }
     }
 
+    @Nested
+    class AdministratorAssignmentTests {
+
+        @Test
+        void assignsAndReplacesAdministratorWhileCreating() {
+            Organization organization = createOrganization("TeamPulse");
+
+            organization.assignAdministrator(ADMIN_REFERENCE);
+            organization.assignAdministrator(OTHER_ADMIN_REFERENCE);
+
+            assertEquals(OTHER_ADMIN_REFERENCE, organization.getAdminReference());
+            assertEquals(OrganizationStatus.CREATING, organization.getStatus());
+        }
+
+        @Test
+        void treatsSameAdministratorAssignmentAsNoOp() {
+            Organization organization = createOrganization("TeamPulse");
+            organization.assignAdministrator(ADMIN_REFERENCE);
+
+            organization.assignAdministrator(ADMIN_REFERENCE);
+
+            assertEquals(ADMIN_REFERENCE, organization.getAdminReference());
+            assertEquals(OrganizationStatus.CREATING, organization.getStatus());
+        }
+
+        @ParameterizedTest
+        @EnumSource(
+            value = OrganizationStatus.class,
+            names = {"ACTIVE", "SUSPENDED"}
+        )
+        void rejectsAssignmentOutsideCreatingWithoutMutation(
+            OrganizationStatus status
+        ) {
+            Organization organization = organizationInStatus(status);
+
+            assertInvalidStatusTransition(
+                () -> organization.assignAdministrator(OTHER_ADMIN_REFERENCE)
+            );
+
+            assertEquals(ADMIN_REFERENCE, organization.getAdminReference());
+            assertEquals(status, organization.getStatus());
+        }
+
+        @ParameterizedTest
+        @NullAndEmptySource
+        @ValueSource(strings = {" ", "ORG-2026-0908-00000ZA7B900"})
+        void rejectsInvalidReferenceWithoutMutation(String reference) {
+            Organization organization = createOrganization("TeamPulse");
+            organization.assignAdministrator(ADMIN_REFERENCE);
+
+            assertThrows(
+                IllegalArgumentException.class,
+                () -> organization.assignAdministrator(reference)
+            );
+
+            assertEquals(ADMIN_REFERENCE, organization.getAdminReference());
+            assertEquals(OrganizationStatus.CREATING, organization.getStatus());
+        }
+    }
+
+    @Nested
+    class ManagerAssignmentTests {
+
+        @Test
+        void assignsAndReplacesManagerWhileCreating() {
+            Organization organization = createOrganization("TeamPulse");
+
+            organization.assignManager(MANAGER_REFERENCE);
+            organization.assignManager(OTHER_MANAGER_REFERENCE);
+
+            assertEquals(OTHER_MANAGER_REFERENCE, organization.getManagerReference());
+            assertEquals(OrganizationStatus.CREATING, organization.getStatus());
+        }
+
+        @Test
+        void treatsSameManagerAssignmentAsNoOpWhileCreating() {
+            Organization organization = createOrganization("TeamPulse");
+            organization.assignManager(MANAGER_REFERENCE);
+
+            organization.assignManager(MANAGER_REFERENCE);
+
+            assertEquals(MANAGER_REFERENCE, organization.getManagerReference());
+            assertEquals(OrganizationStatus.CREATING, organization.getStatus());
+        }
+
+        @Test
+        void assignsMissingManagerWhileSuspendedWithoutReactivating() {
+            Organization organization = suspendedOrganizationWithoutManager();
+
+            organization.assignManager(MANAGER_REFERENCE);
+
+            assertEquals(MANAGER_REFERENCE, organization.getManagerReference());
+            assertEquals(OrganizationStatus.SUSPENDED, organization.getStatus());
+        }
+
+        @Test
+        void rejectsAssignmentWhenSuspendedManagerAlreadyExists() {
+            Organization organization = organizationInStatus(
+                OrganizationStatus.SUSPENDED
+            );
+
+            assertInvalidStatusTransition(
+                () -> organization.assignManager(OTHER_MANAGER_REFERENCE)
+            );
+
+            assertEquals(MANAGER_REFERENCE, organization.getManagerReference());
+            assertEquals(OrganizationStatus.SUSPENDED, organization.getStatus());
+        }
+
+        @Test
+        void rejectsAssignmentWhileActive() {
+            Organization organization = organizationInStatus(
+                OrganizationStatus.ACTIVE
+            );
+
+            assertInvalidStatusTransition(
+                () -> organization.assignManager(OTHER_MANAGER_REFERENCE)
+            );
+
+            assertEquals(MANAGER_REFERENCE, organization.getManagerReference());
+            assertEquals(OrganizationStatus.ACTIVE, organization.getStatus());
+        }
+
+        @ParameterizedTest
+        @NullAndEmptySource
+        @ValueSource(strings = {" ", "ORG-2026-0908-00000ZA7B900"})
+        void rejectsInvalidReferenceWithoutMutation(String reference) {
+            Organization organization = createOrganization("TeamPulse");
+            organization.assignManager(MANAGER_REFERENCE);
+
+            assertThrows(
+                IllegalArgumentException.class,
+                () -> organization.assignManager(reference)
+            );
+
+            assertEquals(MANAGER_REFERENCE, organization.getManagerReference());
+            assertEquals(OrganizationStatus.CREATING, organization.getStatus());
+        }
+    }
+
+    @Nested
+    class ActivationTests {
+
+        @Test
+        void activatesCreatingOrganizationWithBothResponsibleUsers() {
+            Organization organization = creatingOrganizationWithResponsibleUsers();
+
+            organization.activate();
+
+            assertEquals(OrganizationStatus.ACTIVE, organization.getStatus());
+            assertEquals(ADMIN_REFERENCE, organization.getAdminReference());
+            assertEquals(MANAGER_REFERENCE, organization.getManagerReference());
+        }
+
+        @Test
+        void acceptsSameUserAsBothResponsibleUsersOnActivation() {
+            Organization organization = createOrganization("TeamPulse");
+            organization.assignAdministrator(ADMIN_REFERENCE);
+            organization.assignManager(ADMIN_REFERENCE);
+
+            organization.activate();
+
+            assertEquals(OrganizationStatus.ACTIVE, organization.getStatus());
+            assertEquals(ADMIN_REFERENCE, organization.getAdminReference());
+            assertEquals(ADMIN_REFERENCE, organization.getManagerReference());
+        }
+
+        @Test
+        void rejectsActivationWithoutResponsibleUsers() {
+            Organization organization = createOrganization("TeamPulse");
+
+            assertActivationRequirementsNotMet(organization::activate);
+
+            assertEquals(OrganizationStatus.CREATING, organization.getStatus());
+        }
+
+        @Test
+        void rejectsActivationWithoutAdministrator() {
+            Organization organization = createOrganization("TeamPulse");
+            organization.assignManager(MANAGER_REFERENCE);
+
+            assertActivationRequirementsNotMet(organization::activate);
+
+            assertEquals(OrganizationStatus.CREATING, organization.getStatus());
+            assertNull(organization.getAdminReference());
+            assertEquals(MANAGER_REFERENCE, organization.getManagerReference());
+        }
+
+        @Test
+        void rejectsActivationWithoutManager() {
+            Organization organization = createOrganization("TeamPulse");
+            organization.assignAdministrator(ADMIN_REFERENCE);
+
+            assertActivationRequirementsNotMet(organization::activate);
+
+            assertEquals(OrganizationStatus.CREATING, organization.getStatus());
+            assertEquals(ADMIN_REFERENCE, organization.getAdminReference());
+            assertNull(organization.getManagerReference());
+        }
+
+        @ParameterizedTest
+        @EnumSource(
+            value = OrganizationStatus.class,
+            names = {"ACTIVE", "SUSPENDED"}
+        )
+        void rejectsActivationOutsideCreating(OrganizationStatus status) {
+            Organization organization = organizationInStatus(status);
+
+            assertInvalidStatusTransition(organization::activate);
+
+            assertEquals(status, organization.getStatus());
+        }
+    }
+
+    @Nested
+    class AdministratorReplacementTests {
+
+        @ParameterizedTest
+        @EnumSource(
+            value = OrganizationStatus.class,
+            names = {"ACTIVE", "SUSPENDED"}
+        )
+        void replacesAdministratorWithoutChangingStatus(OrganizationStatus status) {
+            Organization organization = organizationInStatus(status);
+
+            organization.replaceAdministrator(OTHER_ADMIN_REFERENCE);
+
+            assertEquals(OTHER_ADMIN_REFERENCE, organization.getAdminReference());
+            assertEquals(status, organization.getStatus());
+        }
+
+        @ParameterizedTest
+        @EnumSource(
+            value = OrganizationStatus.class,
+            names = {"ACTIVE", "SUSPENDED"}
+        )
+        void treatsSameAdministratorReplacementAsNoOp(OrganizationStatus status) {
+            Organization organization = organizationInStatus(status);
+
+            organization.replaceAdministrator(ADMIN_REFERENCE);
+
+            assertEquals(ADMIN_REFERENCE, organization.getAdminReference());
+            assertEquals(status, organization.getStatus());
+        }
+
+        @Test
+        void allowsAdministratorToBecomeCurrentManager() {
+            Organization organization = organizationInStatus(
+                OrganizationStatus.ACTIVE
+            );
+
+            organization.replaceAdministrator(MANAGER_REFERENCE);
+
+            assertEquals(MANAGER_REFERENCE, organization.getAdminReference());
+            assertEquals(MANAGER_REFERENCE, organization.getManagerReference());
+            assertEquals(OrganizationStatus.ACTIVE, organization.getStatus());
+        }
+
+        @Test
+        void rejectsReplacementWhileCreating() {
+            Organization organization = creatingOrganizationWithResponsibleUsers();
+
+            assertInvalidStatusTransition(
+                () -> organization.replaceAdministrator(OTHER_ADMIN_REFERENCE)
+            );
+
+            assertEquals(ADMIN_REFERENCE, organization.getAdminReference());
+            assertEquals(OrganizationStatus.CREATING, organization.getStatus());
+        }
+
+        @ParameterizedTest
+        @NullAndEmptySource
+        @ValueSource(strings = {" ", "ORG-2026-0908-00000ZA7B900"})
+        void rejectsInvalidReferenceWithoutMutation(String reference) {
+            Organization organization = organizationInStatus(
+                OrganizationStatus.ACTIVE
+            );
+
+            assertThrows(
+                IllegalArgumentException.class,
+                () -> organization.replaceAdministrator(reference)
+            );
+
+            assertEquals(ADMIN_REFERENCE, organization.getAdminReference());
+            assertEquals(OrganizationStatus.ACTIVE, organization.getStatus());
+        }
+    }
+
+    @Nested
+    class ManagerReplacementTests {
+
+        @ParameterizedTest
+        @EnumSource(
+            value = OrganizationStatus.class,
+            names = {"ACTIVE", "SUSPENDED"}
+        )
+        void replacesExistingManagerWithoutChangingStatus(OrganizationStatus status) {
+            Organization organization = organizationInStatus(status);
+
+            organization.replaceManager(OTHER_MANAGER_REFERENCE);
+
+            assertEquals(OTHER_MANAGER_REFERENCE, organization.getManagerReference());
+            assertEquals(status, organization.getStatus());
+        }
+
+        @ParameterizedTest
+        @EnumSource(
+            value = OrganizationStatus.class,
+            names = {"ACTIVE", "SUSPENDED"}
+        )
+        void treatsSameManagerReplacementAsNoOp(OrganizationStatus status) {
+            Organization organization = organizationInStatus(status);
+
+            organization.replaceManager(MANAGER_REFERENCE);
+
+            assertEquals(MANAGER_REFERENCE, organization.getManagerReference());
+            assertEquals(status, organization.getStatus());
+        }
+
+        @Test
+        void allowsManagerToBecomeCurrentAdministrator() {
+            Organization organization = organizationInStatus(
+                OrganizationStatus.ACTIVE
+            );
+
+            organization.replaceManager(ADMIN_REFERENCE);
+
+            assertEquals(ADMIN_REFERENCE, organization.getAdminReference());
+            assertEquals(ADMIN_REFERENCE, organization.getManagerReference());
+            assertEquals(OrganizationStatus.ACTIVE, organization.getStatus());
+        }
+
+        @Test
+        void rejectsReplacementWhenSuspendedManagerIsAbsent() {
+            Organization organization = suspendedOrganizationWithoutManager();
+
+            assertInvalidStatusTransition(
+                () -> organization.replaceManager(OTHER_MANAGER_REFERENCE)
+            );
+
+            assertNull(organization.getManagerReference());
+            assertEquals(OrganizationStatus.SUSPENDED, organization.getStatus());
+        }
+
+        @Test
+        void rejectsReplacementWhileCreating() {
+            Organization organization = creatingOrganizationWithResponsibleUsers();
+
+            assertInvalidStatusTransition(
+                () -> organization.replaceManager(OTHER_MANAGER_REFERENCE)
+            );
+
+            assertEquals(MANAGER_REFERENCE, organization.getManagerReference());
+            assertEquals(OrganizationStatus.CREATING, organization.getStatus());
+        }
+
+        @ParameterizedTest
+        @NullAndEmptySource
+        @ValueSource(strings = {" ", "ORG-2026-0908-00000ZA7B900"})
+        void rejectsInvalidReferenceWithoutMutation(String reference) {
+            Organization organization = organizationInStatus(
+                OrganizationStatus.ACTIVE
+            );
+
+            assertThrows(
+                IllegalArgumentException.class,
+                () -> organization.replaceManager(reference)
+            );
+
+            assertEquals(MANAGER_REFERENCE, organization.getManagerReference());
+            assertEquals(OrganizationStatus.ACTIVE, organization.getStatus());
+        }
+    }
+
+    @Nested
+    class ManagerRemovalTests {
+
+        @Test
+        void removesManagerAndSuspendsActiveOrganization() {
+            Organization organization = organizationInStatus(
+                OrganizationStatus.ACTIVE
+            );
+
+            organization.removeManager();
+
+            assertNull(organization.getManagerReference());
+            assertEquals(ADMIN_REFERENCE, organization.getAdminReference());
+            assertEquals(OrganizationStatus.SUSPENDED, organization.getStatus());
+        }
+
+        @Test
+        void removesManagerFromSuspendedOrganizationWithoutChangingStatus() {
+            Organization organization = organizationInStatus(
+                OrganizationStatus.SUSPENDED
+            );
+
+            organization.removeManager();
+
+            assertNull(organization.getManagerReference());
+            assertEquals(ADMIN_REFERENCE, organization.getAdminReference());
+            assertEquals(OrganizationStatus.SUSPENDED, organization.getStatus());
+        }
+
+        @Test
+        void treatsMissingManagerRemovalAsNoOpWhileSuspended() {
+            Organization organization = suspendedOrganizationWithoutManager();
+
+            organization.removeManager();
+
+            assertNull(organization.getManagerReference());
+            assertEquals(ADMIN_REFERENCE, organization.getAdminReference());
+            assertEquals(OrganizationStatus.SUSPENDED, organization.getStatus());
+        }
+
+        @Test
+        void rejectsManagerRemovalWhileCreating() {
+            Organization organization = creatingOrganizationWithResponsibleUsers();
+
+            assertInvalidStatusTransition(organization::removeManager);
+
+            assertEquals(MANAGER_REFERENCE, organization.getManagerReference());
+            assertEquals(OrganizationStatus.CREATING, organization.getStatus());
+        }
+    }
+
+    @Nested
+    class SuspensionTests {
+
+        @Test
+        void suspendsActiveOrganizationAndPreservesResponsibleUsers() {
+            Organization organization = organizationInStatus(
+                OrganizationStatus.ACTIVE
+            );
+
+            organization.suspend();
+
+            assertEquals(OrganizationStatus.SUSPENDED, organization.getStatus());
+            assertEquals(ADMIN_REFERENCE, organization.getAdminReference());
+            assertEquals(MANAGER_REFERENCE, organization.getManagerReference());
+        }
+
+        @ParameterizedTest
+        @EnumSource(
+            value = OrganizationStatus.class,
+            names = {"CREATING", "SUSPENDED"}
+        )
+        void rejectsSuspensionOutsideActive(OrganizationStatus status) {
+            Organization organization = organizationInStatus(status);
+
+            assertInvalidStatusTransition(organization::suspend);
+
+            assertEquals(status, organization.getStatus());
+        }
+    }
+
+    @Nested
+    class ReactivationTests {
+
+        @Test
+        void reactivatesSuspendedOrganizationWithBothResponsibleUsers() {
+            Organization organization = organizationInStatus(
+                OrganizationStatus.SUSPENDED
+            );
+
+            organization.reactivate();
+
+            assertEquals(OrganizationStatus.ACTIVE, organization.getStatus());
+            assertEquals(ADMIN_REFERENCE, organization.getAdminReference());
+            assertEquals(MANAGER_REFERENCE, organization.getManagerReference());
+        }
+
+        @Test
+        void rejectsReactivationWithoutManager() {
+            Organization organization = suspendedOrganizationWithoutManager();
+
+            assertActivationRequirementsNotMet(organization::reactivate);
+
+            assertEquals(OrganizationStatus.SUSPENDED, organization.getStatus());
+            assertEquals(ADMIN_REFERENCE, organization.getAdminReference());
+            assertNull(organization.getManagerReference());
+        }
+
+        @ParameterizedTest
+        @EnumSource(
+            value = OrganizationStatus.class,
+            names = {"CREATING", "ACTIVE"}
+        )
+        void rejectsReactivationOutsideSuspended(OrganizationStatus status) {
+            Organization organization = organizationInStatus(status);
+
+            assertInvalidStatusTransition(organization::reactivate);
+
+            assertEquals(status, organization.getStatus());
+        }
+    }
+
+    @Nested
+    class ArchivalTests {
+
+        @ParameterizedTest
+        @EnumSource(
+            value = OrganizationStatus.class,
+            names = {"CREATING", "ACTIVE", "SUSPENDED"}
+        )
+        void archivesOrganizationAndPreservesResponsibleUsers(
+            OrganizationStatus status
+        ) {
+            Organization organization = organizationInStatus(status);
+
+            organization.archive();
+
+            assertEquals(OrganizationStatus.ARCHIVED, organization.getStatus());
+            assertEquals(ADMIN_REFERENCE, organization.getAdminReference());
+            assertEquals(MANAGER_REFERENCE, organization.getManagerReference());
+        }
+
+        @Test
+        void archivesCreatingOrganizationWithoutResponsibleUsers() {
+            Organization organization = createOrganization("TeamPulse");
+
+            organization.archive();
+
+            assertEquals(OrganizationStatus.ARCHIVED, organization.getStatus());
+            assertNull(organization.getAdminReference());
+            assertNull(organization.getManagerReference());
+        }
+
+        @Test
+        void archivesCreatingOrganizationWithOnlyManager() {
+            Organization organization = Organization.restore(
+                ORGANIZATION_REFERENCE,
+                "TeamPulse",
+                TIMEZONE,
+                null,
+                MANAGER_REFERENCE,
+                OrganizationStatus.CREATING
+            );
+
+            organization.archive();
+
+            assertEquals(OrganizationStatus.ARCHIVED, organization.getStatus());
+            assertNull(organization.getAdminReference());
+            assertEquals(MANAGER_REFERENCE, organization.getManagerReference());
+        }
+
+        @Test
+        void archivesSuspendedOrganizationWithoutManager() {
+            Organization organization = suspendedOrganizationWithoutManager();
+
+            organization.archive();
+
+            assertEquals(OrganizationStatus.ARCHIVED, organization.getStatus());
+            assertEquals(ADMIN_REFERENCE, organization.getAdminReference());
+            assertNull(organization.getManagerReference());
+        }
+    }
+
+    @Nested
+    class ArchivedTerminalStateTests {
+
+        @Test
+        void rejectsEveryDomainOperationWithoutMutation() {
+            Organization organization = organizationInStatus(
+                OrganizationStatus.ARCHIVED
+            );
+
+            List<Executable> operations = List.of(
+                () -> organization.assignAdministrator(null),
+                () -> organization.assignManager("invalid-reference"),
+                organization::activate,
+                () -> organization.replaceAdministrator(OTHER_ADMIN_REFERENCE),
+                () -> organization.replaceManager(OTHER_MANAGER_REFERENCE),
+                organization::removeManager,
+                organization::suspend,
+                organization::reactivate,
+                organization::archive
+            );
+
+            for (Executable operation : operations) {
+                assertInvalidStatusTransition(operation);
+                assertEquals(OrganizationStatus.ARCHIVED, organization.getStatus());
+                assertEquals(ADMIN_REFERENCE, organization.getAdminReference());
+                assertEquals(MANAGER_REFERENCE, organization.getManagerReference());
+            }
+        }
+    }
+
     private static Organization createOrganization(String name) {
         return Organization.create(
             ORGANIZATION_REFERENCE,
             name,
             TIMEZONE
+        );
+    }
+
+    private static Organization creatingOrganizationWithResponsibleUsers() {
+        return Organization.restore(
+            ORGANIZATION_REFERENCE,
+            "TeamPulse",
+            TIMEZONE,
+            ADMIN_REFERENCE,
+            MANAGER_REFERENCE,
+            OrganizationStatus.CREATING
+        );
+    }
+
+    private static Organization suspendedOrganizationWithoutManager() {
+        return Organization.restore(
+            ORGANIZATION_REFERENCE,
+            "TeamPulse",
+            TIMEZONE,
+            ADMIN_REFERENCE,
+            null,
+            OrganizationStatus.SUSPENDED
+        );
+    }
+
+    private static Organization organizationInStatus(OrganizationStatus status) {
+        return Organization.restore(
+            ORGANIZATION_REFERENCE,
+            "TeamPulse",
+            TIMEZONE,
+            ADMIN_REFERENCE,
+            MANAGER_REFERENCE,
+            status
+        );
+    }
+
+    private static void assertInvalidStatusTransition(Executable operation) {
+        OrganizationException exception = assertThrows(
+            OrganizationException.class,
+            operation
+        );
+
+        assertEquals(
+            OrganizationErrorCode.INVALID_STATUS_TRANSITION,
+            exception.getErrorCode()
+        );
+    }
+
+    private static void assertActivationRequirementsNotMet(Executable operation) {
+        OrganizationException exception = assertThrows(
+            OrganizationException.class,
+            operation
+        );
+
+        assertEquals(
+            OrganizationErrorCode.ACTIVATION_REQUIREMENTS_NOT_MET,
+            exception.getErrorCode()
         );
     }
 }
