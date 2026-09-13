@@ -1,6 +1,6 @@
 package io.teampulse.identity;
 
-import io.teampulse.persistence.config.ReferenceConfiguration;
+import io.teampulse.config.ReferenceConfiguration;
 import io.teampulse.testsupport.persistence.PostgreSQLTestConfiguration;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.annotation.Import;

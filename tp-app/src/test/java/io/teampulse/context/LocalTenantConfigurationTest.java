@@ -4,7 +4,7 @@ import io.teampulse.common.context.TenantContext;
 import io.teampulse.common.context.TenantContextProvider;
 import io.teampulse.common.reference.MonotonicReferenceFactory;
 import io.teampulse.common.reference.ReferenceFactory;
-import io.teampulse.persistence.config.ReferenceConfiguration;
+import io.teampulse.config.ReferenceConfiguration;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
