@@ -284,9 +284,10 @@ TeamPulse doit donc disposer :
   `SUSPENDED` et `DEACTIVATED` deviennent `UNAVAILABLE`.
 - Un utilisateur absent ou appartenant à une autre organisation retourne
   `NOT_FOUND` afin de ne pas révéler son existence.
-- Le package existant `io.teampulse.organization.api`, déclaré avec
-  `@NamedInterface("api")`, expose `OrganizationDirectory`,
-  `OrganizationAvailability` et `OrganizationDirectoryException`.
+- Le package `io.teampulse.organization.api.organization`, déclaré avec
+  `@NamedInterface("organization")`, expose `OrganizationDirectory`,
+  `OrganizationAvailability` et `OrganizationDirectoryException`. Le package
+  parent `api` sert uniquement de namespace.
 - `OrganizationDirectory` expose
   `OrganizationAvailability check(String organizationReference)` ; aucune liste
   globale d'organisations n'est fournie.
@@ -802,8 +803,8 @@ jamais une dépendance du module consommateur.
       organisation.
 - [ ] `OrganizationDirectory`, `OrganizationAvailability` et
       `OrganizationDirectoryException` sont exposés par
-      `io.teampulse.organization.api` via l'interface nommée `api` déjà définie
-      par le projet.
+      `io.teampulse.organization.api.organization` via l'interface nommée
+      `organization::organization`.
 - [ ] `OrganizationDirectory` retourne `AVAILABLE` pour `ACTIVE`, `UNAVAILABLE`
       pour `CREATING`, `SUSPENDED` et `ARCHIVED`, et `NOT_FOUND` pour une
       référence inexistante.
@@ -930,7 +931,8 @@ jamais une dépendance du module consommateur.
 - Test de `OrganizationDirectory` confirmant que le mapping de `ACTIVE` vers
   `AVAILABLE` n'appelle jamais `UserDirectory`.
 - Tests Spring Modulith vérifiant que les modules consommateurs accèdent
-  uniquement aux interfaces nommées `identity::user` et `organization::api`.
+  uniquement aux interfaces nommées `identity::user` et
+  `organization::organization`.
 - Tests d'intégration PostgreSQL avec deux organisations, couvrant les
   contraintes `NOT NULL`, la limite de 200 caractères du nom, les nullabilités
   dépendantes du statut, les unicités et l'isolation des recherches.
@@ -1027,8 +1029,9 @@ La trame pré-implémentation suit cet ordre :
 16. comparer une clé étrangère interne à une référence utilisée pour franchir
     la frontière d'un module ;
 17. expliquer le rôle de `UserDirectory` et de `OrganizationDirectory`, leur
-    exposition par l'interface nommée `api`, ainsi que l'absence de client
-    OpenAPI dans le monolithe modulaire actuel ;
+    exposition par les interfaces nommées dédiées `identity::user` et
+    `organization::organization`, ainsi que l'absence de client OpenAPI dans le
+    monolithe modulaire actuel ;
 18. présenter les statuts et transitions comme des règles métier explicites,
     et non comme de simples valeurs modifiables en base ;
 19. distinguer résultat métier attendu, exception interne, défaillance publique

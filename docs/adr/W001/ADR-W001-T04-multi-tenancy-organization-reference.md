@@ -552,15 +552,17 @@ Aucun client Java OpenAPI n'est généré en W001. Lors d'une extraction future 
 service, un adapter HTTP ou un client généré pourra implémenter ce contrat sans
 modifier les règles des modules consommateurs.
 
-### 8. Exposer `OrganizationDirectory` dans l'interface nommée `api` de `tp-organization`
+### 8. Exposer `OrganizationDirectory` dans l'interface nommée `organization` de `tp-organization`
 
 `tp-organization` fournit une API Java publique contenant
 `OrganizationDirectory`, `OrganizationAvailability` et
-`OrganizationDirectoryException`. Ces types sont placés directement dans
-`io.teampulse.organization.api`, package déjà déclaré avec
-`@NamedInterface("api")`. Cette API est le seul contrat d'organisation connu de
-`tp-team` ; elle n'expose ni modèle de domaine, ni enum `OrganizationStatus`, ni
-repository, ni classe JPA.
+`OrganizationDirectoryException`. Ces types sont placés dans
+`io.teampulse.organization.api.organization`, déclaré avec
+`@NamedInterface("organization")`. Le package parent
+`io.teampulse.organization.api` sert uniquement de namespace, comme dans
+`tp-identity`. Cette API est le seul contrat d'organisation connu de `tp-team` ;
+elle n'expose ni modèle de domaine, ni enum `OrganizationStatus`, ni repository,
+ni classe JPA.
 
 Le contrat vérifie une référence précise et ne fournit aucune liste globale :
 
@@ -1217,7 +1219,7 @@ conserve donc sa propre enum.
 Option rejetée. Un module consommateur serait alors couplé aux erreurs internes
 du fournisseur et pourrait dépendre de détails qui ne font pas partie du
 contrat appelé. Seules les exceptions techniques minimales des directories sont
-publiques dans l'interface nommée `api`.
+publiques dans leurs interfaces nommées dédiées.
 
 ### Laisser traverser directement les exceptions JPA ou Spring
 
@@ -1294,8 +1296,8 @@ cette infrastructure dans le runtime.
   domaine ou la persistence de `tp-identity`.
 - `OrganizationDirectory` permet à `tp-team` d'exiger une organisation active
   sans dépendre du domaine ou de la persistence de `tp-organization`.
-- Les interfaces nommées `api` rendent les dépendances inter-modules visibles et
-  vérifiables par Spring Modulith.
+- Les interfaces nommées dédiées rendent les dépendances inter-modules visibles
+  et vérifiables par Spring Modulith.
 - Les codes d'erreur restent stables et indépendants des messages ou du
   protocole d'exposition.
 - Chaque module reste propriétaire de son vocabulaire d'échec.
@@ -1399,8 +1401,9 @@ cette infrastructure dans le runtime.
   avec un mapping qui préserve ces données lors des mises à jour.
 - Service exposant ou validant la référence d'organisation.
 - `OrganizationDirectory`, `OrganizationAvailability` et
-  `OrganizationDirectoryException` dans `io.teampulse.organization.api`, déjà
-  exposé par `@NamedInterface("api")`.
+  `OrganizationDirectoryException` dans
+  `io.teampulse.organization.api.organization`, exposé par
+  `@NamedInterface("organization")`.
 - `OrganizationErrorCode` et `OrganizationException` dans le package interne
   `io.teampulse.organization.domain.organization.error`.
 - Consommation de l'API publique `UserDirectory` pour valider les responsables.
@@ -1433,8 +1436,8 @@ cette infrastructure dans le runtime.
 - Vérification de l'administrateur, du manager et des membres dans le tenant.
 - Repositories et contraintes composites tenantés.
 - Périodes d'appartenance explicites avec `startedAt` et `endedAt`.
-- Dépendances Spring Modulith limitées à `organization::api`, `identity::user` et
-  `common`.
+- Dépendances Spring Modulith limitées à `organization::organization`,
+  `identity::user` et `common`.
 
 ### `tp-app`
 
@@ -1642,9 +1645,9 @@ cette infrastructure dans le runtime.
   `OrganizationDirectory`, sans dépendre d'une entité, d'un enum de domaine ou
   d'un repository de `tp-organization`.
 - Vérifier que `OrganizationDirectory`, `OrganizationAvailability` et
-  `OrganizationDirectoryException` sont accessibles via `organization::api`,
-  tandis que `io.teampulse.organization.domain.organization.error` reste
-  interne.
+  `OrganizationDirectoryException` sont accessibles via
+  `organization::organization`, tandis que
+  `io.teampulse.organization.domain.organization.error` reste interne.
 - Vérifier qu'une équipe ne peut être créée que si `OrganizationDirectory`
   retourne `AVAILABLE`, et que `UNAVAILABLE` ou `NOT_FOUND` refusent la création.
 - Vérifier que chaque validation, transition, indisponibilité et conflit couvert
@@ -1722,8 +1725,8 @@ cette infrastructure dans le runtime.
 - Vérifier qu'aucune référence externe n'est remplacée par l'identifiant
   technique d'un autre module.
 - Exécuter `ApplicationModules.verify()` et vérifier que les consommateurs
-  dépendent uniquement de `identity::user` et `organization::api`, jamais des
-  packages `domain.<domaine>.error` externes.
+  dépendent uniquement de `identity::user` et `organization::organization`,
+  jamais des packages `domain.<domaine>.error` externes.
 - Exécuter la validation globale `./mvnw --batch-mode --no-transfer-progress
   verify` depuis la racine avec Docker actif.
 
