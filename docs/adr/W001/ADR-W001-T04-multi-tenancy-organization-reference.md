@@ -1411,7 +1411,14 @@ cette infrastructure dans le runtime.
 - `OrganizationErrorCode` et `OrganizationException` dans le package interne
   `io.teampulse.organization.domain.organization.error`.
 - Consommation de l'API publique `UserDirectory` pour valider les responsables.
-- Dépendance Spring Modulith limitée à `identity::user` en plus de `common`.
+- Dépendances Spring Modulith limitées aux interfaces nommées
+  `common::mapping`, `common::persistence`, `common::reference` et
+  `identity::user`. `common::context` n'est pas consommé par
+  `tp-organization`, car ses cas d'usage plateforme reçoivent explicitement
+  `organizationReference`.
+- MapStruct est déclaré comme dépendance directe de `tp-organization` pour son
+  mapper de persistence ; PostgreSQL et `tp-test-support` restent limités au
+  scope `test`.
 
 ### `tp-identity`
 
