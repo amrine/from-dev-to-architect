@@ -56,18 +56,31 @@ encore introduite et devra être revue avant Kubernetes.
 
 ### 2. Générer les références dans `tp-common`
 
-Les types `ReferenceFactory`, `MonotonicReferenceFactory` et `GenerationState`
-forment un générateur Java pur et transverse placé dans le package `reference`
-de `tp-common`. Ils ne dépendent ni de Spring, ni de JPA, ni d'un module métier.
-Seul le descripteur `package-info.java` utilise Spring Modulith pour exposer ce
-package comme interface nommée `common::reference` ; cette métadonnée
-d'architecture n'entre pas dans l'implémentation du générateur.
+Les types `ReferenceFactory`, `MonotonicReferenceFactory`, `ReferenceFormat` et
+`GenerationState` forment le socle Java pur et transverse placé dans le package
+`reference` de `tp-common`. Ils ne dépendent ni de Spring, ni de JPA, ni d'un
+module métier. Seul le descripteur `package-info.java` utilise Spring Modulith
+pour exposer ce package comme interface nommée `common::reference` ; cette
+métadonnée d'architecture n'entre pas dans leur implémentation.
 
 Le contrat public s'appelle `ReferenceFactory` et expose une seule opération :
 
 ```java
 String generate(String prefix);
 ```
+
+La validation d'une référence existante est portée par un contrat stateless
+distinct :
+
+```java
+ReferenceFormat.matches(reference, expectedPrefix);
+```
+
+`ReferenceFormat` valide uniquement la syntaxe commune et l'égalité avec le
+préfixe attendu. Il retourne un booléen, ne connaît aucun préfixe métier et ne
+produit aucune exception propre à un module. `User`, `Organization` et les
+futurs modèles consommateurs conservent leurs constantes de préfixe et la
+traduction d'un refus dans leur contrat d'erreur.
 
 L'implémentation s'appelle `MonotonicReferenceFactory`. Ce vocabulaire est
 propre à TeamPulse. Le nom ne porte ni le suffixe technique `Impl`, ni la
@@ -142,8 +155,9 @@ suffixe             -> 00000ZA7B90B
 référence           -> ORG-2026-0908-00000ZA7B90B
 ```
 
-Le format exact des tokens est centralisé dans la factory ; aucun module métier
-ne concatène lui-même les composants.
+La construction des tokens reste centralisée dans la factory et leur grammaire
+commune dans `ReferenceFormat` ; aucun module métier ne concatène lui-même les
+composants ni ne redéfinit l'expression régulière complète.
 
 ### 3. Utiliser un algorithme monotone et non bloquant dans une JVM
 
@@ -821,6 +835,9 @@ cohérence du catalogue entre tous les modules métier.
 - `@Validated` active la validation déclarative des contraintes Jakarta
   Validation portées par les paramètres des ports entrants et par leurs
   commandes.
+- Tout service applicatif déclaré avec `@Service` porte aussi `@Validated` ; R11
+  protège cette convention pour éviter qu'une contrainte de port reste inactive
+  à cause d'une annotation oubliée.
 - `@Transactional` définit la frontière transactionnelle au niveau du cas
   d'usage. Les opérations de lecture utilisent `@Transactional(readOnly = true)`
   lorsque leur comportement est strictement en lecture.
@@ -878,7 +895,100 @@ La couverture suit donc les règles suivantes :
 - un test ne vérifie pas une annotation par réflexion lorsqu'il peut vérifier
   directement son effet observable à travers le framework concerné.
 
+### 15. Adopter une validation distribuée par propriétaire de règle
+
+TeamPulse répartit les validations selon la responsabilité de chaque couche. Une
+règle est garantie par la couche la plus profonde capable de l'évaluer
+correctement. Une couche extérieure peut refuser une entrée plus tôt, mais elle
+ne devient jamais l'unique garantie d'un invariant métier.
+
+Les ports entrants et leurs commandes portent uniquement les contraintes
+structurelles Jakarta Validation : paramètres non nuls, valeurs obligatoires,
+validation en cascade et limites techniques du contrat lorsque nécessaire. Les
+services applicatifs annotés `@Validated` exécutent ces contraintes lorsqu'ils
+sont appelés au travers du bean Spring proxifié. `@Service` assure la découverte
+du bean et `@Transactional` sa frontière transactionnelle ; ces annotations ne
+portent aucune règle de validation supplémentaire. Afin d'éviter une activation
+silencieusement oubliée, R11 impose `@Validated` à toute classe de
+`application.service` déclarée avec `@Service`.
+
+Les value objects transverses garantissent leurs invariants à la construction.
+Ainsi, `TenantContext` interdit une `tenantReference` nulle ou blanche même hors
+de Spring, tandis que le port entrant exige que l'instance elle-même soit non
+nulle. Une commande telle que `CreateUserCommand` porte ses contraintes
+structurelles et le port déclenche leur évaluation en cascade avec `@Valid`.
+
+Les agrégats restent Java purs et sont valides par construction, restauration et
+après chaque opération métier. Ils portent la normalisation, les formats et
+longueurs métier, les invariants entre champs et les transitions de statut. Ils
+n'exposent pas de méthode publique `validate()` qu'un appelant pourrait oublier.
+La normalisation précède la validation lorsqu'elle appartient au contrat métier ;
+une valeur canonique invalide, comme une référence ou une timezone, n'est pas
+corrigée silencieusement.
+
+Une règle qui exige un repository, un `Directory`, une horloge ou un autre
+système est orchestrée par la couche application au travers d'un port. Elle
+constitue une décision ponctuelle du cas d'usage. La disponibilité des
+responsables est donc contrôlée lors de l'activation, de la réactivation ou du
+remplacement, tandis que l'agrégat conserve seulement l'invariant structurel
+durable correspondant à son statut.
+
+Les validations sont fail-fast par couche. Toute écriture intervient après les
+vérifications connues du cas d'usage. La source de vérité d'une règle reste
+prioritaire sur une optimisation artificielle de l'ordre des erreurs ou des
+appels. Une génération de référence peut laisser un trou après un refus
+ultérieur : l'unicité est exigée, pas la continuité de la séquence.
+
+PostgreSQL constitue la dernière défense des invariants persistants exprimables
+localement avec `NOT NULL`, `CHECK`, `UNIQUE`, clés relationnelles et verrouillage
+optimiste. Il ne contrôle ni les transitions métier ni les disponibilités
+inter-modules. Les adapters traduisent les violations de contraintes connues
+dans le code d'erreur de leur module ; une violation inconnue reste une erreur
+technique.
+
+Les erreurs de contrat Jakarta, les refus métier, les résultats attendus d'un
+autre module et les défaillances techniques restent distincts. Chaque module
+possède ses codes d'erreur et traduit les résultats externes dans son propre
+vocabulaire. Les predicates transverses peuvent retourner un résultat neutre,
+comme `ReferenceFormat.matches(...)`, afin de ne pas dépendre des erreurs des
+consommateurs. Les causes techniques sont conservées.
+
+Une validation n'entre dans `tp-common` que si elle est identique pour tous ses
+consommateurs, indépendante d'un métier, sans I/O, sans Spring, sans JPA et sans
+code d'erreur de module. Elle reste placée avec le concept qu'elle protège. Le
+projet n'introduit donc ni package générique de validation, ni `ValidationUtils`,
+ni validateur générique par entité. Une policy applicative dédiée n'est extraite
+que lorsqu'une règle nécessitant des ports est complexe ou réutilisée, avec un
+nom décrivant la décision métier.
+
+Chaque règle possède ses tests de référence dans sa couche propriétaire. Le
+domaine est testé sans Spring, les contrats Jakarta et transactions avec le bean
+proxifié, les garanties de persistence avec PostgreSQL réel, et le futur adapter
+Web sur son seul contrat HTTP. ArchUnit protège les frontières structurelles ;
+les tests comportementaux prouvent les invariants et les traductions d'erreurs.
+
 ## Alternatives envisagées
+
+### Centraliser toutes les validations dans un validateur par entité
+
+Option rejetée. Un `UserValidator` ou `OrganizationValidator` finirait par
+mélanger contraintes de contrat, invariants du domaine, consultations externes
+et règles de persistence. Il permettrait aussi de construire un agrégat avant
+d'avoir exécuté une validation qu'un appelant pourrait oublier.
+
+### Dupliquer les règles métier avec Jakarta Validation
+
+Option rejetée. Répéter les formats, normalisations et longueurs métier sur les
+commandes créerait deux sources de vérité susceptibles de diverger. Jakarta
+Validation reste limitée au contrat structurel ; le domaine garantit la règle
+fonctionnelle quelle que soit l'origine de l'appel.
+
+### Confier toute l'intégrité à PostgreSQL
+
+Option rejetée. La base ne peut pas exprimer les transitions, la disponibilité
+inter-module ou les règles dépendant d'un cas d'usage. Ses contraintes complètent
+les garanties applicatives face aux courses et aux chemins d'écriture défectueux,
+mais ne remplacent pas le domaine.
 
 ### Propager l'identifiant `BIGINT` de l'organisation
 
@@ -1148,6 +1258,12 @@ avant que la sécurité ne fournisse une identité fiable.
 Enfin, les ports inter-modules préservent l'architecture hexagonale : chaque
 module reste propriétaire de ses modèles, enums et adapters de persistance.
 
+La validation distribuée conserve cette propriété : le domaine garantit ses
+invariants sans framework, l'application orchestre les règles nécessitant des
+ports, `tp-common` ne reçoit que les mécanismes neutres et PostgreSQL protège le
+dernier état persisté. Cette répartition évite une abstraction générique qui
+masquerait la responsabilité réelle de chaque règle.
+
 La mutualisation dans `tp-test-support` évite la duplication de l'image
 PostgreSQL, des identifiants de connexion, du wiring `@ServiceConnection` et de
 l'audit déterministe. Le scope Maven `test`, l'exclusion Spring Modulith et la
@@ -1190,6 +1306,12 @@ cette infrastructure dans le runtime.
 - Les tests de persistance réutilisent une configuration PostgreSQL et d'audit
   unique sans ajouter Testcontainers aux artefacts de production.
 - `tp-test-support` reste absent du graphe fonctionnel Spring Modulith.
+- Chaque invariant possède une source de vérité explicite et testable dans sa
+  couche propriétaire.
+- Les modèles du domaine restent valides indépendamment du transport, de Spring
+  et de la persistence.
+- Les validations communes restent neutres et réutilisables sans coupler les
+  modules à leurs catalogues d'erreurs.
 
 ## Conséquences négatives / compromis
 
@@ -1230,6 +1352,12 @@ cette infrastructure dans le runtime.
   l'API Java du module.
 - Le module de support doit rester explicitement exclu du modèle Spring Modulith
   tant que son package se trouve sous la racine `io.teampulse`.
+- Certaines garanties sont volontairement répétées entre le domaine et
+  PostgreSQL. Cette duplication défensive doit rester alignée et couverte à ses
+  deux niveaux.
+- Une validation de méthode dépend du passage par le proxy Spring ; les tests
+  directs des services ne couvrent donc pas Jakarta Validation ou les
+  transactions.
 
 ## Impact technique
 
@@ -1242,9 +1370,10 @@ cette infrastructure dans le runtime.
   nommée `common::context`.
 - Contrat `ReferenceFactory.generate(String prefix)` et implémentation
   `MonotonicReferenceFactory`.
+- Contrat stateless `ReferenceFormat.matches(reference, expectedPrefix)` pour
+  la validation syntaxique commune, sans préfixe ni erreur métier embarqués.
 - Validation stricte du préfixe `[A-Z]{3}` sans normalisation automatique.
 - Injection directe de `java.time.Clock` dans la factory.
-- Validateurs transverses de référence, sans annotation JPA.
 - `CommonMapperConfig` exposé uniquement via l'interface Spring Modulith nommée
   `mapping`.
 
@@ -1373,6 +1502,9 @@ cette infrastructure dans le runtime.
 
 - Vérifier que `ReferenceFactory` expose `generate(String prefix)` et que
   `MonotonicReferenceFactory` respecte ce contrat.
+- Vérifier que `ReferenceFormat` accepte toute référence syntaxiquement valide
+  pour le préfixe attendu, et refuse les valeurs nulles, mal formées ou issues
+  d'un autre préfixe sans dépendre des modules métier.
 - Vérifier que `ORG`, `USR` et `TEM` sont acceptés.
 - Vérifier qu'une valeur nulle, une longueur différente de trois, des
   minuscules, des espaces ou des caractères non ASCII majuscules provoquent une
@@ -1439,6 +1571,8 @@ cette infrastructure dans le runtime.
 - Vérifier que les services placés dans `application.service` utilisent
   uniquement `@Service`, `@Validated` et `@Transactional` parmi les annotations
   Spring autorisées dans cette couche.
+- Vérifier avec R11 que tout service applicatif déclaré avec `@Service` porte
+  également `@Validated`.
 - Vérifier sur le bean Spring proxifié que les contraintes des ports entrants
   rejettent un `TenantContext` ou une commande invalide avant l'exécution de
   l'orchestration.
@@ -1448,6 +1582,9 @@ cette infrastructure dans le runtime.
   démarrer Spring ni PostgreSQL.
 - Vérifier avec ArchUnit que les services applicatifs ne dépendent ni de JPA,
   ni de Spring Data, ni d'`infrastructure`, ni de `config`.
+- Vérifier avec ArchUnit que les modèles du domaine ne dépendent ni de Spring,
+  ni de Jakarta Validation, ni de JPA : leurs invariants restent exécutables en
+  Java pur.
 
 ### Modèles et persistance
 
@@ -1459,8 +1596,9 @@ cette infrastructure dans le runtime.
 - Vérifier que le nom d'organisation est obligatoire, normalisé par `strip()`,
   non vide et limité à 200 caractères, tout en conservant sa casse et ses
   espaces internes.
-- Vérifier qu'une commande applicative portant le nom accepte 200 caractères
-  normalisés et en refuse 201 selon la même règle que le domaine.
+- Vérifier que le cas d'usage accepte 200 caractères normalisés et propage le
+  refus du domaine pour 201, sans dupliquer la limite métier avec Jakarta
+  Validation sur la commande.
 - Vérifier la canonisation et la limite de 254 caractères de l'email, ainsi que
   la suppression des espaces périphériques et la limite de 100 caractères de
   `firstName` et `lastName`.

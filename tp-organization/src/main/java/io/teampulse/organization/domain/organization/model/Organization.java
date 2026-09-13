@@ -1,5 +1,6 @@
 package io.teampulse.organization.domain.organization.model;
 
+import io.teampulse.common.reference.ReferenceFormat;
 import io.teampulse.organization.domain.organization.error.OrganizationErrorCode;
 import io.teampulse.organization.domain.organization.error.OrganizationException;
 import lombok.Getter;
@@ -7,20 +8,13 @@ import lombok.Getter;
 import java.time.DateTimeException;
 import java.time.ZoneId;
 import java.util.Objects;
-import java.util.regex.Pattern;
 
 @Getter
 public final class Organization {
 
     private static final int MAX_NAME_LENGTH = 200;
-
-    private static final Pattern ORGANIZATION_REFERENCE_PATTERN = Pattern.compile(
-        "ORG-[0-9]{4}-[0-9]{4}-[0-9A-Z]{12}"
-    );
-
-    private static final Pattern USER_REFERENCE_PATTERN = Pattern.compile(
-        "USR-[0-9]{4}-[0-9]{4}-[0-9A-Z]{12}"
-    );
+    private static final String ORGANIZATION_REFERENCE_PREFIX = "ORG";
+    private static final String USER_REFERENCE_PREFIX = "USR";
 
     private final String reference;
     private final String name;
@@ -39,7 +33,7 @@ public final class Organization {
     ) {
         this.reference = validateReference(
             reference,
-            ORGANIZATION_REFERENCE_PATTERN,
+            ORGANIZATION_REFERENCE_PREFIX,
             "reference"
         );
         this.name = validateName(name);
@@ -122,15 +116,15 @@ public final class Organization {
         if (reference == null) {
             return null;
         }
-        return validateReference(reference, USER_REFERENCE_PATTERN, fieldName);
+        return validateReference(reference, USER_REFERENCE_PREFIX, fieldName);
     }
 
     private static String validateReference(
         String reference,
-        Pattern expectedPattern,
+        String expectedPrefix,
         String fieldName
     ) {
-        if (reference == null || !expectedPattern.matcher(reference).matches()) {
+        if (!ReferenceFormat.matches(reference, expectedPrefix)) {
             throw new IllegalArgumentException(
                 fieldName + " does not match the expected reference format"
             );

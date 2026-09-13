@@ -55,12 +55,16 @@ final class BusinessModuleArchitectureRules {
     private static ArchRule r01(ModulePackages packages) {
         return CompositeArchRule.of(noClasses()
                 .that().resideInAPackage(packages.domain())
-                .should().dependOnClassesThat().resideInAnyPackage("org.springframework..", "jakarta.persistence.."))
+                .should().dependOnClassesThat().resideInAnyPackage(
+                    "org.springframework..",
+                    "jakarta.persistence..",
+                    "jakarta.validation.."
+                ))
             .and(noClasses()
                 .that().resideInAPackage(packages.domain())
                 .should().dependOnClassesThat().resideInAnyPackage(packages.infrastructure(), packages.config(), packages.api(), packages.events()))
-            .as("R01 - le domaine reste indépendant de Spring, JPA et des couches externes")
-            .because("le cœur métier doit rester utilisable sans framework");
+            .as("R01 - le domaine reste indépendant de Spring, Jakarta Validation, JPA et des couches externes")
+            .because("le cœur métier garantit ses invariants sans framework");
     }
 
     private static ArchRule r02(ModulePackages packages) {
@@ -195,8 +199,12 @@ final class BusinessModuleArchitectureRules {
             .and(classes()
                 .that().resideInAPackage(packages.applicationService())
                 .should(onlyDependOnAllowedSpringTypes()))
-            .as("R11 - les services applicatifs restent indépendants de la persistence et limitent leur usage de Spring")
-            .because("seules les annotations @Service, @Validated et @Transactional sont autorisées dans les services applicatifs");
+            .and(classes()
+                .that().resideInAPackage(packages.applicationService())
+                .and().areAnnotatedWith("org.springframework.stereotype.Service")
+                .should().beAnnotatedWith("org.springframework.validation.annotation.Validated"))
+            .as("R11 - les services applicatifs restent indépendants de la persistence et encadrent leur usage de Spring")
+            .because("les services Spring activent @Validated et n'utilisent que @Service, @Validated et @Transactional");
     }
 
     private static ModuleRule rule(ArchitectureModules.BusinessModule module, String id, ArchRule rule) {

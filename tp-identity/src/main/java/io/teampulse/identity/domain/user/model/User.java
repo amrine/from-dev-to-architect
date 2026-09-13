@@ -1,5 +1,6 @@
 package io.teampulse.identity.domain.user.model;
 
+import io.teampulse.common.reference.ReferenceFormat;
 import io.teampulse.identity.domain.user.error.UserErrorCode;
 import io.teampulse.identity.domain.user.error.UserException;
 import lombok.Getter;
@@ -13,14 +14,8 @@ public final class User {
 
     private static final int MAX_EMAIL_LENGTH = 254;
     private static final int MAX_NAME_LENGTH = 100;
-
-    private static final Pattern USER_REFERENCE_PATTERN = Pattern.compile(
-        "USR-[0-9]{4}-[0-9]{4}-[0-9A-Z]{12}"
-    );
-
-    private static final Pattern ORGANIZATION_REFERENCE_PATTERN = Pattern.compile(
-        "ORG-[0-9]{4}-[0-9]{4}-[0-9A-Z]{12}"
-    );
+    private static final String USER_REFERENCE_PREFIX = "USR";
+    private static final String ORGANIZATION_REFERENCE_PREFIX = "ORG";
 
     private static final Pattern EMAIL_PATTERN = Pattern.compile(
         "[^\\s@]+@[^\\s@]+",
@@ -42,8 +37,8 @@ public final class User {
         String lastName,
         UserStatus status
     ) {
-        this.reference = validateReference(reference, USER_REFERENCE_PATTERN, "reference");
-        this.organizationReference = validateReference(organizationReference, ORGANIZATION_REFERENCE_PATTERN, "organizationReference");
+        this.reference = validateReference(reference, USER_REFERENCE_PREFIX, "reference");
+        this.organizationReference = validateReference(organizationReference, ORGANIZATION_REFERENCE_PREFIX, "organizationReference");
         this.email = validateEmail(email);
         this.firstName = validateName(firstName, UserErrorCode.INVALID_FIRST_NAME, "firstName");
         this.lastName = validateName(lastName, UserErrorCode.INVALID_LAST_NAME, "lastName");
@@ -144,10 +139,10 @@ public final class User {
 
     private static String validateReference(
         String reference,
-        Pattern expectedPattern,
+        String expectedPrefix,
         String fieldName
     ) {
-        if (reference == null || !expectedPattern.matcher(reference).matches()) {
+        if (!ReferenceFormat.matches(reference, expectedPrefix)) {
             throw new IllegalArgumentException(
                 fieldName + " does not match the expected reference format"
             );

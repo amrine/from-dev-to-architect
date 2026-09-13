@@ -1,6 +1,7 @@
 package io.teampulse.identity.application.service.user;
 
 import io.teampulse.common.context.TenantContext;
+import io.teampulse.common.reference.ReferenceFormat;
 import io.teampulse.identity.AbstractIntegrationTest;
 import io.teampulse.identity.application.port.in.user.CreateUserCommand;
 import io.teampulse.identity.application.port.in.user.CreateUserUseCase;
@@ -89,9 +90,7 @@ class CreateUserServiceIT extends AbstractIntegrationTest {
             )
         );
 
-        assertTrue(createdUser.getReference().matches(
-            "USR-[0-9]{4}-[0-9]{4}-[0-9A-Z]{12}"
-        ));
+        assertTrue(ReferenceFormat.matches(createdUser.getReference(), "USR"));
         assertEquals(ORGANIZATION_A, createdUser.getOrganizationReference());
         assertEquals("alice.smith@example.com", createdUser.getEmail());
         assertEquals("Alice", createdUser.getFirstName());
