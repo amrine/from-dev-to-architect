@@ -36,7 +36,7 @@ import static org.mockito.Mockito.withSettings;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class CreateUserServiceTest {
+class UserLifecycleServiceTest {
 
     private static final String ORGANIZATION_REFERENCE =
         "ORG-2026-3008-00000ZA7B900";
@@ -48,7 +48,7 @@ class CreateUserServiceTest {
     @Mock
     private ReferenceFactory referenceFactory;
     @InjectMocks
-    private CreateUserService service;
+    private UserLifecycleService service;
 
     @Nested
     class CreationTests {
