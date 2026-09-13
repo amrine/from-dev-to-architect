@@ -10,6 +10,9 @@ import io.teampulse.common.reference.ReferenceFormat;
 import io.teampulse.identity.api.user.UserAvailability;
 import io.teampulse.identity.api.user.UserDirectory;
 import io.teampulse.identity.api.user.UserDirectoryException;
+import io.teampulse.organization.api.organization.OrganizationAvailability;
+import io.teampulse.organization.api.organization.OrganizationDirectory;
+import io.teampulse.organization.api.organization.OrganizationDirectoryException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -94,5 +97,30 @@ public class ModulithArchitectureTests {
             exposedTypes
         );
         assertFalse(identityModule.getNamedInterfaces().getByName("api").isPresent());
+    }
+
+    @Test
+    void exposesOrganizationContractThroughDedicatedNamedInterface() {
+        var organizationModule = modules
+            .getModuleByName("organization")
+            .orElseThrow();
+        var organizationInterface = organizationModule
+            .getNamedInterfaces()
+            .getByName("organization")
+            .orElseThrow();
+
+        Set<String> exposedTypes = organizationInterface
+            .asJavaClasses()
+            .map(JavaClass::getName)
+            .collect(Collectors.toUnmodifiableSet());
+
+        assertEquals(
+            Set.of(
+                OrganizationDirectory.class.getName(),
+                OrganizationAvailability.class.getName(),
+                OrganizationDirectoryException.class.getName()
+            ),
+            exposedTypes
+        );
     }
 }
