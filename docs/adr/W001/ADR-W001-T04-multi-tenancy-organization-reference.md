@@ -1636,6 +1636,9 @@ cette infrastructure dans le runtime.
 - Vérifier les contraintes `NOT NULL`, `UNIQUE` et composites avec PostgreSQL.
 - Vérifier avec PostgreSQL qu'un nom normalisé de 200 caractères est accepté et
   qu'une insertion directe de 201 caractères viole la contrainte de longueur.
+- `JpaOrganizationRepositoryAdapterIT` vérifie avec PostgreSQL et les vrais
+  composants JPA la séquence des IDs, les statuts et responsables obligatoires,
+  l'absence de FK inter-module et la conservation de la limite de 200 caractères.
 - Vérifier une concurrence de modification déclenchant le verrouillage
   optimiste.
 - Vérifier que les quatre champs d'audit sont renseignés avec `SYSTEM` en W001.

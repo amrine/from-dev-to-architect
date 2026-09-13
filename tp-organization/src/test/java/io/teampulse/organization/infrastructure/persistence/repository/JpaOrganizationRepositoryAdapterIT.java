@@ -7,10 +7,11 @@ import io.teampulse.organization.domain.organization.model.Organization;
 import io.teampulse.organization.domain.organization.model.OrganizationStatus;
 import io.teampulse.organization.infrastructure.persistence.entity.OrganizationEntity;
 import io.teampulse.testsupport.persistence.MutableAuditDateTimeProvider;
+import jakarta.inject.Inject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -20,6 +21,7 @@ import java.time.ZoneId;
 import java.util.NoSuchElementException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
@@ -42,13 +44,13 @@ class JpaOrganizationRepositoryAdapterIT extends AbstractIntegrationTest {
     private static final Instant MODIFIED_AT =
         Instant.parse("2026-09-13T09:30:00Z");
 
-    @Autowired
+    @Inject
     private JpaOrganizationRepositoryAdapter organizationRepository;
 
-    @Autowired
+    @Inject
     private JpaOrganizationRepository jpaRepository;
 
-    @Autowired
+    @Inject
     private MutableAuditDateTimeProvider auditDateTimeProvider;
 
     @BeforeEach
@@ -259,6 +261,111 @@ class JpaOrganizationRepositoryAdapterIT extends AbstractIntegrationTest {
         }
     }
 
+    @Nested
+    class DatabaseConstraintTests {
+
+        @Test
+        void rejectsNamesLongerThanTwoHundredCharacters() {
+            assertThrows(
+                DataIntegrityViolationException.class,
+                () -> jpaRepository.saveAndFlush(entity(
+                    ORGANIZATION_REFERENCE_1,
+                    "A".repeat(201),
+                    OrganizationStatus.CREATING,
+                    null,
+                    null
+                ))
+            );
+        }
+
+        @Test
+        void rejectsActiveOrganizationsWithoutBothResponsibleReferences() {
+            assertThrows(
+                DataIntegrityViolationException.class,
+                () -> jpaRepository.saveAndFlush(entity(
+                    ORGANIZATION_REFERENCE_1,
+                    "TeamPulse",
+                    OrganizationStatus.ACTIVE,
+                    null,
+                    null
+                ))
+            );
+        }
+
+        @Test
+        void rejectsSuspendedOrganizationsWithoutAnAdministrator() {
+            assertThrows(
+                DataIntegrityViolationException.class,
+                () -> jpaRepository.saveAndFlush(entity(
+                    ORGANIZATION_REFERENCE_1,
+                    "TeamPulse",
+                    OrganizationStatus.SUSPENDED,
+                    null,
+                    MANAGER_REFERENCE
+                ))
+            );
+        }
+
+        @Test
+        void acceptsSuspendedOrganizationsWithoutAManager() {
+            assertDoesNotThrow(
+                () -> jpaRepository.saveAndFlush(entity(
+                    ORGANIZATION_REFERENCE_1,
+                    "TeamPulse",
+                    OrganizationStatus.SUSPENDED,
+                    ADMIN_REFERENCE,
+                    null
+                ))
+            );
+        }
+
+        @Test
+        void acceptsArchivedOrganizationsWithoutResponsibleReferences() {
+            assertDoesNotThrow(
+                () -> jpaRepository.saveAndFlush(entity(
+                    ORGANIZATION_REFERENCE_1,
+                    "TeamPulse",
+                    OrganizationStatus.ARCHIVED,
+                    null,
+                    null
+                ))
+            );
+        }
+
+        @Test
+        void generatesIdsFromTheOrganizationSequence() {
+            OrganizationEntity first = jpaRepository.saveAndFlush(entity(
+                ORGANIZATION_REFERENCE_1,
+                "First organization",
+                OrganizationStatus.CREATING,
+                null,
+                null
+            ));
+            OrganizationEntity second = jpaRepository.saveAndFlush(entity(
+                ORGANIZATION_REFERENCE_2,
+                "Second organization",
+                OrganizationStatus.CREATING,
+                null,
+                null
+            ));
+
+            assertEquals(first.getId() + 1, second.getId());
+        }
+
+        @Test
+        void doesNotRequireResponsibleUsersToExistInAnotherModule() {
+            assertDoesNotThrow(
+                () -> jpaRepository.saveAndFlush(entity(
+                    ORGANIZATION_REFERENCE_1,
+                    "TeamPulse",
+                    OrganizationStatus.ACTIVE,
+                    ADMIN_REFERENCE,
+                    MANAGER_REFERENCE
+                ))
+            );
+        }
+    }
+
     private OrganizationEntity findEntity(String organizationReference) {
         return jpaRepository.findByReference(organizationReference)
             .orElseThrow(NoSuchElementException::new);
@@ -276,6 +383,22 @@ class JpaOrganizationRepositoryAdapterIT extends AbstractIntegrationTest {
             MANAGER_REFERENCE,
             OrganizationStatus.ACTIVE
         );
+    }
+
+    private static OrganizationEntity entity(
+        String reference,
+        String name,
+        OrganizationStatus status,
+        String adminReference,
+        String managerReference
+    ) {
+        return new OrganizationEntity()
+            .setReference(reference)
+            .setName(name)
+            .setTimezone("Europe/Paris")
+            .setAdminReference(adminReference)
+            .setManagerReference(managerReference)
+            .setStatus(status);
     }
 
     private static void assertOrganizationState(Organization organization) {

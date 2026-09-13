@@ -11,7 +11,6 @@ import io.teampulse.identity.domain.user.model.User;
 import io.teampulse.identity.domain.user.model.UserStatus;
 import io.teampulse.identity.infrastructure.persistence.entity.UserEntity;
 import io.teampulse.identity.infrastructure.persistence.repository.JpaUserRepository;
-import io.teampulse.testsupport.transaction.JpaTransactionManagerProbeConfiguration;
 import io.teampulse.testsupport.transaction.TransactionManagerProbe;
 import jakarta.inject.Inject;
 import jakarta.validation.ConstraintViolationException;
@@ -19,7 +18,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.springframework.context.annotation.Import;
 
 import java.util.List;
 import java.util.stream.Stream;
@@ -29,7 +27,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@Import(JpaTransactionManagerProbeConfiguration.class)
 class UserLifecycleServiceIT extends AbstractIntegrationTest {
 
     private static final String ORGANIZATION_A =
