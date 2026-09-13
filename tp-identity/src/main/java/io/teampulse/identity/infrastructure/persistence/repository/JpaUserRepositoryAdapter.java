@@ -1,5 +1,6 @@
 package io.teampulse.identity.infrastructure.persistence.repository;
 
+import io.teampulse.common.persistence.ConstraintNameExtractor;
 import io.teampulse.identity.application.port.out.user.UserRepository;
 import io.teampulse.identity.domain.user.error.UserErrorCode;
 import io.teampulse.identity.domain.user.error.UserException;
@@ -79,31 +80,32 @@ public class JpaUserRepositoryAdapter implements UserRepository {
     }
 
     private RuntimeException translatePersistenceException(RuntimeException exception) {
-        String constraintName = findConstraintName(exception);
+        return ConstraintNameExtractor.extract(
+                exception,
+                ConstraintViolationException.class,
+                ConstraintViolationException::getConstraintName
+            )
+            .<RuntimeException>map(constraintName -> getRuntimeException(exception, constraintName))
+            .orElse(exception);
+    }
 
-        if (constraintName != null) {
-            if (constraintName.contains(EMAIL_UNIQUE_CONSTRAINT)) {
-                return new UserException(UserErrorCode.EMAIL_ALREADY_USED, "Email is already used in this organization", exception);
-            }
+    private static RuntimeException getRuntimeException(RuntimeException exception, String constraintName) {
+        if (EMAIL_UNIQUE_CONSTRAINT.equals(constraintName)) {
+            return new UserException(
+                UserErrorCode.EMAIL_ALREADY_USED,
+                "Email is already used in this organization",
+                exception
+            );
+        }
 
-            if (constraintName.contains(REFERENCE_UNIQUE_CONSTRAINT)) {
-                return new UserException(UserErrorCode.REFERENCE_GENERATION_FAILED, "Generated user reference already exists", exception);
-            }
+        if (REFERENCE_UNIQUE_CONSTRAINT.equals(constraintName)) {
+            return new UserException(
+                UserErrorCode.REFERENCE_GENERATION_FAILED,
+                "Generated user reference already exists",
+                exception
+            );
         }
 
         return exception;
-    }
-
-    private String findConstraintName(Throwable exception) {
-        Throwable current = exception;
-
-        while (current != null) {
-            if (current instanceof ConstraintViolationException violation) {
-                return violation.getConstraintName();
-            }
-            current = current.getCause();
-        }
-
-        return null;
     }
 }

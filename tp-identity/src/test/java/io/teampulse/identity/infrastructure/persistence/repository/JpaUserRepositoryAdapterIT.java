@@ -7,11 +7,11 @@ import io.teampulse.identity.domain.user.model.User;
 import io.teampulse.identity.domain.user.model.UserStatus;
 import io.teampulse.identity.infrastructure.persistence.entity.UserEntity;
 import io.teampulse.testsupport.persistence.MutableAuditDateTimeProvider;
+import jakarta.inject.Inject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.postgresql.util.PSQLException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.transaction.TransactionDefinition;
@@ -48,13 +48,13 @@ class JpaUserRepositoryAdapterIT extends AbstractIntegrationTest {
     private static final Instant MODIFIED_AT =
         Instant.parse("2026-08-28T09:30:00Z");
 
-    @Autowired
+    @Inject
     private JpaUserRepositoryAdapter userRepository;
 
-    @Autowired
+    @Inject
     private JpaUserRepository jpaRepository;
 
-    @Autowired
+    @Inject
     private MutableAuditDateTimeProvider auditDateTimeProvider;
 
     @BeforeEach
