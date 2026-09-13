@@ -6,6 +6,7 @@ import io.teampulse.identity.api.user.UserDirectoryException;
 import io.teampulse.identity.application.port.out.user.UserRepository;
 import io.teampulse.identity.domain.user.model.User;
 import io.teampulse.identity.domain.user.model.UserStatus;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
@@ -15,13 +16,10 @@ import java.util.Optional;
 @Service
 @Validated
 @Transactional(readOnly = true)
+@AllArgsConstructor
 public class UserDirectoryService implements UserDirectory {
 
     private final UserRepository userRepository;
-
-    public UserDirectoryService(UserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
 
     @Override
     public UserAvailability check(

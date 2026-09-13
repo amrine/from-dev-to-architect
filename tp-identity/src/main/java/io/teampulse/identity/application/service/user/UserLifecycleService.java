@@ -8,6 +8,7 @@ import io.teampulse.identity.application.port.out.user.UserRepository;
 import io.teampulse.identity.domain.user.error.UserErrorCode;
 import io.teampulse.identity.domain.user.error.UserException;
 import io.teampulse.identity.domain.user.model.User;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
@@ -15,17 +16,12 @@ import org.springframework.validation.annotation.Validated;
 @Service
 @Validated
 @Transactional(readOnly = true)
+@AllArgsConstructor
 public class UserLifecycleService implements UserLifecycleUseCase {
     private static final String USER_REFERENCE_PREFIX = "USR";
 
     private final UserRepository userRepository;
     private final ReferenceFactory referenceFactory;
-
-    public UserLifecycleService(UserRepository userRepository,
-                                ReferenceFactory referenceFactory) {
-        this.userRepository = userRepository;
-        this.referenceFactory = referenceFactory;
-    }
 
     @Override
     @Transactional
