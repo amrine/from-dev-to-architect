@@ -1,4 +1,4 @@
-package io.teampulse.persistence.config;
+package io.teampulse.config;
 
 import io.teampulse.common.reference.MonotonicReferenceFactory;
 import io.teampulse.common.reference.ReferenceFactory;

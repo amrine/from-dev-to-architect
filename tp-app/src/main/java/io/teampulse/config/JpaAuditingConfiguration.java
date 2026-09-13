@@ -1,4 +1,4 @@
-package io.teampulse.persistence.config;
+package io.teampulse.config;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
