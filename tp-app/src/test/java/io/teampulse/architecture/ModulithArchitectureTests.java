@@ -4,6 +4,7 @@ import com.tngtech.archunit.core.domain.JavaClass;
 import io.teampulse.common.context.TenantContext;
 import io.teampulse.common.context.TenantContextProvider;
 import io.teampulse.common.mapping.CommonMapperConfig;
+import io.teampulse.common.persistence.ConstraintNameExtractor;
 import io.teampulse.common.reference.MonotonicReferenceFactory;
 import io.teampulse.common.reference.ReferenceFactory;
 import io.teampulse.common.reference.ReferenceFormat;
@@ -68,6 +69,8 @@ public class ModulithArchitectureTests {
                 TenantContextProvider.class.getName())),
             Arguments.of("mapping", Set.of(
                 CommonMapperConfig.class.getName())),
+            Arguments.of("persistence", Set.of(
+                ConstraintNameExtractor.class.getName())),
             Arguments.of("reference", Set.of(
                 ReferenceFactory.class.getName(),
                 ReferenceFormat.class.getName(),

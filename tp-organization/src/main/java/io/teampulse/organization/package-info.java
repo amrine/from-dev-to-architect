@@ -2,6 +2,7 @@
     displayName = "tp-organization",
     allowedDependencies = {
         "common::mapping",
+        "common::persistence",
         "common::reference",
         "identity::user"
     }

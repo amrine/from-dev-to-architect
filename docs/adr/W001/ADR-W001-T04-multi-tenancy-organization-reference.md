@@ -1378,6 +1378,10 @@ cette infrastructure dans le runtime.
 - Injection directe de `java.time.Clock` dans la factory.
 - `CommonMapperConfig` exposé uniquement via l'interface Spring Modulith nommée
   `mapping`.
+- `ConstraintNameExtractor` exposé uniquement via l'interface Spring Modulith
+  nommée `common::persistence`. Ce composant reste indépendant de Hibernate :
+  le type d'exception et la `Function` d'extraction sont fournis par chaque
+  adapter de persistence.
 
 ### `tp-test-support`
 
@@ -1721,6 +1725,8 @@ cette infrastructure dans le runtime.
 
 - Exécuter les tests ArchUnit existants.
 - Vérifier que `tp-common` ne dépend d'aucun module métier, de Spring ou de JPA.
+- Vérifier que les adapters utilisent `common::persistence` pour parcourir les
+  causes techniques, tout en conservant leurs traductions métier locales.
 - Vérifier que les domaines ne dépendent pas de l'infrastructure.
 - Vérifier qu'aucune référence externe n'est remplacée par l'identifiant
   technique d'un autre module.
