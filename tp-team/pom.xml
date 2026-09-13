@@ -54,6 +54,16 @@
         </dependency>
 
         <dependency>
+            <groupId>io.teampulse</groupId>
+            <artifactId>tp-identity</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>io.teampulse</groupId>
+            <artifactId>tp-organization</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <optional>true</optional>
