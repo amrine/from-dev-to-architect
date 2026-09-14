@@ -45,10 +45,13 @@ W001-T07 Profils local et localstack
 `W001-T03` rend executables les regles d'architecture internes avant l'ajout des
 premieres verticales metier.
 `W001-T04` s'appuie sur ces schemas et migrations pour definir la racine du
-tenant, sa reference fonctionnelle et les donnees portant `organization_ref`.
-`W001-T05` valide ensuite une verticale API/persistence avec des roles
-contextualises et une appartenance d'equipe qui se cloture sans effacer
-l'historique.
+tenant, sa reference fonctionnelle et les verticales internes de domaine,
+d'application et de persistence portant `organizationReference`, notamment
+`Team` et `TeamMember`.
+`W001-T05` ajoute ensuite l'identite de l'acteur, le controle des responsabilites
+avant indisponibilite d'un utilisateur, les roles contextualises et les contrats
+HTTP. Il expose les cycles internes sans reimplementer la cloture historique
+d'une appartenance deja fournie par T04.
 
 Le scenario fonctionnel de reference est decrit dans
 [`SCENARIO-METIER-TEAMPULSE.md`](../SCENARIO-METIER-TEAMPULSE.md).
