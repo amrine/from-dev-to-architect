@@ -42,9 +42,11 @@ ou autoriser réellement l'appelant HTTP.
 
 Le parcours fonctionnel dans lequel cette frontière sera utilisée est décrit
 dans le
-[`SCENARIO-METIER-TEAMPULSE.md`](../SCENARIO-METIER-TEAMPULSE.md). T04 en
-prépare les organisations, utilisateurs, équipes et appartenances sans livrer
-par anticipation les rôles, campagnes, permissions JWT ou workflows ultérieurs.
+[`SCENARIO-METIER-TEAMPULSE.md`](../SCENARIO-METIER-TEAMPULSE.md). T04 livre les
+verticales internes de domaine, d'application et de persistance nécessaires aux
+organisations, utilisateurs, équipes et appartenances. Il ne livre pas par
+anticipation leurs contrats HTTP, l'identité de l'acteur, les rôles, campagnes,
+permissions JWT ou workflows ultérieurs.
 
 ## Problème à résoudre
 
@@ -99,7 +101,9 @@ TeamPulse doit donc disposer :
 - `TenantContext(tenantReference)` transverse et Java pur pour les ports
   applicatifs tenantés.
 - Références d'organisation, d'utilisateur et d'équipe.
-- Modèles minimaux `Organization`, `User`, `Team` et `TeamMember`.
+- Modèles minimaux `Organization` et `User`, ainsi que la verticale interne
+  complète de `Team` et `TeamMember` définie par T04 : cycles de vie, ports,
+  orchestration applicative, persistance et tests.
 - Codes d'erreur métier propres aux modules organisation, identité et équipe.
 - Propagation obligatoire de `organizationReference` dans les ports tenantés.
 - Service local fournissant la référence d'organisation courante pendant W001.
@@ -125,6 +129,14 @@ TeamPulse doit donc disposer :
 - Extraction de la référence d'organisation depuis un utilisateur connecté.
 - Autorisation par rôle, `hasPermission` et contrôle de l'appartenance de
   l'utilisateur à l'organisation ou à l'équipe.
+- Contexte distinct de l'acteur d'une action et contrôle de sa disponibilité ou
+  de ses permissions. `TenantContext` reste limité au tenant ; W001-T05
+  introduira le contrat d'acteur et ces contrôles, puis W008 leur fournira une
+  identité authentifiée issue du JWT.
+- Contrôle transversal empêchant le passage d'un utilisateur vers `SUSPENDED`
+  ou `DEACTIVATED` tant qu'il porte une responsabilité active. Cette
+  orchestration appartient à W001-T05 et ne crée pas de dépendance inverse de
+  `tp-identity` vers `tp-organization` ou `tp-team`.
 - PostgreSQL Row-Level Security.
 - Génération d'un client Java à partir d'un contrat OpenAPI.
 - Coordination distribuée du générateur entre plusieurs nœuds Kubernetes.
@@ -138,9 +150,11 @@ TeamPulse doit donc disposer :
 - `PlatformContext` vide : les cas d'usage plateforme sont simplement non
   tenantés jusqu'à l'introduction d'un contexte de sécurité justifié par W008.
 - Surveillance continue du statut des responsables dans `tp-identity` et
-  synchronisation automatique de `OrganizationStatus` après leur affectation.
-- Événement `UserAvailabilityChanged`, listener dans `tp-organization`, recherches
-  d'organisations par responsable et gestion des courses inter-modules associées.
+  synchronisation automatique de `OrganizationStatus` ou `TeamStatus` après
+  leur affectation.
+- Événement `UserAvailabilityChanged`, listeners dans `tp-organization` ou
+  `tp-team`, recherches par responsable et gestion des courses inter-modules
+  associées.
 - Cycle de vie des abonnements et calcul de l'accès effectif à partir de leur
   statut ; un abonnement ne modifie jamais `OrganizationStatus`.
 
@@ -486,6 +500,14 @@ Règles associées :
 - `createdAt` et `createdBy` ;
 - `modifiedAt` et `modifiedBy`.
 
+Contrairement à `Organization` et `User`, le modèle de domaine `Team` conserve
+son `id` technique, car `TeamMember` l'utilise comme relation interne au même
+module. La version et les champs d'audit restent exclusivement portés par
+`TeamEntity`. Le nom de l'équipe est obligatoire, normalisé avec `strip()`, non
+blanc après normalisation et limité à 200 caractères. Sa casse et ses espaces
+internes sont conservés. Deux équipes peuvent porter le même nom, y compris dans
+une même organisation.
+
 Une équipe possède exactement un administrateur et un manager. Une même personne
 peut remplir les deux fonctions. Les deux utilisateurs doivent appartenir à la
 même organisation que l'équipe. Ces responsabilités sont indépendantes de
@@ -501,6 +523,22 @@ création. `SUSPENDED` bloque temporairement son activité et `ARCHIVED` la
 ferme tout en conservant son historique. Les transitions autorisées sont
 `ACTIVE -> SUSPENDED`, `ACTIVE -> ARCHIVED`, `SUSPENDED -> ACTIVE` et
 `SUSPENDED -> ARCHIVED`. `ARCHIVED` est terminal.
+
+La réactivation d'une équipe exige ponctuellement que son organisation, son
+administrateur et son manager soient tous retournés `AVAILABLE`. Elle est
+refusée sinon et l'équipe reste `SUSPENDED`. L'administrateur et le manager
+peuvent être remplacés lorsque l'équipe est `ACTIVE` ou `SUSPENDED`. Le
+remplaçant doit être `AVAILABLE` dans la même organisation, le remplacement ne
+change pas le statut et une même personne peut continuer à porter les deux
+responsabilités. Aucun responsable ne peut être simplement retiré : le transfert
+vers un remplaçant est atomique afin que les deux références restent toujours
+présentes. Une équipe `ARCHIVED` est immuable.
+
+Une évolution ultérieure du statut d'un responsable ne modifie pas
+automatiquement `TeamStatus`. `tp-organization` n'envoie aucune notification de
+suspension ou de réactivation à `tp-team` dans T04. La création, la réactivation
+et le remplacement restent des contrôles synchrones et ponctuels au travers des
+directories publics.
 
 ### Modèle minimal de l'appartenance
 
@@ -525,6 +563,10 @@ organisation.
 - `createdAt` et `createdBy` ;
 - `modifiedAt` et `modifiedBy`.
 
+Le modèle de domaine `TeamMember` conserve son `id` et son `teamId`, nécessaires
+à son identité et à sa relation internes au module. Sa version et ses champs
+d'audit restent exclusivement portés par `TeamMemberEntity`.
+
 `TeamMember` n'a pas de référence fonctionnelle propre : il reste une entité
 interne de l'équipe et n'est pas adressé indépendamment par les autres modules.
 
@@ -547,11 +589,32 @@ immédiatement ; une transition `INVITED -> ACTIVE` le renseigne à la date
 d'activation. Une suspension ne modifie pas cette date. `endedAt` reste à
 `null` dans les statuts `INVITED`, `ACTIVE` et `SUSPENDED`, puis reçoit la date
 de fin lors du passage à `REMOVED`. Une invitation retirée avant activation
-conserve donc `startedAt = null` tout en renseignant `endedAt`.
+conserve donc `startedAt = null` tout en renseignant `endedAt`. Lorsque
+`startedAt` existe, `endedAt` ne peut pas lui être antérieur. Une réactivation
+ne modifie jamais la date de début initiale.
 
 Une appartenance créée directement en `ACTIVE` exige un utilisateur
-`AVAILABLE`. Une appartenance `INVITED` peut cibler un utilisateur `PENDING`.
-Les valeurs `UNAVAILABLE` et `NOT_FOUND` sont refusées.
+`AVAILABLE`. Une appartenance `INVITED` peut cibler un utilisateur `AVAILABLE`
+ou `PENDING`. L'activation d'une invitation et la réactivation d'une
+appartenance suspendue revérifient ponctuellement que l'utilisateur est
+`AVAILABLE`. La suspension et le retrait ne dépendent pas de sa disponibilité.
+Les valeurs `UNAVAILABLE` et `NOT_FOUND` sont refusées lorsqu'une opération ouvre
+ou rétablit l'accès.
+
+Les opérations sur les appartenances dépendent également des statuts de leur
+équipe et de leur organisation :
+
+- une équipe `ACTIVE` accepte toutes les opérations autorisées par le statut du
+  membre ;
+- une équipe `SUSPENDED` accepte uniquement la suspension et le retrait d'un
+  membre ;
+- une équipe `ARCHIVED` n'accepte aucune mutation d'appartenance ;
+- une organisation `UNAVAILABLE` interdit l'ajout, l'invitation, l'activation et
+  la réactivation, mais n'empêche pas la suspension ou le retrait d'un membre.
+
+Ces règles autorisent les opérations qui réduisent ou ferment un accès, même
+lorsque le périmètre est suspendu. Elles n'entraînent aucune modification en
+cascade des statuts existants.
 
 Une seule appartenance `INVITED`, `ACTIVE` ou `SUSPENDED` peut exister pour le
 même triplet `(organizationReference, teamId, userReference)`. Une réinvitation
@@ -569,6 +632,32 @@ conservées.
 - Suspendre une équipe ne modifie pas les statuts de ses membres.
 - Les statuts terminaux conservent les données et leur audit sans suppression
   physique automatique.
+
+### Préparation du contrôle des responsabilités utilisateur
+
+T04 conserve `TenantContext` limité à la seule `tenantReference` et
+n'introduit pas de contexte d'acteur. W001-T05 portera l'orchestration qui
+précède une transition de `User` vers `SUSPENDED` ou `DEACTIVATED` :
+
+- rechercher les responsabilités d'administrateur ou de manager détenues dans
+  `tp-organization` et `tp-team` au travers de contrats publics dédiés ;
+- refuser la transition tant qu'une responsabilité active n'a pas été retirée
+  ou transférée ;
+- considérer comme actives les responsabilités d'une organisation `CREATING`,
+  `ACTIVE` ou `SUSPENDED`, et celles d'une équipe `ACTIVE` ou `SUSPENDED` ;
+- ignorer pour ce blocage les références conservées sur une organisation ou une
+  équipe `ARCHIVED`, car elles sont uniquement historiques ;
+- ne pas bloquer une transition pour une simple ligne `TeamMember` sans
+  responsabilité d'administrateur ou de manager ;
+- ne jamais faire dépendre `tp-identity` des domaines ou persistances de
+  `tp-organization` et `tp-team`.
+
+Le remplacement d'un responsable reste possible sur une organisation ou une
+équipe `SUSPENDED` afin de permettre le départ d'un utilisateur. W001-T05
+introduira un acteur explicite, distinct du tenant, et vérifiera sa disponibilité
+ainsi que ses permissions applicatives. En W001, cet acteur proviendra d'une
+source applicative contrôlée sans constituer une preuve d'authentification ;
+W008 remplacera cette source par l'identité issue d'un JWT validé.
 
 ### Erreurs métier et défaillances inter-modules
 
@@ -647,6 +736,7 @@ MANAGER_NOT_FOUND
 MANAGER_NOT_AVAILABLE
 USER_DIRECTORY_UNAVAILABLE
 INVALID_STATUS_TRANSITION
+TEAM_UNAVAILABLE
 MEMBER_NOT_FOUND
 MEMBER_ALREADY_EXISTS
 MEMBER_USER_NOT_FOUND
@@ -668,6 +758,11 @@ pas pu répondre pour une raison technique. Une exception JPA ou Spring est
 traduite avant de franchir la frontière du module fournisseur ; elle ne devient
 jamais une dépendance du module consommateur.
 
+`TEAM_UNAVAILABLE` signifie que l'équipe existe dans le tenant mais que son
+statut `SUSPENDED` ou `ARCHIVED` interdit l'opération demandée.
+`INVALID_STATUS_TRANSITION` reste réservé à une transition invalide du cycle de
+vie de l'équipe elle-même.
+
 ### Persistance, concurrence et audit
 
 - Les identifiants techniques utilisent PostgreSQL `BIGINT` et Java `Long`.
@@ -678,6 +773,9 @@ jamais une dépendance du module consommateur.
 - `organizations.name` utilise `TEXT NOT NULL` et une contrainte
   `char_length(name) BETWEEN 1 AND 200`. La valeur persistée est le nom normalisé
   par le domaine ; sa casse et ses espaces internes sont conservés.
+- `teams.name` utilise également `TEXT NOT NULL` et une contrainte
+  `char_length(name) BETWEEN 1 AND 200`. Le nom normalisé n'est pas unique dans
+  l'organisation.
 - Les champs Java `adminReference`, `managerReference` et `userReference` sont
   persistés respectivement dans `admin_reference`, `manager_reference` et
   `user_reference`. La convention tenant reste `organizationReference` vers
@@ -692,6 +790,9 @@ jamais une dépendance du module consommateur.
 - PostgreSQL ne tente pas de vérifier `AVAILABLE`, car cette information
   appartient à `tp-identity`. Cette précondition est contrôlée ponctuellement
   par les cas d'usage avec `UserDirectory`.
+- Les contraintes temporelles de `team_members` imposent la cohérence de
+  `started_at` et `ended_at` avec le statut. Lorsque les deux dates existent,
+  `ended_at` ne peut pas précéder `started_at`.
 - `version` est un `BIGINT` utilisé pour le verrouillage optimiste. Le choix
   ponctuel d'un verrou pessimiste reste une décision explicite d'un cas d'usage,
   pas le comportement par défaut.
@@ -810,8 +911,20 @@ jamais une dépendance du module consommateur.
       référence inexistante.
 - [ ] `OrganizationDirectory` déduit cette valeur du seul
       `OrganizationStatus` persisté et ne rappelle pas `UserDirectory`.
+- [ ] Le nom d'une équipe est normalisé avec `strip()`, non blanc et limité à
+  200 caractères, en conservant sa casse et ses espaces internes ; aucun
+  invariant d'unicité n'est imposé sur ce nom.
 - [ ] La création d'une équipe est refusée lorsque son organisation est
       `UNAVAILABLE` ou `NOT_FOUND`.
+- [ ] La création et la réactivation d'une équipe exigent une organisation, un
+  administrateur et un manager `AVAILABLE` au moment du cas d'usage.
+- [ ] L'administrateur et le manager d'une équipe sont remplaçables en `ACTIVE`
+  ou `SUSPENDED` par un utilisateur `AVAILABLE`, sans changement automatique
+  de statut et sans possibilité de laisser une responsabilité vide.
+- [ ] Une équipe `ARCHIVED` interdit toute transition et toute modification de
+  ses responsabilités ou appartenances.
+- [ ] `TEAM_UNAVAILABLE` distingue une équipe trouvée mais non opérationnelle de
+  `NOT_FOUND` et d'une transition invalide de `TeamStatus`.
 - [ ] `OrganizationErrorCode`, `UserErrorCode` et `TeamErrorCode` contiennent
       exactement les codes définis par ce besoin et restent dans leurs modules
       propriétaires.
@@ -834,9 +947,15 @@ jamais une dépendance du module consommateur.
 - [ ] La suspension ou désactivation ultérieure d'un responsable ne suspend pas
       automatiquement l'organisation dans T04.
 - [ ] Le statut d'un abonnement ne modifie jamais `OrganizationStatus` ; une
-      appartenance `INVITED` accepte un utilisateur `PENDING`.
+  appartenance `INVITED` accepte un utilisateur `AVAILABLE` ou `PENDING`.
 - [ ] Être administrateur ou manager d'une équipe n'implique aucune ligne
       `TeamMember` automatique ; chaque responsable peut être membre ou non.
+- [ ] Une équipe `SUSPENDED` autorise uniquement la suspension et le retrait
+  d'un membre ; une organisation indisponible autorise également ces deux
+  opérations de fermeture sans permettre d'ouvrir ou rétablir un accès.
+- [ ] L'ajout direct, l'activation et la réactivation d'un membre exigent un
+  utilisateur `AVAILABLE`, tandis que la suspension et le retrait ne
+  dépendent pas de sa disponibilité.
 - [ ] `TeamMember` référence `Team` par `teamId` et une clé étrangère composite
       avec `organizationReference`, mais référence l'utilisateur uniquement par
       `userReference`.
@@ -847,7 +966,8 @@ jamais une dépendance du module consommateur.
       remplacer l'ancienne appartenance.
 - [ ] `startedAt` reste nul pendant `INVITED`, est renseigné à l'entrée en
       `ACTIVE` et n'est pas modifié par une suspension ; `endedAt` reste nul
-      jusqu'au passage à `REMOVED`.
+  jusqu'au passage à `REMOVED` et ne précède jamais `startedAt` lorsque
+  celle-ci existe.
 - [ ] Les entités JPA persistées possèdent une version et les quatre champs
       d'audit ; ces données techniques ne sont pas exposées par le modèle de
       domaine `Organization` ou `User`.
@@ -891,11 +1011,22 @@ jamais une dépendance du module consommateur.
 - Tests applicatifs confirmant que le cas d'usage accepte 200 caractères
   normalisés et propage le refus du domaine pour 201, sans seconde limite métier
   portée par Jakarta Validation sur la commande.
+- Tests unitaires des bornes du nom d'équipe : `null`, blanc après `strip()`,
+  200 caractères acceptés, 201 refusés, casse et espaces internes conservés,
+  sans refus de deux noms identiques.
 - Tests du cycle des responsables couvrant les quatre statuts, le retrait du
   manager depuis `ACTIVE`, les remplacements sans changement de statut,
   l'archivage avec ou sans responsables et le caractère terminal de `ARCHIVED`.
 - Tests du cycle temporel de `TeamMember`, couvrant l'invitation, l'activation,
-  la suspension, le retrait et la réinvitation sur une nouvelle ligne.
+  la suspension, le retrait et la réinvitation sur une nouvelle ligne, ainsi que
+  le refus d'une date de fin antérieure à la date de début.
+- Tests applicatifs du cycle de l'équipe couvrant la création, la réactivation
+  après contrôle de l'organisation et des deux responsables, les remplacements
+  sans changement de statut et l'immutabilité après archivage.
+- Tests applicatifs des appartenances couvrant la matrice des opérations
+  autorisées pour une équipe ou une organisation active, suspendue ou archivée,
+  ainsi que les contrôles ponctuels de l'utilisateur lors de l'invitation, de
+  l'ajout, de l'activation et de la réactivation.
 - Tests unitaires et applicatifs vérifiant les codes d'erreur retournés pour les
   validations, transitions, indisponibilités et conflits définis par T04.
 - Tests Spring ciblés utilisant les beans proxifiés pour vérifier `@Validated`,
@@ -916,6 +1047,12 @@ jamais une dépendance du module consommateur.
   appel à `TenantContextProvider.current()` est effectué par requête, que le
   contexte obtenu est transmis tel quel au cas d'usage et qu'aucune référence
   de tenant libre n'est acceptée, générée ou recherchée par le contrôleur.
+- En W001-T05, les tests d'administration vérifieront qu'un utilisateur ne peut
+  pas devenir `SUSPENDED` ou `DEACTIVATED` tant qu'il porte une responsabilité
+  active, qu'une responsabilité archivée reste historique et qu'une simple
+  appartenance `TeamMember` ne bloque pas la transition. Ils vérifieront aussi
+  que l'acteur est fourni par une source applicative contrôlée distincte de
+  `TenantContext`, sans présenter cette source W001 comme une authentification.
 - Ces tests du provider et de son câblage ne démarrent ni PostgreSQL ni
   Testcontainers, car ce composant n'accède pas à la base. Les tests PostgreSQL
   restent requis séparément pour les contraintes et l'isolation de persistance
@@ -938,6 +1075,10 @@ jamais une dépendance du module consommateur.
   dépendantes du statut, les unicités et l'isolation des recherches.
 - Le test PostgreSQL accepte un nom normalisé de 200 caractères et refuse une
   insertion directe de 201 caractères.
+- Pour `Team`, vérifier également la limite de 200 caractères du nom, l'absence
+  d'unicité sur ce nom, la clé étrangère composite, l'index unique partiel des
+  appartenances courantes et la cohérence chronologique de `started_at` et
+  `ended_at`.
 - Pour `Organization`, vérifier la conservation de l'identifiant et de l'audit
   de création, l'évolution de la version et de `modifiedAt`, ainsi que la
   traduction d'un conflit optimiste réel en `CONCURRENT_MODIFICATION`.
@@ -957,8 +1098,8 @@ jamais une dépendance du module consommateur.
 - Contrat Java pur
   `tp-common/src/main/java/io/teampulse/common/context/TenantContextProvider.java`,
   exposé par `common::context`.
-- Modèles et contrats applicatifs des modules `organization`, `identity` et
-  `team`.
+- Modèles et contrats applicatifs des modules `organization` et `identity`,
+  ainsi que verticale interne complète `Team` / `TeamMember` définie par T04.
 - `LocalTenantContextProvider` et `LocalTenantConfiguration` dans
   `tp-app/src/main/java/io/teampulse/context`, avec leurs tests unitaires et de
   câblage Spring.
@@ -970,7 +1111,8 @@ jamais une dépendance du module consommateur.
 - Enums et exceptions métier internes `OrganizationErrorCode` /
   `OrganizationException`, `UserErrorCode` / `UserException` et
   `TeamErrorCode` / `TeamException` dans leurs modules propriétaires.
-- Migrations Flyway des tables et contraintes initiales.
+- Migrations Flyway des tables et contraintes initiales, notamment les
+  garanties tenantées et temporelles de `teams` et `team_members`.
 - Tests d'isolation multi-tenant.
 - ADR-W001-T04 cohérent avec l'implémentation finale.
 - Support Slidev expliquant la référence inter-module, `version`, les
@@ -1059,9 +1201,11 @@ de RLS, de JWT et de coordination Kubernetes resteront hors de ce chapitre.
 - Dépend de : W001-T01 pour le découpage Maven multi-module.
 - Dépend de : W001-T02 pour PostgreSQL, les schémas et Flyway.
 - Dépend de : W001-T03 pour les règles d'architecture et les tests ArchUnit.
-- Prépare : W001-T05 pour les rôles et leurs affectations, ainsi que le contrat
-  HTTP utilisateur et ses tests.
-- Prépare : W002 pour les cas d'usage complets autour des équipes et membres.
+- Prépare : W001-T05 pour l'identité de l'acteur, le contrôle transversal des
+  responsabilités avant indisponibilité d'un utilisateur, les rôles et leurs
+  affectations, ainsi que les contrats HTTP et leurs tests.
+- Prépare : W002 pour enrichir les cas d'usage autour des équipes et membres
+  sans réimplémenter leurs cycles internes livrés par T04.
 - Prépare : W008 pour JWT, la résolution réelle du contexte et les permissions.
 - Prépare : une future étape Kubernetes pour la coordination multi-nœud.
 - Prépare : W012 pour les premiers événements d'audit persistés de création de
