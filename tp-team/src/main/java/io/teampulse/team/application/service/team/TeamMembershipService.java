@@ -16,7 +16,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
 import java.time.Clock;
-import java.time.Instant;
 
 @Service
 @Validated
@@ -38,8 +37,8 @@ public class TeamMembershipService implements TeamMembershipUseCase {
         organizationAvailabilityValidator.validateAvailable(team.getOrganizationReference());
         memberUserAvailabilityValidator.validateAvailable(team.getOrganizationReference(), command.userReference());
 
-        return teamMemberRepository.create(
-                TeamMember.add(team.getOrganizationReference(), team.getId(), command.userReference(), now()));
+        return teamMemberRepository.create(TeamMember.add(
+                team.getOrganizationReference(), team.getId(), command.userReference(), clock.instant()));
     }
 
     @Override
@@ -62,7 +61,7 @@ public class TeamMembershipService implements TeamMembershipUseCase {
         TeamMember member = findCurrentMembership(team, command.userReference());
         organizationAvailabilityValidator.validateAvailable(team.getOrganizationReference());
         memberUserAvailabilityValidator.validateAvailable(team.getOrganizationReference(), command.userReference());
-        member.activate(now());
+        member.activate(clock.instant());
 
         return teamMemberRepository.update(member);
     }
@@ -94,7 +93,7 @@ public class TeamMembershipService implements TeamMembershipUseCase {
     public TeamMember removeMember(TenantContext tenantContext, TeamMemberCommand command) {
         Team team = findMutableTeam(tenantContext, command);
         TeamMember member = findCurrentMembership(team, command.userReference());
-        member.remove(now());
+        member.remove(clock.instant());
 
         return teamMemberRepository.update(member);
     }
@@ -133,10 +132,6 @@ public class TeamMembershipService implements TeamMembershipUseCase {
                 .isPresent()) {
             throw new TeamException(TeamErrorCode.MEMBER_ALREADY_EXISTS, "Team member already exists");
         }
-    }
-
-    private Instant now() {
-        return Instant.now(clock);
     }
 
     private static TeamException teamUnavailable(String teamReference) {
