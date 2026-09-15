@@ -73,9 +73,7 @@ public final class TeamMember {
 
     public void activate(Instant startedAt) {
         validateOperationAllowed(status == TeamMemberStatus.INVITED, "activate");
-        Instant validatedStartedAt = requireInstant(startedAt, "startedAt");
-
-        this.startedAt = validatedStartedAt;
+        this.startedAt = requireInstant(startedAt, "startedAt");
         status = TeamMemberStatus.ACTIVE;
     }
 

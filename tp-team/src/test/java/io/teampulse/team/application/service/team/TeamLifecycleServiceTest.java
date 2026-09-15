@@ -2,9 +2,6 @@ package io.teampulse.team.application.service.team;
 
 import io.teampulse.common.context.TenantContext;
 import io.teampulse.common.reference.ReferenceFactory;
-import io.teampulse.organization.api.organization.OrganizationAvailability;
-import io.teampulse.organization.api.organization.OrganizationDirectory;
-import io.teampulse.organization.api.organization.OrganizationDirectoryException;
 import io.teampulse.team.application.port.in.team.CreateTeamCommand;
 import io.teampulse.team.application.port.out.team.TeamRepository;
 import io.teampulse.team.domain.team.error.TeamErrorCode;
@@ -13,18 +10,13 @@ import io.teampulse.team.domain.team.model.Team;
 import io.teampulse.team.domain.team.model.TeamStatus;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockMakers;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
-import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -52,8 +44,8 @@ class TeamLifecycleServiceTest {
     @Mock
     private ReferenceFactory referenceFactory;
 
-    @Mock(mockMaker = MockMakers.PROXY)
-    private OrganizationDirectory organizationDirectory;
+    @Mock
+    private TeamOrganizationAvailabilityValidator organizationAvailabilityValidator;
 
     @Mock
     private TeamResponsibleUsersValidator responsibleUsersValidator;
@@ -63,7 +55,6 @@ class TeamLifecycleServiceTest {
 
     @Test
     void createsAndPersistsAnActiveTeamAfterValidatingItsDependenciesInOrder() {
-        givenAvailableOrganization();
         when(referenceFactory.generate("TEM")).thenReturn(TEAM_REFERENCE);
         when(teamRepository.create(any(Team.class))).thenAnswer(invocation -> invocation.getArgument(0));
         ArgumentCaptor<Team> teamCaptor = ArgumentCaptor.forClass(Team.class);
@@ -71,8 +62,8 @@ class TeamLifecycleServiceTest {
         Team result = service.create(tenantContext(), validCommand());
 
         InOrder orderedInteractions =
-                inOrder(organizationDirectory, responsibleUsersValidator, referenceFactory, teamRepository);
-        orderedInteractions.verify(organizationDirectory).check(ORGANIZATION_REFERENCE);
+                inOrder(organizationAvailabilityValidator, responsibleUsersValidator, referenceFactory, teamRepository);
+        orderedInteractions.verify(organizationAvailabilityValidator).validateAvailable(ORGANIZATION_REFERENCE);
         orderedInteractions
                 .verify(responsibleUsersValidator)
                 .validateOperationalResponsibleUsers(
@@ -92,7 +83,6 @@ class TeamLifecycleServiceTest {
 
     @Test
     void returnsThePersistedTeamWithItsInternalIdentifier() {
-        givenAvailableOrganization();
         when(referenceFactory.generate("TEM")).thenReturn(TEAM_REFERENCE);
         Team persistedTeam = activeTeam();
         when(teamRepository.create(any(Team.class))).thenReturn(persistedTeam);
@@ -103,36 +93,21 @@ class TeamLifecycleServiceTest {
         assertEquals(TEAM_ID, result.getId());
     }
 
-    @ParameterizedTest
-    @MethodSource("organizationAvailabilityMappings")
-    void rejectsUnavailableOrganizationsWithoutWriting(
-            OrganizationAvailability availability, TeamErrorCode expectedErrorCode) {
-        when(organizationDirectory.check(ORGANIZATION_REFERENCE)).thenReturn(availability);
-
-        TeamException exception =
-                assertThrows(TeamException.class, () -> service.create(tenantContext(), validCommand()));
-
-        assertEquals(expectedErrorCode, exception.getErrorCode());
-        verifyNoInteractions(responsibleUsersValidator, referenceFactory, teamRepository);
-    }
-
     @Test
-    void preservesTheCauseWhenTheOrganizationDirectoryCannotBeReached() {
-        IllegalStateException cause = new IllegalStateException("Organization unavailable");
-        OrganizationDirectoryException directoryException = new OrganizationDirectoryException(cause);
-        when(organizationDirectory.check(ORGANIZATION_REFERENCE)).thenThrow(directoryException);
+    void doesNotWriteWhenOrganizationValidationFails() {
+        TeamException validationFailure =
+                new TeamException(TeamErrorCode.ORGANIZATION_UNAVAILABLE, "Team organization is not available");
+        doThrow(validationFailure).when(organizationAvailabilityValidator).validateAvailable(ORGANIZATION_REFERENCE);
 
         TeamException exception =
                 assertThrows(TeamException.class, () -> service.create(tenantContext(), validCommand()));
 
-        assertEquals(TeamErrorCode.ORGANIZATION_DIRECTORY_UNAVAILABLE, exception.getErrorCode());
-        assertSame(directoryException, exception.getCause());
+        assertSame(validationFailure, exception);
         verifyNoInteractions(responsibleUsersValidator, referenceFactory, teamRepository);
     }
 
     @Test
     void doesNotWriteWhenAResponsibleUserIsRejected() {
-        givenAvailableOrganization();
         TeamException validationFailure =
                 new TeamException(TeamErrorCode.MANAGER_NOT_AVAILABLE, "Team manager is not available");
         doThrow(validationFailure)
@@ -149,7 +124,6 @@ class TeamLifecycleServiceTest {
 
     @Test
     void doesNotWriteWhenReferenceGenerationFails() {
-        givenAvailableOrganization();
         IllegalStateException generationFailure = new IllegalStateException("Reference generation failed");
         when(referenceFactory.generate("TEM")).thenThrow(generationFailure);
 
@@ -162,7 +136,6 @@ class TeamLifecycleServiceTest {
 
     @Test
     void doesNotWriteWhenTeamDomainValidationFails() {
-        givenAvailableOrganization();
         when(referenceFactory.generate("TEM")).thenReturn(TEAM_REFERENCE);
 
         TeamException exception = assertThrows(
@@ -192,16 +165,16 @@ class TeamLifecycleServiceTest {
     void reactivatesAnExistingTeamAfterRevalidatingItsDependencies() {
         Team team = suspendedTeam();
         givenTeam(team);
-        givenAvailableOrganization();
         when(teamRepository.update(team)).thenReturn(team);
 
         Team result = service.reactivate(tenantContext(), TEAM_REFERENCE);
 
         assertSame(team, result);
         assertEquals(TeamStatus.ACTIVE, team.getStatus());
-        InOrder orderedInteractions = inOrder(teamRepository, organizationDirectory, responsibleUsersValidator);
+        InOrder orderedInteractions =
+                inOrder(teamRepository, organizationAvailabilityValidator, responsibleUsersValidator);
         orderedInteractions.verify(teamRepository).findByReference(ORGANIZATION_REFERENCE, TEAM_REFERENCE);
-        orderedInteractions.verify(organizationDirectory).check(ORGANIZATION_REFERENCE);
+        orderedInteractions.verify(organizationAvailabilityValidator).validateAvailable(ORGANIZATION_REFERENCE);
         orderedInteractions
                 .verify(responsibleUsersValidator)
                 .validateOperationalResponsibleUsers(
@@ -218,7 +191,7 @@ class TeamLifecycleServiceTest {
                 assertThrows(TeamException.class, () -> service.reactivate(tenantContext(), TEAM_REFERENCE));
 
         assertEquals(TeamErrorCode.INVALID_STATUS_TRANSITION, exception.getErrorCode());
-        verifyNoInteractions(organizationDirectory, responsibleUsersValidator);
+        verifyNoInteractions(organizationAvailabilityValidator, responsibleUsersValidator);
         verify(teamRepository, never()).update(any(Team.class));
     }
 
@@ -226,7 +199,9 @@ class TeamLifecycleServiceTest {
     void doesNotWriteWhenTheOrganizationIsUnavailableDuringReactivation() {
         Team team = suspendedTeam();
         givenTeam(team);
-        when(organizationDirectory.check(ORGANIZATION_REFERENCE)).thenReturn(OrganizationAvailability.UNAVAILABLE);
+        TeamException validationFailure =
+                new TeamException(TeamErrorCode.ORGANIZATION_UNAVAILABLE, "Team organization is not available");
+        doThrow(validationFailure).when(organizationAvailabilityValidator).validateAvailable(ORGANIZATION_REFERENCE);
 
         TeamException exception =
                 assertThrows(TeamException.class, () -> service.reactivate(tenantContext(), TEAM_REFERENCE));
@@ -241,7 +216,6 @@ class TeamLifecycleServiceTest {
     void doesNotWriteWhenAResponsibleUserIsRejectedDuringReactivation() {
         Team team = suspendedTeam();
         givenTeam(team);
-        givenAvailableOrganization();
         TeamException validationFailure =
                 new TeamException(TeamErrorCode.MANAGER_NOT_AVAILABLE, "Team manager is not available");
         doThrow(validationFailure)
@@ -284,12 +258,6 @@ class TeamLifecycleServiceTest {
         verify(teamRepository, never()).update(any(Team.class));
     }
 
-    private static Stream<Arguments> organizationAvailabilityMappings() {
-        return Stream.of(
-                Arguments.of(OrganizationAvailability.NOT_FOUND, TeamErrorCode.ORGANIZATION_NOT_FOUND),
-                Arguments.of(OrganizationAvailability.UNAVAILABLE, TeamErrorCode.ORGANIZATION_UNAVAILABLE));
-    }
-
     private TenantContext tenantContext() {
         return new TenantContext(ORGANIZATION_REFERENCE);
     }
@@ -318,10 +286,6 @@ class TeamLifecycleServiceTest {
                 ADMINISTRATOR_REFERENCE,
                 MANAGER_REFERENCE,
                 TeamStatus.SUSPENDED);
-    }
-
-    private void givenAvailableOrganization() {
-        when(organizationDirectory.check(ORGANIZATION_REFERENCE)).thenReturn(OrganizationAvailability.AVAILABLE);
     }
 
     private void givenTeam(Team team) {
