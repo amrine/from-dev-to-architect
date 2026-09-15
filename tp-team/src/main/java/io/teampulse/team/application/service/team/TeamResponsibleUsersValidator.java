@@ -21,20 +21,34 @@ public class TeamResponsibleUsersValidator {
     private final UserDirectory userDirectory;
 
     /**
+     * Validates that an administrator candidate is currently operational.
+     */
+    public void validateOperationalAdministrator(String organizationReference, String administratorReference) {
+        validateOperational(
+                checkAvailability(organizationReference, administratorReference), ResponsibleRole.ADMINISTRATOR);
+    }
+
+    /**
+     * Validates that a manager candidate is currently operational.
+     */
+    public void validateOperationalManager(String organizationReference, String managerReference) {
+        validateOperational(checkAvailability(organizationReference, managerReference), ResponsibleRole.MANAGER);
+    }
+
+    /**
      * Validates both team responsible users in one point-in-time check. When
      * both responsibilities belong to the same user, the directory is queried
      * only once.
      */
     public void validateOperationalResponsibleUsers(
             String organizationReference, String administratorReference, String managerReference) {
-        UserAvailability administratorAvailability = checkAvailability(organizationReference, administratorReference);
-        validateOperational(administratorAvailability, ResponsibleRole.ADMINISTRATOR);
+        validateOperationalAdministrator(organizationReference, administratorReference);
 
         if (administratorReference.equals(managerReference)) {
             return;
         }
 
-        validateOperational(checkAvailability(organizationReference, managerReference), ResponsibleRole.MANAGER);
+        validateOperationalManager(organizationReference, managerReference);
     }
 
     private UserAvailability checkAvailability(String organizationReference, String userReference) {

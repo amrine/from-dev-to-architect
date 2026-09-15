@@ -210,6 +210,54 @@ class TeamLifecycleServiceTest {
     }
 
     @Test
+    void rejectsReactivationBeforeCallingDirectoriesWhenTheTeamIsNotSuspended() {
+        Team team = activeTeam();
+        givenTeam(team);
+
+        TeamException exception =
+                assertThrows(TeamException.class, () -> service.reactivate(tenantContext(), TEAM_REFERENCE));
+
+        assertEquals(TeamErrorCode.INVALID_STATUS_TRANSITION, exception.getErrorCode());
+        verifyNoInteractions(organizationDirectory, responsibleUsersValidator);
+        verify(teamRepository, never()).update(any(Team.class));
+    }
+
+    @Test
+    void doesNotWriteWhenTheOrganizationIsUnavailableDuringReactivation() {
+        Team team = suspendedTeam();
+        givenTeam(team);
+        when(organizationDirectory.check(ORGANIZATION_REFERENCE)).thenReturn(OrganizationAvailability.UNAVAILABLE);
+
+        TeamException exception =
+                assertThrows(TeamException.class, () -> service.reactivate(tenantContext(), TEAM_REFERENCE));
+
+        assertEquals(TeamErrorCode.ORGANIZATION_UNAVAILABLE, exception.getErrorCode());
+        assertEquals(TeamStatus.SUSPENDED, team.getStatus());
+        verifyNoInteractions(responsibleUsersValidator);
+        verify(teamRepository, never()).update(any(Team.class));
+    }
+
+    @Test
+    void doesNotWriteWhenAResponsibleUserIsRejectedDuringReactivation() {
+        Team team = suspendedTeam();
+        givenTeam(team);
+        givenAvailableOrganization();
+        TeamException validationFailure =
+                new TeamException(TeamErrorCode.MANAGER_NOT_AVAILABLE, "Team manager is not available");
+        doThrow(validationFailure)
+                .when(responsibleUsersValidator)
+                .validateOperationalResponsibleUsers(
+                        ORGANIZATION_REFERENCE, ADMINISTRATOR_REFERENCE, MANAGER_REFERENCE);
+
+        TeamException exception =
+                assertThrows(TeamException.class, () -> service.reactivate(tenantContext(), TEAM_REFERENCE));
+
+        assertSame(validationFailure, exception);
+        assertEquals(TeamStatus.SUSPENDED, team.getStatus());
+        verify(teamRepository, never()).update(any(Team.class));
+    }
+
+    @Test
     void archivesAnExistingTeamInTheCurrentTenant() {
         Team team = activeTeam();
         givenTeam(team);
@@ -219,6 +267,8 @@ class TeamLifecycleServiceTest {
 
         assertSame(team, result);
         assertEquals(TeamStatus.ARCHIVED, team.getStatus());
+        assertEquals(ADMINISTRATOR_REFERENCE, team.getAdminReference());
+        assertEquals(MANAGER_REFERENCE, team.getManagerReference());
         verify(teamRepository).update(team);
     }
 

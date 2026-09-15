@@ -11,6 +11,7 @@ import io.teampulse.team.application.port.out.team.TeamRepository;
 import io.teampulse.team.domain.team.error.TeamErrorCode;
 import io.teampulse.team.domain.team.error.TeamException;
 import io.teampulse.team.domain.team.model.Team;
+import io.teampulse.team.domain.team.model.TeamStatus;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -61,6 +62,7 @@ public class TeamLifecycleService implements TeamLifecycleUseCase {
     public Team reactivate(TenantContext tenantContext, String teamReference) {
         String organizationReference = tenantContext.tenantReference();
         Team team = findTeam(organizationReference, teamReference);
+        team.getStatus().validateTransitionTo(TeamStatus.ACTIVE);
         validateOrganizationAvailability(organizationReference);
         responsibleUsersValidator.validateOperationalResponsibleUsers(
                 organizationReference, team.getAdminReference(), team.getManagerReference());

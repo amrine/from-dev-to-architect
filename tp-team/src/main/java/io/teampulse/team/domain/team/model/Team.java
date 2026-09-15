@@ -109,7 +109,7 @@ public final class Team {
         status = target;
     }
 
-    private void validateReplacementAllowed(String operation) {
+    public void validateReplacementAllowed(String operation) {
         if (status != TeamStatus.ACTIVE && status != TeamStatus.SUSPENDED) {
             throw new TeamException(
                     TeamErrorCode.INVALID_STATUS_TRANSITION,

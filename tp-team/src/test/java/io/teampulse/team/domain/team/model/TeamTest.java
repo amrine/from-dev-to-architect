@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -181,6 +182,21 @@ class TeamTest {
 
         assertEquals(TeamStatus.ARCHIVED, activeTeam.getStatus());
         assertEquals(TeamStatus.ARCHIVED, suspendedTeam.getStatus());
+    }
+
+    @Test
+    void allowsResponsibleReplacementOnlyForActiveOrSuspendedTeams() {
+        Team activeTeam = createTeam();
+        Team suspendedTeam = restoreTeam(TEAM_ID, TeamStatus.SUSPENDED);
+        Team archivedTeam = restoreTeam(TEAM_ID, TeamStatus.ARCHIVED);
+
+        assertDoesNotThrow(() -> activeTeam.validateReplacementAllowed("replaceAdministrator"));
+        assertDoesNotThrow(() -> suspendedTeam.validateReplacementAllowed("replaceManager"));
+
+        TeamException exception = assertThrows(
+                TeamException.class, () -> archivedTeam.validateReplacementAllowed("replaceAdministrator"));
+
+        assertEquals(TeamErrorCode.INVALID_STATUS_TRANSITION, exception.getErrorCode());
     }
 
     @Test
