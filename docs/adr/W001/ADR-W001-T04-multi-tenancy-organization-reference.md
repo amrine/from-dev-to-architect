@@ -230,11 +230,20 @@ constitue un tenant et `Organization.reference` en est l'identité concrète.
 - Les cas d'usage tenantés reçoivent explicitement un `TenantContext` valide.
 - Les services applicatifs extraient `tenantReference`, la nomment
   `organizationReference` dans le vocabulaire métier de TeamPulse et la
-  transmettent explicitement aux ports sortants.
+  transmettent explicitement aux ports sortants de lecture et d'existence.
+- Avant toute écriture, le service applicatif contrôle que l'agrégat appartient
+  au tenant courant. Les ports d'écriture reçoivent l'agrégat, qui porte déjà
+  sa `organizationReference`, sans paramètre de tenant redondant.
 - Les repositories tenantés exigent `organizationReference` dans leurs méthodes
-  de recherche, d'existence, de liste, de modification et de suppression.
+  de recherche, d'existence et de liste. Les mises à jour sont recherchées avec
+  la référence de tenant portée par l'agrégat et sa référence métier.
 - Aucune méthode métier globale telle que `findByReference(userReference)` ou
   `findAll()` n'est exposée par un repository tenanté.
+- Les ports applicatifs tenantés n'exposent aucune opération globale. Les
+  interfaces Spring Data d'infrastructure conservent toutefois l'héritage
+  technique de `JpaRepository` en W001 ; ces méthodes restent limitées à
+  l'infrastructure et aux fixtures de test, et ne font pas partie des contrats
+  métier.
 - Les cas d'usage plateforme restent non tenantés. Aucun `PlatformContext` vide
   n'est introduit en W001, puisqu'il ne transporterait encore aucune identité
   authentifiée ni information fiable.
@@ -245,7 +254,7 @@ Exemples de formes attendues :
 findByReference(organizationReference, userReference)
 findAll(organizationReference)
 existsByEmail(organizationReference, email)
-delete(organizationReference, userReference)
+update(aggregate)
 ```
 
 Cette décision exprime une frontière applicative. `TenantContext` ne prouve pas
@@ -1175,8 +1184,9 @@ déploiement local W001. Elle sera décidée avant Kubernetes.
 Option non retenue pour les cas d'usage tenantés. Une chaîne rendrait la
 référence obligatoire mais n'exprimerait pas aussi clairement qu'elle constitue
 le périmètre d'exécution complet du cas d'usage. `TenantContext` conserve cette
-intention dans le contrat ; les ports sortants continuent toutefois à recevoir
-explicitement `organizationReference`.
+intention dans le contrat. Les services contrôlent la cohérence entre ce
+contexte et l'agrégat avant d'appeler les ports d'écriture ; ces ports reçoivent
+ensuite l'agrégat sans référence redondante.
 
 ### Créer un `PlatformContext` vide
 
@@ -1712,15 +1722,16 @@ cette infrastructure dans le runtime.
   référence de tenant libre n'est lue, fabriquée ou résolue auprès de
   `tp-organization`.
 - Vérifier qu'en W001 `tenantReference` contient `Organization.reference`, puis
-  que le service applicatif la transmet comme `organizationReference` aux ports
-  sortants.
+  que le service applicatif l'utilise comme `organizationReference` pour les
+  ports sortants de lecture et d'existence. Les écritures reçoivent un agrégat
+  dont la référence d'organisation a été contrôlée par le service.
 - Vérifier que T04 ne place aucune référence utilisateur dans `TenantContext`.
   Lorsque l'acteur sera introduit en W001-T05, vérifier que sa source
   applicative est contrôlée et distincte du tenant transmis au cas d'usage,
   sans la présenter comme une authentification avant W008.
 - Vérifier qu'aucun `PlatformContext` vide n'est introduit et que les cas
   d'usage plateforme restent non tenantés jusqu'à W008.
-- Vérifier qu'aucun repository tenanté ne propose une opération globale.
+- Vérifier qu'aucun port applicatif tenanté ne propose une opération globale.
 - Créer deux organisations de test et prouver qu'une référence de A ne permet
   jamais de lire, modifier ou supprimer une donnée de B.
 

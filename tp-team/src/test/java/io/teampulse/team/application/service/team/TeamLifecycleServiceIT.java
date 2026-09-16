@@ -102,6 +102,21 @@ class TeamLifecycleServiceIT extends AbstractIntegrationTest {
         verifyNoInteractions(organizationDirectory, userDirectory);
     }
 
+    @ParameterizedTest
+    @MethodSource("tenantRequiredOperations")
+    void rejectsNullTenantContextForEveryTransition(String operation) {
+        assertThrows(ConstraintViolationException.class, () -> {
+            switch (operation) {
+                case "suspend" -> teamLifecycle.suspend(null, "TEM-2026-0916-00000ZA7B900");
+                case "reactivate" -> teamLifecycle.reactivate(null, "TEM-2026-0916-00000ZA7B900");
+                case "archive" -> teamLifecycle.archive(null, "TEM-2026-0916-00000ZA7B900");
+                default -> throw new IllegalArgumentException("Unknown operation: " + operation);
+            }
+        });
+
+        verifyNoInteractions(organizationDirectory, userDirectory);
+    }
+
     @Test
     void rejectsAnUnavailableOrganizationWithoutPersisting() {
         when(organizationDirectory.check(ORGANIZATION_REFERENCE)).thenReturn(OrganizationAvailability.UNAVAILABLE);
@@ -120,6 +135,10 @@ class TeamLifecycleServiceIT extends AbstractIntegrationTest {
                 Arguments.of(null, command("TeamPulse Engineering")),
                 Arguments.of(tenantContext(), null),
                 Arguments.of(tenantContext(), command(" ")));
+    }
+
+    private static Stream<String> tenantRequiredOperations() {
+        return Stream.of("suspend", "reactivate", "archive");
     }
 
     private static TenantContext tenantContext() {

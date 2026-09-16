@@ -21,9 +21,12 @@ import jakarta.inject.Inject;
 import jakarta.validation.ConstraintViolationException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.time.Instant;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -102,6 +105,24 @@ class TeamMembershipServiceIT extends AbstractIntegrationTest {
         verifyNoInteractions(organizationDirectory, userDirectory);
     }
 
+    @ParameterizedTest
+    @MethodSource("tenantRequiredOperations")
+    void rejectsNullTenantContextForEveryMembershipOperation(String operation) {
+        assertThrows(ConstraintViolationException.class, () -> {
+            switch (operation) {
+                case "add" -> teamMembership.addMember(null, command());
+                case "invite" -> teamMembership.inviteMember(null, command());
+                case "activate" -> teamMembership.activateMember(null, command());
+                case "suspend" -> teamMembership.suspendMember(null, command());
+                case "reactivate" -> teamMembership.reactivateMember(null, command());
+                case "remove" -> teamMembership.removeMember(null, command());
+                default -> throw new IllegalArgumentException("Unknown operation: " + operation);
+            }
+        });
+
+        verifyNoInteractions(organizationDirectory, userDirectory);
+    }
+
     @Test
     void rejectsAnUnavailableMemberWithoutPersisting() {
         Team team = givenActiveTeam();
@@ -139,5 +160,9 @@ class TeamMembershipServiceIT extends AbstractIntegrationTest {
 
     private static TeamMemberCommand command() {
         return new TeamMemberCommand(TEAM_REFERENCE, MEMBER_REFERENCE);
+    }
+
+    private static Stream<String> tenantRequiredOperations() {
+        return Stream.of("add", "invite", "activate", "suspend", "reactivate", "remove");
     }
 }
