@@ -103,6 +103,13 @@ public class ModulithArchitectureTests {
     }
 
     @Test
+    void keepsIdentityIndependentFromOrganization() {
+        var identityModule = modules.getModuleByName("identity").orElseThrow();
+
+        assertFalse(identityModule.getDirectDependencies(modules).containsModuleNamed("organization"));
+    }
+
+    @Test
     void exposesOrganizationContractThroughDedicatedNamedInterface() {
         var organizationModule = modules
             .getModuleByName("organization")
