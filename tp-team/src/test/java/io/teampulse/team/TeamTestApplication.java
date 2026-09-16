@@ -11,14 +11,18 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 
 import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneOffset;
 
 @TestConfiguration
 @SpringBootApplication
 public class TeamTestApplication {
 
+    private static final Instant FIXED_INSTANT = Instant.parse("2026-09-16T08:30:00Z");
+
     @Bean
     Clock teamClock() {
-        return Clock.systemUTC();
+        return Clock.fixed(FIXED_INSTANT, ZoneOffset.UTC);
     }
 
     @Bean
@@ -28,11 +32,11 @@ public class TeamTestApplication {
 
     @Bean
     OrganizationDirectory organizationDirectory() {
-        return organizationReference -> OrganizationAvailability.AVAILABLE;
+        return _ -> OrganizationAvailability.AVAILABLE;
     }
 
     @Bean
     UserDirectory userDirectory() {
-        return (organizationReference, userReference) -> UserAvailability.AVAILABLE;
+        return (_, _) -> UserAvailability.AVAILABLE;
     }
 }
