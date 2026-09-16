@@ -500,6 +500,15 @@ La clé étrangère composite `(team_id, organization_reference)` référence
 l'adapter de persistance la résout avec `organizationReference` avant de créer le
 `TeamMember`. La table `team_members` ne stocke pas `teamReference`.
 
+`TeamMemberEntity` conserve `teamId` et `organizationReference` comme champs
+scalaires. Elle ne déclare pas de relation JPA vers `TeamEntity`. La clé
+étrangère composite garantit la relation référentielle sans `ON DELETE CASCADE`.
+Les cas d'usage chargent explicitement l'équipe et l'appartenance via leurs
+ports respectifs. Une lecture future qui combine une équipe et ses membres
+utilisera une projection ou un query handler dédié. Ainsi, une mise à jour
+d'équipe ne peut ni charger, ni modifier, ni supprimer implicitement ses
+appartenances.
+
 - `TeamMemberStatus` contient `INVITED`, `ACTIVE`, `SUSPENDED` et `REMOVED`.
 - Les transitions autorisées sont `INVITED -> ACTIVE`, `INVITED -> REMOVED`,
   `ACTIVE -> SUSPENDED`, `ACTIVE -> REMOVED`, `SUSPENDED -> ACTIVE` et
@@ -1255,6 +1264,14 @@ Option rejetée. L'appartenance est une entité interne de l'équipe et aucun
 contrat inter-module n'a besoin de l'adresser indépendamment. Le triplet tenant,
 équipe et utilisateur identifie l'appartenance courante ; l'identifiant
 technique, `startedAt` et `endedAt` distinguent les périodes historiques.
+
+### Mapper `TeamMemberEntity` avec `@ManyToOne TeamEntity`
+
+Option rejetée. La navigation JPA ne justifie pas l'introduction d'un graphe de
+persistence entre l'équipe et ses appartenances. Elle rendrait les chargements,
+la frontière de tenant et les effets de cascade moins explicites. La clé
+étrangère composite conserve l'intégrité référentielle sans coupler les deux
+entités JPA.
 
 ### Partager une `BaseEntity` JPA dans `tp-common`
 
