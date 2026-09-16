@@ -103,6 +103,35 @@ public class ModulithArchitectureTests {
     }
 
     @Test
+    void keepsIdentityIndependentFromOrganization() {
+        var identityModule = modules.getModuleByName("identity").orElseThrow();
+
+        assertFalse(identityModule.getDirectDependencies(modules).containsModuleNamed("organization"));
+    }
+
+    @Test
+    void keepsCrossModuleDependenciesOnNamedContracts() {
+        assertNoDependencyOnInternalPackages(
+            "team",
+            Set.of("io.teampulse.identity.domain", "io.teampulse.identity.infrastructure",
+                "io.teampulse.organization.domain", "io.teampulse.organization.infrastructure"));
+        assertNoDependencyOnInternalPackages(
+            "organization",
+            Set.of("io.teampulse.identity.domain", "io.teampulse.identity.infrastructure"));
+    }
+
+    private void assertNoDependencyOnInternalPackages(String moduleName, Set<String> forbiddenPackages) {
+        var module = modules.getModuleByName(moduleName).orElseThrow();
+
+        assertFalse(
+            module.getDependencies(modules)
+                .stream()
+                .map(dependency -> dependency.getTargetType().getPackageName())
+                .anyMatch(targetPackage -> forbiddenPackages.stream().anyMatch(targetPackage::startsWith)),
+            moduleName + " must not depend on internal module packages");
+    }
+
+    @Test
     void exposesOrganizationContractThroughDedicatedNamedInterface() {
         var organizationModule = modules
             .getModuleByName("organization")

@@ -13,13 +13,20 @@ import io.teampulse.team.infrastructure.persistence.entity.TeamEntity;
 import io.teampulse.team.infrastructure.persistence.repository.JpaTeamMemberRepository;
 import io.teampulse.team.infrastructure.persistence.repository.JpaTeamRepository;
 import jakarta.inject.Inject;
+import jakarta.validation.ConstraintViolationException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 class TeamResponsibleUsersServiceIT extends AbstractIntegrationTest {
@@ -73,8 +80,28 @@ class TeamResponsibleUsersServiceIT extends AbstractIntegrationTest {
         verify(userDirectory).check(ORGANIZATION_REFERENCE, REPLACEMENT_REFERENCE);
     }
 
+    @ParameterizedTest
+    @MethodSource("tenantRequiredOperations")
+    void rejectsNullTenantContextForEveryResponsibleUserOperation(String operation) {
+        assertThrows(ConstraintViolationException.class, () -> {
+            switch (operation) {
+                case "administrator" -> responsibleUsers.replaceAdministrator(
+                        null, new TeamResponsibleCommand(TEAM_REFERENCE, REPLACEMENT_REFERENCE));
+                case "manager" -> responsibleUsers.replaceManager(
+                        null, new TeamResponsibleCommand(TEAM_REFERENCE, REPLACEMENT_REFERENCE));
+                default -> throw new IllegalArgumentException("Unknown operation: " + operation);
+            }
+        });
+
+        verifyNoInteractions(userDirectory);
+    }
+
     private static Team activeTeam() {
         return Team.create(
                 TEAM_REFERENCE, ORGANIZATION_REFERENCE, "TeamPulse Engineering", ADMIN_REFERENCE, MANAGER_REFERENCE);
+    }
+
+    private static Stream<String> tenantRequiredOperations() {
+        return Stream.of("administrator", "manager");
     }
 }
