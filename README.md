@@ -25,6 +25,10 @@ corrigées en cours de route.
 📊 Le support de présentation (Slidev) régénère ses slides depuis les besoins,
 ADRs et commits du repo.
 
+> Setup Slidev : Node.js 22 + Corepack + Yarn 4.9.4.
+> `corepack enable && corepack prepare yarn@4.9.4 --activate`
+> puis `yarn install --immutable` dans `slidev/`.
+
 🌐 [Parcourir la présentation interactive TeamPulse](https://amrine.github.io/from-dev-to-architect/).
 
 ## Environnement local
