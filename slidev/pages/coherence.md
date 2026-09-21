@@ -41,10 +41,28 @@ Voici l'écart actuellement identifié et l'arbitrage proposé.
 
 <v-clicks>
 
-<div class="tp-card tp-card--warn">
-<h3>W001 · Besoins T06 → T07 à rédiger</h3>
-<p class="small muted">T04 et T05 sont désormais documentés. Il reste à formaliser l'image exécutable et la configuration par environnement.</p>
-<span class="tp-badge tp-badge--warn">action · ce weekend</span>
+<div class="tp-card tp-card--pulse tp-card--compact">
+<h3>W001 · T01 → T03 : socle prouvé</h3>
+<p class="small muted">Besoins, ADR et code présents : multi-module, PostgreSQL/Flyway, ArchUnit/Modulith.</p>
+<span class="tp-badge tp-badge--done">code + ADR acceptés</span>
+</div>
+
+<div class="tp-card tp-card--warn tp-card--compact">
+<h3>W001 · T04 : décision implémentée, clôture à aligner</h3>
+<p class="small muted">ADR Accepted + code livré : tenant, références, directories, isolation. Besoin Draft ; roadmap W001 « À faire ».</p>
+<span class="tp-badge tp-badge--doc">action · réaligner les statuts</span>
+</div>
+
+<div class="tp-card tp-card--warn tp-card--compact">
+<h3>W001 · T05 → T07 : références sans sources canoniques</h3>
+<p class="small muted">README et roadmap les mentionnent ; aucun besoin/ADR canonique n'est présent. HTTP, Dockerfile et profils ne sont pas livrés.</p>
+<span class="tp-badge tp-badge--warn">action · documenter avant génération</span>
+</div>
+
+<div class="tp-card tp-card--compact">
+<h3>W001 · T08 → T14 : intention de trajectoire</h3>
+<p class="small muted">Intention de roadmap non canonique : besoins, ADR acceptés et implémentations restent à établir.</p>
+<span class="tp-badge tp-badge--warn">statut · non canonique</span>
 </div>
 
 </v-clicks>
@@ -60,17 +78,17 @@ Chaque écart corrigé disparaît à la prochaine régénération du deck
 <!--
 **Message à faire passer**
 
-Les besoins T04 et T05 sont maintenant documentés ; T06 et T07 restent planifiés sans documentation détaillée suffisante pour être enseignés ou implémentés.
+Le support distingue strictement le socle W001 prouvé, la clôture documentaire à aligner et la trajectoire seulement planifiée.
 
 **Déroulé oral**
 
-Présentez cet élément comme un backlog de qualité documentaire. T01 à T03 restent livrés ; T04 et T05 disposent maintenant de leurs besoins et ADR en statut Draft. L'écart ne concerne plus que la préparation de T06 et T07. L'action doit préciser un responsable ou une échéance, puis être vérifiée lors de la prochaine génération.
+Présentez cet élément comme un backlog de qualité documentaire. T01 à T03 disposent de besoins, ADR acceptés et preuves de code. T04 a son ADR accepté et son vertical livré, mais son besoin reste Draft et l'agrégat W001 de la roadmap doit être réaligné. T05 à T07 puis T08 à T14 ne sont pas des contenus canoniques de ce parcours.
 
-[click] Soulignez que la carte doit disparaître automatiquement lorsque les sources deviennent cohérentes.
+Soulignez que chaque carte disparaît quand la source concernée est réellement alignée, pas lorsqu'une intention est simplement formulée.
 
 **Insister sur**
 
-Ne transformez pas un ticket planifié en contenu affirmatif tant que le besoin et la décision ne sont pas suffisamment documentés.
+Ne transformez jamais un ticket planifié en contenu affirmatif tant que besoin, ADR et preuve de livraison ne sont pas établis.
 
 **Transition**
 
