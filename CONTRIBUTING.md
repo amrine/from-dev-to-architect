@@ -124,6 +124,21 @@ W001-T04-multi-tenancy-organization-reference
 
 Keep one issue or one cohesive change per branch.
 
+## Versioning and releases
+
+TeamPulse uses Semantic Versioning for product releases. The Maven reactor
+shares one version, and development uses the next release with a `-SNAPSHOT`
+suffix. The current development version is `0.1.0-SNAPSHOT`.
+
+Ticket delivery and product releases use separate tags:
+
+- `W001-T04-*` identifies the exact roadmap ticket delivered;
+- `v0.1.0` identifies a coherent product release.
+
+The first `v0.1.0` release is created only after all W001 tickets are complete,
+validated, and merged into `main`. See [docs/VERSIONING.md](docs/VERSIONING.md)
+for the complete convention and release workflow.
+
 ## Commit messages
 
 Write commit messages in English and use a simple, descriptive prefix:
