@@ -1,4 +1,0 @@
-interface:
-  display_name: "Generate TeamPulse Slidev"
-  short_description: "Cours TeamPulse progressif avec notes orales"
-  default_prompt: "Use $generate-teampulse-slidev to improve W001 with scenario-first pedagogy and complete French presenter notes for every presented slide."
