@@ -2,7 +2,7 @@
 
 ## Statut
 
-Draft
+Accepted
 
 ## Ticket lié
 
@@ -12,301 +12,167 @@ W001-T04 - Multi-tenancy par référence d'organisation
 
 [`docs/besoins/W001/W001-T04-multi-tenancy-organization-reference.md`](../../besoins/W001/W001-T04-multi-tenancy-organization-reference.md)
 
+## ADR techniques adoptés
+
+- [ADR-TECH-006 - Functional references over persistence identifiers](../technical/ADR-TECH-006-functional-references-over-persistence-identifiers.md)
+- [ADR-TECH-007 - Monotonic Java reference generation](../technical/ADR-TECH-007-monotonic-java-reference-generation.md)
+- [ADR-TECH-008 - Explicit tenant context and tenant-scoped persistence](../technical/ADR-TECH-008-explicit-tenant-context-and-tenant-scoped-persistence.md)
+- [ADR-TECH-009 - Module-owned directory contracts and error translation](../technical/ADR-TECH-009-module-owned-directory-contracts-and-error-translation.md)
+- [ADR-TECH-010 - JPA-managed technical state and optimistic locking](../technical/ADR-TECH-010-jpa-managed-technical-state-and-optimistic-locking.md)
+- [ADR-TECH-011 - Spring application services and layer-owned validation](../technical/ADR-TECH-011-spring-application-services-and-layer-owned-validation.md)
+- [ADR-TECH-012 - Module-owned error vocabularies and boundary translation](../technical/ADR-TECH-012-module-owned-error-vocabularies-and-boundary-translation.md)
+
+Cet ADR décide leur adoption par TeamPulse et documente leurs bindings métier,
+leurs packages, leurs erreurs et leurs contraintes PostgreSQL concrètes. Les
+ADRs techniques restent propriétaires des mécanismes réutilisables.
+
+## Fondations héritées
+
+- [ADR-W001-T01](ADR-W001-T01-backend-multi-module.md) adopte le monolithe
+  modulaire Maven/Spring Modulith décrit par ADR-TECH-001.
+- [ADR-W001-T02](ADR-W001-T02-docker-compose-local.md) adopte PostgreSQL/Flyway
+  par module et Testcontainers décrits par ADR-TECH-002 et ADR-TECH-003.
+- [ADR-W001-T03](ADR-W001-T03-regles-architecture-archunit.md) adopte les
+  frontières hexagonales et leur enforcement ArchUnit décrits par ADR-TECH-004
+  et ADR-TECH-005.
+
+T04 spécialise ces fondations sans en reprendre les décisions génériques.
+
 ## Contexte
 
-TeamPulse est actuellement un monolithe modulaire composé notamment de
-`tp-organization`, `tp-identity` et `tp-team`. La roadmap W001 proposait
-initialement de propager l'identifiant numérique de l'organisation et de placer
-des champs JPA communs dans une `BaseEntity`.
+TeamPulse est un monolithe modulaire composé notamment de `tp-organization`,
+`tp-identity` et `tp-team`. La roadmap W001 proposait initialement de propager
+l'identifiant numérique de l'organisation et de placer les champs JPA communs
+dans une `BaseEntity`.
 
-Cette solution exposerait l'identifiant de persistance du module organisation à
-tous les autres modules. Elle rendrait les contrats inter-modules dépendants du
-schéma interne de `tp-organization` et compliquerait une future extraction en
-services indépendants.
+Cette solution exposerait la persistence interne de `tp-organization`,
+affaiblirait l'isolation tenant et compliquerait une future extraction des
+modules. TeamPulse doit également fournir des références publiques lisibles et
+une frontière tenant explicite alors qu'aucune authentification JWT n'est encore
+disponible.
 
-Le ticket doit également préparer l'isolation tenant alors qu'aucune sécurité
-JWT n'est encore disponible. La frontière doit donc être explicite dans les
-contrats et les requêtes sans laisser croire que W001 authentifie ou autorise
-réellement un utilisateur.
-
-Enfin, TeamPulse a besoin de références publiques lisibles. Leur génération doit
-être effectuée côté Java, sans séquence métier en base, tout en supportant les
-appels concurrents d'une instance. La coordination de plusieurs nœuds n'est pas
-encore introduite et devra être revue avant Kubernetes.
+T04 couvre le domaine, l'application, la persistence, les contrats inter-modules
+et le provider tenant local. Les contrôleurs et contrats HTTP restent dans
+W001-T05 ; l'authentification et les permissions restent dans W008.
 
 ## Décision
 
-### 1. Séparer identifiant technique et référence fonctionnelle
+### 1. Adopter les références fonctionnelles TeamPulse
 
-- Chaque table conserve un identifiant technique `BIGINT`, représenté par un
-  `Long` en Java.
-- Cet identifiant est strictement interne à son module et à sa persistance.
-- Chaque agrégat échangé entre modules possède une référence fonctionnelle
+TeamPulse applique ADR-TECH-006 comme suit :
+
+- `Organization`, `User` et `Team` possèdent une référence fonctionnelle
   textuelle, stable et opaque.
-- `Organization.reference` devient l'identifiant du tenant dans les contrats.
-- Les modules consommateurs utilisent le nom `organizationReference` en Java et
-  la colonne `organization_reference` en PostgreSQL. Ce nom reprend celui déjà
-  utilisé par `tp_identity.users` et suit la même convention que les autres
-  références persistées.
-- Aucun nouveau contrat n'utilise un identifiant technique d'organisation pour
-  représenter le tenant.
-- Les colonnes de référence utilisent `TEXT`. Les règles de format et de
-  longueur restent des invariants Java afin de pouvoir faire évoluer le format
-  sans migration motivée uniquement par une taille de `VARCHAR`.
+- `TeamMember` ne possède pas de référence fonctionnelle propre. Il reste une
+  entité interne adressée par le tenant, l'équipe et l'utilisateur.
+- Chaque table conserve un identifiant technique `BIGINT` représenté par un
+  `Long`.
+- Les identifiants de `Organization` et `User` restent exclusivement dans leurs
+  entités JPA.
+- `Team.id` et `TeamMember.id` restent visibles dans le domaine de `tp-team`, et
+  `TeamMember.teamId` conserve la relation interne au même module. Aucun de ces
+  identifiants ne franchit la frontière de `tp-team`.
+- `Organization.reference` constitue l'identité fonctionnelle du tenant.
+- Les modules consommateurs utilisent `organizationReference` en Java et
+  `organization_reference` en PostgreSQL.
+- Les colonnes de références utilisent `TEXT` et sont protégées par des
+  contraintes `UNIQUE` lorsqu'elles identifient un agrégat.
+- Aucun contrat inter-module n'expose un identifiant technique et aucune clé
+  étrangère ne cible l'identifiant privé d'un autre module.
 
-### 2. Générer les références dans `tp-common`
+### 2. Adopter le générateur monotone de références
 
-Les types `ReferenceFactory`, `MonotonicReferenceFactory`, `ReferenceFormat` et
-`GenerationState` forment le socle Java pur et transverse placé dans le package
-`reference` de `tp-common`. Ils ne dépendent ni de Spring, ni de JPA, ni d'un
-module métier. Seul le descripteur `package-info.java` utilise Spring Modulith
-pour exposer ce package comme interface nommée `common::reference` ; cette
-métadonnée d'architecture n'entre pas dans leur implémentation.
+TeamPulse adopte sans déviation le format et l'algorithme d'ADR-TECH-007.
 
-Le contrat public s'appelle `ReferenceFactory` et expose une seule opération :
+- `tp-common` contient les types Java purs `ReferenceFactory`,
+  `MonotonicReferenceFactory`, `ReferenceFormat` et `GenerationState`.
+- Le package `io.teampulse.common.reference` est exposé par l'interface nommée
+  `common::reference`.
+- `ReferenceFactory` expose `String generate(String prefix)`.
+- `ReferenceFormat.matches(reference, expectedPrefix)` valide la grammaire
+  commune sans connaître de concept ou d'erreur métier.
+- Les préfixes TeamPulse sont :
+  - `ORG` pour `Organization` ;
+  - `USR` pour `User` ;
+  - `TEM` pour `Team`.
+- `TeamMember` n'a aucun préfixe puisqu'il ne possède pas de référence.
+- `ReferenceConfiguration` fournit une unique instance applicative de la
+  factory et son `Clock`.
+- Les modules métier possèdent leurs constantes de préfixe et traduisent un
+  format invalide ou une collision dans leur propre vocabulaire.
+- Une collision PostgreSQL devient `REFERENCE_GENERATION_FAILED`, sans retry
+  automatique de génération/persistence.
+- La garantie reste mono-JVM. Une identité de nœud ou une coordination partagée
+  devra être décidée avant un déploiement multi-instance Kubernetes.
 
-```java
-String generate(String prefix);
-```
+### 3. Utiliser `Organization.reference` comme racine du tenant
 
-La validation d'une référence existante est portée par un contrat stateless
-distinct :
-
-```java
-ReferenceFormat.matches(reference, expectedPrefix);
-```
-
-`ReferenceFormat` valide uniquement la syntaxe commune et l'égalité avec le
-préfixe attendu. Il retourne un booléen, ne connaît aucun préfixe métier et ne
-produit aucune exception propre à un module. `User`, `Organization` et les
-futurs modèles consommateurs conservent leurs constantes de préfixe et la
-traduction d'un refus dans leur contrat d'erreur.
-
-L'implémentation s'appelle `MonotonicReferenceFactory`. Ce vocabulaire est
-propre à TeamPulse. Le nom ne porte ni le suffixe technique `Impl`, ni la
-propriété interne « lock-free ».
-
-L'API reçoit directement une `String` et n'introduit ni `ReferenceKind`, ni
-`ReferencePrefix`. `MonotonicReferenceFactory` vérifie que le préfixe n'est pas
-nul et respecte exactement l'expression `[A-Z]{3}`. Elle ne supprime pas les
-espaces et ne convertit pas les minuscules : toute valeur non conforme provoque
-une `IllegalArgumentException`.
-
-Les préfixes normatifs sont :
-
-- `ORG` pour `Organization` ;
-- `USR` pour `User` ;
-- `TEM` pour `Team`.
-
-`TeamMember` ne possède pas de référence fonctionnelle propre. Chaque module
-métier conserve son préfixe dans une constante locale et appelle
-`ReferenceFactory.generate(...)`. Ainsi, `tp-common` reste générique et ne
-dépend d'aucun catalogue de concepts métier.
-
-Le format retenu est :
+TeamPulse adopte ADR-TECH-008 avec ce binding :
 
 ```text
-<TRIGRAMME>-<ANNÉE>-<JOUR_MOIS>-<SUFFIXE>
+<tenant-root>.reference = Organization.reference
+TenantContext.tenantReference = Organization.reference
+shared context capability = common::context
 ```
 
-Exemple illustratif :
+- `TenantContext` et `TenantContextProvider` sont des contrats Java purs dans
+  `io.teampulse.common.context`, exposés par `common::context`.
+- `TenantContext` porte uniquement `tenantReference` et la refuse lorsqu'elle
+  est nulle ou blanche.
+- Les cas d'usage tenantés de `tp-identity` et `tp-team` reçoivent explicitement
+  un `TenantContext`.
+- Le service extrait une seule fois `tenantReference`, la nomme
+  `organizationReference` dans le vocabulaire TeamPulse et la transmet à chaque
+  lecture, test d'existence et liste tenantés.
+- Avant une mise à jour, le service vérifie que l'agrégat appartient au contexte
+  courant. Le port d'écriture reçoit ensuite l'agrégat sans paramètre tenant
+  redondant.
+- Les ports de repository tenantés n'exposent aucune opération métier globale
+  comme `findByReference(reference)` ou `findAll()`.
+- Les méthodes génériques héritées de `JpaRepository` restent confinées à
+  l'infrastructure et aux fixtures.
+- Les opérations plateforme de `tp-organization`, dont la création de la racine
+  tenant, restent explicitement non tenantées. Aucun `PlatformContext` vide
+  n'est créé.
+- `TenantContext` ne contient pas l'acteur. L'acteur, l'authentification et les
+  permissions appartiennent à des contrats distincts introduits plus tard.
+- PostgreSQL RLS n'est pas activé en W001. L'isolation repose sur les contrats,
+  les requêtes tenantées et les contraintes relationnelles décrites plus bas.
+
+Les signatures de repository suivent notamment ces formes :
 
 ```text
-ORG-2026-0908-00000ZA7B90B
-```
-
-- `TRIGRAMME` identifie la famille de référence.
-- `ANNÉE` utilise l'année UTC de l'instant logique accepté.
-- `JOUR_MOIS` utilise le format UTC `JJMM`, par exemple `0508` pour le 5 août.
-- `SUFFIXE` contient exactement douze caractères alphanumériques en majuscules et
-  utilise l'alphabet base 36 `[0-9A-Z]`.
-- Les séparateurs ne font pas partie des douze caractères du suffixe.
-- La référence complète contient exactement 26 caractères, séparateurs inclus.
-
-Le suffixe est découpé de manière fixe :
-
-```text
-MMMMMMNNNNCC
-│     │   │
-│     │   └── compteur atomique : 2 caractères base 36
-│     └────── nonce JVM          : 4 caractères base 36
-└──────────── millisecondes UTC  : 6 caractères base 36
-```
-
-- `MMMMMM` encode les millisecondes du temps logique écoulées depuis le début de
-  sa journée UTC. `36^6 = 2 176 782 336` couvre les `86 400 000` millisecondes
-  d'une journée sans époque TeamPulse fixe ni limite pluriannuelle.
-- `NNNN` encode un nonce généré une seule fois au démarrage de la factory avec
-  `SecureRandom`. `36^4` fournit 1 679 616 valeurs possibles.
-- `CC` encode le compteur de la milliseconde logique, de `00` à `ZZ` ; `36^2`
-  fournit exactement 1 296 valeurs.
-- Les valeurs temporelles et le compteur sont complétés à gauche par `0` afin
-  de conserver douze caractères. Le nonce reste stable pendant le cycle de vie
-  de la factory.
-
-Exemple simplifié avec un temps logique égal à 35 millisecondes après le début
-du 9 août 2026 UTC, le nonce `A7B9` et le compteur décimal 11 :
-
-```text
-35 en base 36 -> Z  -> 00000Z
-nonce JVM           -> A7B9
-11 en base 36 -> B  -> 0B
-suffixe             -> 00000ZA7B90B
-référence           -> ORG-2026-0908-00000ZA7B90B
-```
-
-La construction des tokens reste centralisée dans la factory et leur grammaire
-commune dans `ReferenceFormat` ; aucun module métier ne concatène lui-même les
-composants ni ne redéfinit l'expression régulière complète.
-
-### 3. Utiliser un algorithme monotone et non bloquant dans une JVM
-
-- Une `java.time.Clock` est injectée dans la factory.
-- Un nonce base 36 de quatre caractères est tiré avec `SecureRandom` une seule
-  fois par cycle de vie de la factory. Sa source est contrôlable dans les tests.
-- Un état atomique conserve le dernier temps logique et le compteur associé.
-- Une boucle compare-and-set produit l'état suivant sans verrou `synchronized`.
-- Lorsque l'horloge avance, le nouveau temps devient le temps logique et le
-  compteur repart de sa valeur initiale.
-- Lorsque plusieurs références sont demandées dans la même milliseconde, le
-  compteur est incrémenté de `00` à `ZZ`.
-- Lorsque l'horloge système recule, le générateur conserve le dernier temps
-  logique connu et continue d'incrémenter le compteur.
-- L'année, `JOUR_MOIS` et la partie temporelle du suffixe sont calculés depuis
-  ce même instant logique, et non séparément depuis l'horloge brute.
-- Après `ZZ`, la génération suivante avance le temps logique d'une milliseconde
-  et reprend le compteur à `00` sans attendre l'horloge réelle.
-
-Une instance unique de la factory dans l'application garantit l'unicité des
-valeurs qu'elle émet pendant son cycle de vie dans la JVM, y compris lors
-d'appels concurrents et d'un recul de l'horloge. L'état conserve un instant
-logique absolu ; l'année, `JOUR_MOIS` et les millisecondes dans la journée sont
-toujours dérivés de ce même instant. La factory peut donc fonctionner au-delà
-d'un changement de jour ou d'année sans épuisement du segment temporel.
-
-Un redémarrage supprime l'état atomique et produit un nouveau nonce. Dans le
-pire cas où une nouvelle factory réutilise la même date, la même milliseconde
-logique et le même compteur, la probabilité de reprendre aussi le même nonce est
-`1 / 36^4`, soit `1 / 1 679 616` ou environ `0,0000595 %`. La probabilité de ne
-pas entrer en collision dans ce cas est donc d'environ `99,9999405 %`.
-
-La contrainte `UNIQUE` de PostgreSQL reste l'ultime défense d'intégrité pour les
-références persistées. Une collision est une anomalie exceptionnelle : elle ne
-déclenche pas une boucle de régénération et de persistance. L'insertion échoue
-clairement avec le code `REFERENCE_GENERATION_FAILED` du module concerné, sans
-remplacer la donnée existante.
-
-Cette combinaison ne constitue pas encore une preuve d'unicité absolue entre
-plusieurs JVM. Une identité de nœud stable ou une coordination partagée sera
-nécessaire avant un déploiement multi-instance. Ce point est volontairement un
-TODO d'architecture et ne doit pas être masqué dans l'implémentation.
-
-### 4. Modéliser explicitement le contexte tenant
-
-Un tenant est le périmètre logique et isolé d'un client dans une application
-multi-tenant. Les données et opérations d'un tenant ne doivent jamais être
-mélangées avec celles d'un autre. Dans TeamPulse W001, chaque organisation
-constitue un tenant et `Organization.reference` en est l'identité concrète.
-
-- `TenantContext` est un type Java pur dont l'unique propriété obligatoire
-  s'appelle `tenantReference`.
-- `TenantContext` est exposé aux modules métier par l'interface nommée
-  `common::context`. Chaque module consommateur déclare explicitement cette
-  dépendance sans ouvrir les autres packages internes de `tp-common`.
-- Le même package expose le contrat transverse Java pur
-  `TenantContextProvider`, sans dépendance à Spring Security, HTTP ou au modèle
-  `Organization` :
-
-  ```java
-  public interface TenantContextProvider {
-      TenantContext current();
-  }
-  ```
-
-- Les contrôleurs tenantés dépendent de ce contrat pour résoudre leur contexte
-  d'exécution ; ils ne dépendent jamais de son implémentation locale.
-- Le nom `tenantReference` reste générique afin que le contexte ne dépende pas
-  du modèle `Organization`. En W001, sa valeur est `Organization.reference`.
-- Les cas d'usage tenantés reçoivent explicitement un `TenantContext` valide.
-- Les services applicatifs extraient `tenantReference`, la nomment
-  `organizationReference` dans le vocabulaire métier de TeamPulse et la
-  transmettent explicitement aux ports sortants de lecture et d'existence.
-- Avant toute écriture, le service applicatif contrôle que l'agrégat appartient
-  au tenant courant. Les ports d'écriture reçoivent l'agrégat, qui porte déjà
-  sa `organizationReference`, sans paramètre de tenant redondant.
-- Les repositories tenantés exigent `organizationReference` dans leurs méthodes
-  de recherche, d'existence et de liste. Les mises à jour sont recherchées avec
-  la référence de tenant portée par l'agrégat et sa référence métier.
-- Aucune méthode métier globale telle que `findByReference(userReference)` ou
-  `findAll()` n'est exposée par un repository tenanté.
-- Les ports applicatifs tenantés n'exposent aucune opération globale. Les
-  interfaces Spring Data d'infrastructure conservent toutefois l'héritage
-  technique de `JpaRepository` en W001 ; ces méthodes restent limitées à
-  l'infrastructure et aux fixtures de test, et ne font pas partie des contrats
-  métier.
-- Les cas d'usage plateforme restent non tenantés. Aucun `PlatformContext` vide
-  n'est introduit en W001, puisqu'il ne transporterait encore aucune identité
-  authentifiée ni information fiable.
-
-Exemples de formes attendues :
-
-```text
-findByReference(organizationReference, userReference)
+findByReference(organizationReference, aggregateReference)
 findAll(organizationReference)
 existsByEmail(organizationReference, email)
 update(aggregate)
 ```
 
-Cette décision exprime une frontière applicative. `TenantContext` ne prouve pas
-encore que l'appel HTTP provient d'un utilisateur de l'organisation : il rend
-seulement obligatoire la présence du périmètre tenant dans le contrat. L'identité
-réelle, le claim JWT et les permissions seront traités avec la sécurité de W008.
+#### Provider tenant local
 
-### 5. Fournir un contexte d'organisation local sans donnée Flyway artificielle
+`tp-app` fournit une stratégie temporaire uniquement pour le profil `local` :
 
-`tp-app` porte la stratégie temporaire de bootstrap W001 afin de ne pas placer
-une implémentation locale dans le module transverse `tp-common` :
+- `LocalTenantContextProvider` implémente `TenantContextProvider` et injecte le
+  bean `ReferenceFactory` existant ;
+- `LocalTenantConfiguration` enregistre le provider sous `@Profile("local")` ;
+- `current()` initialise paresseusement un seul contexte avec
+  `ReferenceFactory.generate("ORG")` puis retourne la même instance pendant le
+  cycle de vie de l'application ;
+- l'initialisation est thread-safe et un échec n'est pas mis en cache ;
+- la référence reste en mémoire et change éventuellement après redémarrage ;
+- aucun provider de secours n'est créé hors du profil local ;
+- aucune organisation artificielle n'est insérée par Flyway.
 
-- `LocalTenantContextProvider` implémente `TenantContextProvider` et reçoit par
-  constructeur le bean `ReferenceFactory` déjà fourni par
-  `ReferenceConfiguration` ; il n'instancie jamais directement
-  `MonotonicReferenceFactory` ;
-- `LocalTenantConfiguration` déclare le bean sous `@Profile("local")` et
-  `@Configuration` ; sa portée Spring par défaut est singleton ;
-- `current()` initialise le contexte au premier appel, demande exactement une
-  référence avec `ReferenceFactory.generate("ORG")`, construit un unique
-  `TenantContext` puis retourne toujours cette instance pendant l'exécution ;
-- l'initialisation lazy est thread-safe afin que plusieurs appels concurrents ne
-  provoquent pas plusieurs générations ;
-- la référence reste uniquement en mémoire et une nouvelle valeur peut être
-  générée après redémarrage ;
-- si la génération échoue ou si `TenantContext` refuse la valeur générée,
-  l'erreur remonte, aucun contexte invalide n'est conservé et un appel ultérieur
-  peut retenter la résolution ; aucun tenant de secours n'est construit ;
-- hors du profil `local`, cette configuration n'enregistre aucun provider. Une
-  future application qui câble un contrôleur tenanté doit donc fournir une vraie
-  stratégie plutôt que réutiliser silencieusement un tenant partagé.
+Les futurs contrôleurs tenantés injecteront `TenantContextProvider`, appelleront
+`current()` une seule fois et transmettront exactement le contexte obtenu. Ils
+n'accepteront jamais la référence du tenant depuis une donnée libre fournie par
+l'appelant.
 
-Chaque contrôleur tenanté appelle `TenantContextProvider.current()` et transmet
-le `TenantContext` obtenu tel quel au cas d'usage. Il ne doit accepter aucune
-`organizationReference` ou `tenantReference` libre dans le body, le path, la
-query ou un header, ne doit générer aucune référence et ne doit pas interroger
-directement `tp-organization` pour déterminer le tenant courant.
-
-W008 remplacera l'implémentation locale par une résolution issue de
-l'utilisateur authentifié et d'un JWT validé. Le contrat transverse, les
-contrôleurs et les cas d'usage tenantés resteront inchangés.
-
-Aucune ligne d'organisation temporaire n'est insérée par Flyway uniquement pour
-simuler le tenant courant. Les tests de persistance créent explicitement leurs
-propres organisations lorsque leur scénario requiert une ligne persistée.
-
-### 6. Garder la propriété des modèles dans leurs modules
+### 4. Conserver la propriété des modèles métier
 
 #### `tp-organization`
 
-`Organization` est la racine du tenant. Son modèle de domaine contient
-uniquement l'état métier :
+`Organization` est la racine du tenant et contient uniquement :
 
 ```text
 reference
@@ -317,66 +183,40 @@ managerReference
 status
 ```
 
-`OrganizationEntity` persiste cet état métier et porte en plus l'état
-technique :
-
-```text
-id
-version
-createdAt
-createdBy
-modifiedAt
-modifiedBy
-```
-
-- `OrganizationStatus` contient `CREATING`, `ACTIVE`, `SUSPENDED` et `ARCHIVED`.
-- `CREATING` remplace `PROVISIONING`.
-- `name` est obligatoire, normalisé avec `strip()`, non vide après
-  normalisation et limité à 200 caractères. Sa casse et ses espaces internes
-  sont conservés.
-- Toute commande applicative qui porte le nom applique la même limite à la
-  valeur normalisée et ne définit pas une règle concurrente à celle du domaine.
-- `timezone` est validée avec `ZoneId` et stocke un identifiant IANA.
-- Une organisation est d'abord persistée en `CREATING`.
-- Les responsables respectent les contraintes suivantes :
-
-  | Statut | Administrateur | Manager |
-  | --- | --- | --- |
-  | `CREATING` | optionnel | optionnel |
-  | `ACTIVE` | obligatoire et validé `AVAILABLE` | obligatoire et validé `AVAILABLE` |
-  | `SUSPENDED` | référence obligatoire | éventuellement absent |
-  | `ARCHIVED` | éventuellement absent | éventuellement absent |
-
-- Le passage vers `ACTIVE`, la réactivation et le remplacement direct d'un
-  responsable exigent que les utilisateurs concernés soient retournés
-  `AVAILABLE` par `UserDirectory` au moment de l'exécution du cas d'usage.
-- Après la transaction, `tp-organization` ne surveille pas continuellement
-  `tp-identity`. L'invariant persistant d'une organisation `ACTIVE` porte sur
-  les deux références non nulles, pas sur une disponibilité recalculée.
-- L'administrateur ne peut jamais être supprimé sans remplacement direct.
-- Le manager peut être retiré sans remplacement. Son retrait depuis `ACTIVE`
-  supprime la référence et réalise atomiquement `ACTIVE -> SUSPENDED`.
-- Le remplacement direct d'un responsable ne change pas le statut. Affecter ou
-  remplacer un manager en `SUSPENDED` ne réactive pas automatiquement
+- `OrganizationStatus` contient `CREATING`, `ACTIVE`, `SUSPENDED` et
+  `ARCHIVED`.
+- Le nom est normalisé avec `strip()`, non blanc, limité à 200 caractères, et
+  conserve sa casse et ses espaces internes.
+- La timezone est un identifiant IANA validé avec `ZoneId`.
+- Une organisation est créée en `CREATING` afin de permettre la création de ses
+  futurs responsables avant activation.
+- Une organisation `ACTIVE` possède un administrateur et un manager validés
+  `AVAILABLE` par `UserDirectory` au moment de l'opération.
+- Une organisation `SUSPENDED` conserve obligatoirement son administrateur et
+  peut ne plus avoir de manager.
+- Retirer le manager d'une organisation `ACTIVE` réalise atomiquement
+  `ACTIVE -> SUSPENDED`.
+- L'administrateur ne peut jamais être retiré sans remplacement direct.
+- Un remplacement de responsable ne change pas le statut et peut désigner la
+  même personne pour les deux rôles.
+- Affecter un manager en `SUSPENDED` ne réactive pas automatiquement
   l'organisation.
-- Les deux références peuvent désigner la même personne.
-- Une organisation `CREATING` peut être archivée sans responsables.
-- L'archivage conserve les références présentes et interdit ensuite toute
-  modification, car `ARCHIVED` reste terminal.
-- La suspension ou désactivation ultérieure d'un responsable dans
-  `tp-identity` ne suspend pas automatiquement l'organisation en T04.
-- Le cycle de vie d'un abonnement est indépendant et ne modifie jamais
-  `OrganizationStatus`.
-- Les transitions autorisées sont `CREATING -> ACTIVE`,
-  `CREATING -> ARCHIVED`, `ACTIVE -> SUSPENDED`, `ACTIVE -> ARCHIVED`,
-  `SUSPENDED -> ACTIVE` et `SUSPENDED -> ARCHIVED`.
-- `ARCHIVED` est terminal.
-- Les adresses et moyens de contact seront ajoutés dans des tables annexes et ne
-  gonflent pas la table principale.
+- `ARCHIVED` est terminal et conserve les références historiques présentes.
+- Les transitions autorisées sont :
+
+  ```text
+  CREATING -> ACTIVE | ARCHIVED
+  ACTIVE -> SUSPENDED | ARCHIVED
+  SUSPENDED -> ACTIVE | ARCHIVED
+  ```
+
+- La disponibilité des responsables est une vérification ponctuelle. T04 ne
+  surveille pas continuellement `tp-identity` et ne suspend pas automatiquement
+  l'organisation après une évolution utilisateur.
 
 #### `tp-identity`
 
-Le modèle de domaine `User` contient uniquement :
+`User` contient uniquement :
 
 ```text
 reference
@@ -387,38 +227,31 @@ lastName
 status
 ```
 
-L'entité JPA `UserEntity` complète cet état métier avec :
-
-```text
-id
-version
-createdAt
-createdBy
-modifiedAt
-modifiedBy
-```
-
 - `UserStatus` contient `INVITED`, `CREATING`, `ACTIVE`, `SUSPENDED` et
   `DEACTIVATED`.
-- Une création directe commence en `CREATING` et une invitation en `INVITED`.
-- Les transitions autorisées sont `INVITED -> CREATING`,
-  `INVITED -> DEACTIVATED`, `CREATING -> ACTIVE`,
-  `CREATING -> DEACTIVATED`, `ACTIVE -> SUSPENDED`,
-  `ACTIVE -> DEACTIVATED`, `SUSPENDED -> ACTIVE` et
-  `SUSPENDED -> DEACTIVATED`.
+- Une création directe commence en `CREATING` ; une invitation commence en
+  `INVITED`.
+- Les transitions autorisées sont :
+
+  ```text
+  INVITED -> CREATING | DEACTIVATED
+  CREATING -> ACTIVE | DEACTIVATED
+  ACTIVE -> SUSPENDED | DEACTIVATED
+  SUSPENDED -> ACTIVE | DEACTIVATED
+  ```
+
 - `DEACTIVATED` est terminal.
-- L'email est canonisé par suppression des espaces périphériques et passage en
-  minuscules avec `Locale.ROOT`. Il contient exactement un `@`, une partie
-  locale et un domaine non vides, aucun espace et au plus 254 caractères.
-- `firstName` et `lastName` sont débarrassés de leurs espaces périphériques,
-  restent non blancs et sont limités chacun à 100 caractères. Leur casse et
-  leurs espaces internes sont préservés.
-- L'unicité fonctionnelle de l'email est évaluée dans le périmètre de
-  `organizationReference`, sur sa forme canonique.
+- L'email est canonisé avec `strip()` puis `toLowerCase(Locale.ROOT)`. Il possède
+  exactement un `@`, des parties locale et domaine non vides, aucun espace et
+  au plus 254 caractères.
+- `firstName` et `lastName` sont normalisés avec `strip()`, restent non blancs,
+  sont limités à 100 caractères et conservent leur casse et leurs espaces
+  internes.
+- L'unicité de l'email canonique est limitée à `organizationReference`.
 
-#### `tp-team`
+#### `tp-team` — `Team`
 
-`Team` contient au minimum :
+`Team` conserve `id` comme identifiant interne au module et contient :
 
 ```text
 id
@@ -428,57 +261,33 @@ name
 status
 adminReference
 managerReference
-version
-createdAt
-createdBy
-modifiedAt
-modifiedBy
 ```
 
-`Team.id` reste présent dans le modèle de domaine, car il est consommé comme
-identifiant interne par `TeamMember` dans le même module. La version et les
-quatre champs d'audit restent exclusivement portés par `TeamEntity`. Le nom est
-normalisé avec `strip()`, doit rester non blanc, ne dépasse pas 200 caractères
-et conserve sa casse et ses espaces internes. Il n'est pas unique, même dans une
-même organisation.
-
-- Une équipe possède exactement un administrateur et un manager.
-- Les deux références peuvent désigner le même utilisateur.
-- L'administrateur et le manager appartiennent à la même organisation que
-  l'équipe.
-- Les responsabilités ne créent aucune appartenance implicite. Chaque
-  responsable peut posséder ou non une ligne `TeamMember`, indépendamment de sa
-  référence portée par `Team`.
+- Le nom est normalisé avec `strip()`, non blanc, limité à 200 caractères et
+  non unique.
+- Une équipe possède toujours un administrateur et un manager ; les deux rôles
+  peuvent désigner la même personne.
+- Les responsables appartiennent au même tenant mais ne deviennent pas
+  implicitement `TeamMember`.
 - `TeamStatus` contient `ACTIVE`, `SUSPENDED` et `ARCHIVED`.
-- Une équipe est créée en `ACTIVE` lorsque ses responsables sont retournés
-  `AVAILABLE` par `UserDirectory` et son organisation `AVAILABLE` par
-  `OrganizationDirectory`.
-- Les transitions autorisées sont `ACTIVE -> SUSPENDED`,
-  `ACTIVE -> ARCHIVED`, `SUSPENDED -> ACTIVE` et `SUSPENDED -> ARCHIVED`.
+- La création en `ACTIVE` exige une organisation, un administrateur et un
+  manager `AVAILABLE`.
+- La réactivation revérifie ces trois disponibilités.
+- Un responsable peut être remplacé en `ACTIVE` ou `SUSPENDED` par un
+  utilisateur `AVAILABLE` du même tenant, sans changement automatique de
+  statut.
+- Une responsabilité ne peut jamais être laissée vide.
 - `ARCHIVED` est terminal.
-- Une réactivation vérifie ponctuellement que l'organisation, l'administrateur
-  et le manager sont tous `AVAILABLE`. Elle est refusée sinon et laisse l'équipe
-  `SUSPENDED`.
-- L'administrateur et le manager peuvent être remplacés en `ACTIVE` ou
-  `SUSPENDED` par un utilisateur `AVAILABLE` du même tenant. Le remplacement ne
-  change pas le statut et peut attribuer les deux responsabilités à la même
-  personne.
-- Une responsabilité ne peut pas être laissée vide : retirer un responsable
-  exige son remplacement atomique. Aucune responsabilité ne peut être modifiée
-  après `ARCHIVED`.
-- Aucun événement de `tp-organization` ne suspend ou ne réactive les équipes.
-  Une évolution ultérieure du statut d'un responsable ne modifie pas non plus
-  automatiquement `TeamStatus` dans T04.
+- Les transitions autorisées sont :
 
-`TeamMember` stocke `teamId`, `userReference` et `organizationReference`.
-`teamId` est l'identifiant technique de `Team` et reste interne à `tp-team`.
-`userReference` franchit la frontière avec `tp-identity` sans exposer
-l'identifiant technique de l'utilisateur. La duplication contrôlée de la
-référence d'organisation permet de filtrer et de contraindre directement chaque
-requête tenantée. Une contrainte interdit de rattacher deux fois simultanément le
-même utilisateur à la même équipe dans une organisation.
+  ```text
+  ACTIVE -> SUSPENDED | ARCHIVED
+  SUSPENDED -> ACTIVE | ARCHIVED
+  ```
 
-Son modèle minimal contient :
+#### `tp-team` — `TeamMember`
+
+`TeamMember` contient :
 
 ```text
 id
@@ -488,233 +297,116 @@ userReference
 status
 startedAt
 endedAt
-version
-createdAt
-createdBy
-modifiedAt
-modifiedBy
 ```
 
-`TeamMember.id` et `teamId` restent dans le modèle de domaine comme identité et
-relation internes au module. La version et les champs d'audit restent
-exclusivement portés par `TeamMemberEntity`.
-
-`TeamMember` ne possède pas de référence fonctionnelle propre. Il est une entité
-interne de l'équipe et les contrats externes l'adressent avec `teamReference` et
-`userReference` dans le contexte de l'organisation.
-
-La clé étrangère composite `(team_id, organization_reference)` référence
-`teams(id, organization_reference)` et empêche une appartenance de pointer vers une
-équipe d'un autre tenant. Une requête entrante peut utiliser `teamReference` ;
-l'adapter de persistance la résout avec `organizationReference` avant de créer le
-`TeamMember`. La table `team_members` ne stocke pas `teamReference`.
-
-`TeamMemberEntity` conserve `teamId` et `organizationReference` comme champs
-scalaires. Elle ne déclare pas de relation JPA vers `TeamEntity`. La clé
-étrangère composite garantit la relation référentielle sans `ON DELETE CASCADE`.
-Les cas d'usage chargent explicitement l'équipe et l'appartenance via leurs
-ports respectifs. Une lecture future qui combine une équipe et ses membres
-utilisera une projection ou un query handler dédié. Ainsi, une mise à jour
-d'équipe ne peut ni charger, ni modifier, ni supprimer implicitement ses
-appartenances.
-
+- `id` et `teamId` restent internes à `tp-team`.
+- La table ne stocke ni `teamReference` ni référence fonctionnelle propre au
+  membre.
+- `TeamMemberEntity` garde `teamId` et `organizationReference` comme champs
+  scalaires et ne déclare pas de `@ManyToOne TeamEntity`.
 - `TeamMemberStatus` contient `INVITED`, `ACTIVE`, `SUSPENDED` et `REMOVED`.
-- Les transitions autorisées sont `INVITED -> ACTIVE`, `INVITED -> REMOVED`,
-  `ACTIVE -> SUSPENDED`, `ACTIVE -> REMOVED`, `SUSPENDED -> ACTIVE` et
-  `SUSPENDED -> REMOVED`.
+- Les transitions autorisées sont :
+
+  ```text
+  INVITED -> ACTIVE | REMOVED
+  ACTIVE -> SUSPENDED | REMOVED
+  SUSPENDED -> ACTIVE | REMOVED
+  ```
+
 - `REMOVED` est terminal.
+- `startedAt` est nul en `INVITED`, initialisé lors d'une activation ou d'une
+  création directe en `ACTIVE`, puis conservé pendant les suspensions et
+  réactivations.
+- `endedAt` est renseigné uniquement lors du passage à `REMOVED`.
+- Une invitation accepte un utilisateur `AVAILABLE` ou `PENDING`. Une création
+  directe, activation ou réactivation exige `AVAILABLE`.
+- La suspension et le retrait restent possibles lorsque l'organisation ou
+  l'équipe est indisponible, car ils réduisent ou terminent un accès.
+- Une équipe `SUSPENDED` autorise uniquement la suspension et le retrait ; une
+  équipe `ARCHIVED` interdit toute mutation de membre.
+- Une seule appartenance non terminée est autorisée pour le triplet
+  `(organizationReference, teamId, userReference)`.
+- Une réinvitation après `REMOVED` crée une nouvelle période et conserve la
+  période terminée.
+- Aucun changement de statut parent ne réécrit en cascade les statuts enfants.
 
-`startedAt` représente le début effectif de l'appartenance. Il reste nul pendant
-`INVITED`, est renseigné lors d'une création directe en `ACTIVE` ou de la
-transition `INVITED -> ACTIVE`, puis reste inchangé pendant `SUSPENDED`.
-`endedAt` reste nul pour `INVITED`, `ACTIVE` et `SUSPENDED`, puis est renseigné
-au passage à `REMOVED`. Une transition directe `INVITED -> REMOVED` conserve
-donc `startedAt = null`. Lorsque `startedAt` existe, `endedAt` ne peut pas lui
-être antérieur. Une réactivation conserve la date de début initiale.
+### 5. Exposer des directories possédés par leurs modules
 
-Une création directe en `ACTIVE`, l'activation d'une invitation et la
-réactivation d'une appartenance suspendue exigent ponctuellement un utilisateur
-`AVAILABLE`. Une invitation accepte `AVAILABLE` ou `PENDING`. La suspension et
-le retrait ne dépendent pas de la disponibilité courante de l'utilisateur.
+TeamPulse adopte ADR-TECH-009 avec deux capacités publiques.
 
-Une équipe `ACTIVE` accepte toutes les opérations permises par le statut du
-membre. Une équipe `SUSPENDED` accepte uniquement la suspension et le retrait
-d'un membre ; une équipe `ARCHIVED` n'accepte aucune mutation. Lorsque
-`OrganizationDirectory` retourne `UNAVAILABLE`, l'ajout, l'invitation,
-l'activation et la réactivation sont refusés, tandis que la suspension et le
-retrait restent possibles. Ces opérations de fermeture ne déclenchent aucune
-mutation en cascade.
+#### `identity::user`
 
-Une seule appartenance non terminée est autorisée pour le triplet
-`(organizationReference, teamId, userReference)`. Les statuts non terminés sont
-`INVITED`, `ACTIVE` et `SUSPENDED`. Une réinvitation après `REMOVED` crée une
-nouvelle ligne avec un nouvel `id`, `startedAt = null` et `endedAt = null` ; la
-ligne terminée reste inchangée pour conserver l'historique des périodes
-d'appartenance.
-
-Les modèles n'exposent pas de modification libre du statut. Ils fournissent des
-opérations métier explicites et refusent toute transition absente des listes
-précédentes. La suspension d'une organisation ou d'une équipe ne réécrit pas en
-cascade les statuts de ses entités enfants. Les statuts terminaux conservent les
-données et leur audit.
-
-### 7. Exposer `UserDirectory` dans l'interface nommée `user` de `tp-identity`
-
-`tp-identity` fournit une API Java publique contenant `UserDirectory`,
-`UserAvailability` et `UserDirectoryException`. Ces types sont placés dans
-`io.teampulse.identity.api.user`, déclaré avec `@NamedInterface("user")`. Le
-package parent `io.teampulse.identity.api` sert uniquement de namespace et
-n'expose aucune interface nommée générique. Les modules consommateurs déclarent
-donc précisément `identity::user`, sans obtenir automatiquement l'accès aux
-futures capacités publiques de `tp-identity`. Cette API est le seul contrat
-utilisateur connu de `tp-organization` et `tp-team` ; elle n'expose ni entité de
-domaine, ni repository, ni classe JPA.
-
-Le contrat prend toujours la référence du tenant :
+`tp-identity` expose `UserDirectory`, `UserAvailability` et
+`UserDirectoryException` dans `io.teampulse.identity.api.user`, déclaré avec
+`@NamedInterface("user")`.
 
 ```text
 UserAvailability check(organizationReference, userReference)
 ```
 
-Les deux paramètres sont déclarés avec `@NotBlank` sur le contrat public.
-Une valeur nulle, vide ou blanche constitue une violation du contrat du module
-consommateur. La validation est exécutée avant l'appel au repository ; elle ne
-produit donc ni `NOT_FOUND`, ni `UserDirectoryException`. Cette validation ne
-normalise pas les références et ne vérifie pas leur format complet.
+- Les paramètres sont structurellement `@NotBlank`.
+- `AVAILABLE` correspond à `ACTIVE`.
+- `PENDING` correspond à `INVITED` ou `CREATING`.
+- `UNAVAILABLE` correspond à `SUSPENDED` ou `DEACTIVATED`.
+- `NOT_FOUND` couvre l'absence et l'appartenance à un autre tenant afin de ne pas
+  révéler l'existence d'un utilisateur externe.
+- `UserDirectoryException` signale uniquement une incapacité technique à
+  répondre.
 
-`UserAvailability` contient :
+`tp-organization` et `tp-team` traduisent ces résultats dans leurs propres
+erreurs. Une création, activation, réactivation ou responsabilité active exige
+`AVAILABLE`; une invitation de membre accepte également `PENDING`.
 
-- `AVAILABLE` pour un utilisateur `ACTIVE` ;
-- `PENDING` pour un utilisateur `INVITED` ou `CREATING` ;
-- `UNAVAILABLE` pour un utilisateur `SUSPENDED` ou `DEACTIVATED` ;
-- `NOT_FOUND` lorsque l'utilisateur n'existe pas ou appartient à une autre
-  organisation.
+#### `organization::organization`
 
-Retourner `NOT_FOUND` aussi bien pour un utilisateur absent que pour un
-utilisateur d'un autre tenant évite de révéler l'existence de ce dernier.
-
-Ces quatre valeurs représentent des résultats métier prévisibles et ne
-déclenchent pas d'exception inter-module. Lorsque `tp-identity` ne peut pas
-répondre pour une raison technique, l'implémentation traduit l'erreur interne en
-`UserDirectoryException`, exception non vérifiée appartenant au contrat public.
-Elle ne laisse sortir ni exception JPA ou Spring, ni `UserException` interne.
-
-`tp-organization` exige `AVAILABLE` pour l'administrateur et le manager avant la
-transition de l'organisation vers `ACTIVE`. `tp-team` exige `AVAILABLE` pour les
-responsables lors de la création, de la réactivation ou d'un remplacement, et
-pour une appartenance créée directement en `ACTIVE`, activée ou réactivée. Une
-appartenance `INVITED` accepte `AVAILABLE` ou `PENDING`. La suspension et le
-retrait d'un membre ne dépendent pas de sa disponibilité. `UNAVAILABLE` et
-`NOT_FOUND` sont refusés dans les scénarios qui ouvrent ou rétablissent un accès.
-
-Aucun client Java OpenAPI n'est généré en W001. Lors d'une extraction future en
-service, un adapter HTTP ou un client généré pourra implémenter ce contrat sans
-modifier les règles des modules consommateurs.
-
-### 8. Exposer `OrganizationDirectory` dans l'interface nommée `organization` de `tp-organization`
-
-`tp-organization` fournit une API Java publique contenant
-`OrganizationDirectory`, `OrganizationAvailability` et
-`OrganizationDirectoryException`. Ces types sont placés dans
+`tp-organization` expose `OrganizationDirectory`, `OrganizationAvailability`
+et `OrganizationDirectoryException` dans
 `io.teampulse.organization.api.organization`, déclaré avec
-`@NamedInterface("organization")`. Le package parent
-`io.teampulse.organization.api` sert uniquement de namespace, comme dans
-`tp-identity`. Cette API est le seul contrat d'organisation connu de `tp-team` ;
-elle n'expose ni modèle de domaine, ni enum `OrganizationStatus`, ni repository,
-ni classe JPA.
-
-Le contrat vérifie une référence précise et ne fournit aucune liste globale :
+`@NamedInterface("organization")`.
 
 ```text
 OrganizationAvailability check(organizationReference)
 ```
 
-`OrganizationAvailability` contient :
+- `AVAILABLE` correspond à `ACTIVE`.
+- `UNAVAILABLE` correspond à `CREATING`, `SUSPENDED` ou `ARCHIVED`.
+- `NOT_FOUND` correspond à une référence absente.
+- Le directory mappe uniquement le statut persistant ; il ne rappelle pas
+  `UserDirectory` pour recalculer les responsables.
+- `OrganizationDirectoryException` signale uniquement une défaillance
+  technique.
 
-- `AVAILABLE` pour une organisation `ACTIVE` ;
-- `UNAVAILABLE` pour une organisation `CREATING`, `SUSPENDED` ou `ARCHIVED` ;
-- `NOT_FOUND` lorsque la référence n'existe pas.
+`tp-team` exige `AVAILABLE` pour créer ou réactiver une équipe et pour ajouter,
+inviter, activer ou réactiver un membre. Les opérations de fermeture restent
+autorisées lorsque l'organisation est `UNAVAILABLE`.
 
-Ce mapping dépend uniquement du `OrganizationStatus` persisté.
-`OrganizationDirectory` ne rappelle pas `UserDirectory` et ne recalcule pas la
-disponibilité courante des responsables lors d'une consultation.
+Les deux directories restent des appels Java synchrones internes au monolithe.
+Une future extraction pourra fournir un adapter distant sans modifier les cas
+d'usage consommateurs.
 
-Ces valeurs sont des résultats métier attendus. Une incapacité technique à
-effectuer la vérification est exposée séparément par
-`OrganizationDirectoryException`, sans révéler une exception de persistance ou
-`OrganizationException` au module consommateur.
+#### Préparation de W001-T05
 
-Le service de création d'équipe appelle d'abord `OrganizationDirectory` avec la
-`tenantReference` portée par son `TenantContext`, utilisée comme
-`organizationReference` dans ce contrat métier. Il poursuit uniquement avec
-`AVAILABLE`, vérifie ensuite les deux responsables avec `UserDirectory`, puis
-crée l'équipe directement en `ACTIVE`. `UNAVAILABLE` et `NOT_FOUND` refusent la
-création.
+`TenantContext` reste limité au tenant. W001-T05 introduira un contrat d'acteur
+distinct et consultera les responsabilités actives avant de suspendre ou
+désactiver un utilisateur. Cette orchestration d'administration ne sera pas
+placée dans `tp-identity`, afin d'éviter un cycle avec ses consommateurs.
 
-Le service de réactivation d'équipe revérifie également l'organisation avant de
-contrôler ses deux responsables. Les opérations d'appartenance qui ajoutent,
-invitent, activent ou réactivent un membre exigent une organisation
-`AVAILABLE`. La suspension et le retrait restent autorisés lorsque
-l'organisation est `UNAVAILABLE`, car ils réduisent ou terminent un accès.
-Aucune de ces vérifications ponctuelles ne synchronise les statuts par cascade.
+Une responsabilité d'organisation est active en `CREATING`, `ACTIVE` ou
+`SUSPENDED`. Une responsabilité d'équipe est active en `ACTIVE` ou `SUSPENDED`.
+Les références d'un agrégat `ARCHIVED` sont historiques et une simple
+appartenance `TeamMember` ne constitue pas une responsabilité bloquante.
 
-En W001, cet échange reste un appel Java synchrone dans le monolithe modulaire.
-Une future extraction de `tp-organization` pourra remplacer l'implémentation par
-un adapter HTTP sans modifier le cas d'usage consommateur.
+### 6. Conserver les erreurs dans leurs modules propriétaires
 
-### 8.1. Préparer le contrôle des responsabilités pour W001-T05
+TeamPulse adopte ADR-TECH-012 avec un vocabulaire par domaine fonctionnel :
 
-`TenantContext` reste limité à la `tenantReference`. T04 n'y ajoute pas de
-référence utilisateur et ne crée pas de contexte d'acteur. W001-T05 introduira
-un contrat distinct avec les premières actions autorisées et contrôlera la
-disponibilité de cet acteur. En W001, sa valeur proviendra d'une source
-applicative contrôlée sans prétendre authentifier l'utilisateur ; W008
-l'alimentera ensuite à partir d'un JWT validé.
+- chaque domaine possède une enum de codes stable et une exception non vérifiée
+  unique exigeant un code non nul et acceptant une cause ;
+- ces types restent indépendants de Spring, JPA et HTTP ;
+- `tp-common` ne contient ni catalogue global d'erreurs métier, ni exception
+  métier racine imposée aux modules.
 
-Avant une transition de `User` vers `SUSPENDED` ou `DEACTIVATED`,
-l'orchestration d'administration de W001-T05 consultera, au travers d'interfaces
-publiques dédiées, les responsabilités possédées par `tp-organization` et
-`tp-team`. La transition sera refusée tant qu'une responsabilité active n'aura
-pas été retirée ou transférée. Cette orchestration ne sera pas placée dans
-`tp-identity`, afin de ne pas inverser les dépendances existantes ni créer un
-cycle avec ses modules consommateurs.
-
-Une responsabilité est active pour une organisation `CREATING`, `ACTIVE` ou
-`SUSPENDED`, et pour une équipe `ACTIVE` ou `SUSPENDED`. Les références
-conservées après `ARCHIVED` sont historiques et ne bloquent pas la transition.
-Une simple appartenance `TeamMember` sans responsabilité d'administrateur ou de
-manager ne la bloque pas non plus. Le remplacement reste autorisé sur les
-agrégats suspendus afin qu'un utilisateur puisse transférer sa responsabilité
-avant de devenir indisponible.
-
-### 9. Définir les erreurs internes et leur traduction entre modules
-
-Chaque module subdivise sa couche `domain` par domaine fonctionnel. Dans chaque
-sous-domaine, les packages `model` et `error` sont placés au même niveau sous
-`domain.<domaine>`. Le domaine propriétaire possède une enum de codes stables
-et une seule exception métier non vérifiée :
-
-```text
-io.teampulse.organization.domain.organization.error
-├── OrganizationErrorCode
-└── OrganizationException
-
-io.teampulse.identity.domain.user.error
-├── UserErrorCode
-└── UserException
-
-io.teampulse.team.domain.team.error
-├── TeamErrorCode
-└── TeamException
-```
-
-L'exception exige un code non nul, porte un message de diagnostic interne et
-accepte une cause facultative. Le domaine l'utilise pour ses invariants et
-transitions ; l'application du même module l'utilise pour les erreurs
-d'orchestration. Le message interne n'est jamais renvoyé directement au client.
-Les codes et exceptions ne dépendent ni de Spring, ni de JPA, ni de HTTP.
-
-`tp-organization` possède `OrganizationErrorCode` :
+`OrganizationErrorCode` contient :
 
 ```text
 NOT_FOUND
@@ -731,7 +423,7 @@ REFERENCE_GENERATION_FAILED
 CONCURRENT_MODIFICATION
 ```
 
-`tp-identity` possède `UserErrorCode` :
+`UserErrorCode` contient :
 
 ```text
 NOT_FOUND
@@ -744,7 +436,7 @@ REFERENCE_GENERATION_FAILED
 CONCURRENT_MODIFICATION
 ```
 
-`tp-team` possède `TeamErrorCode` :
+`TeamErrorCode` contient :
 
 ```text
 NOT_FOUND
@@ -768,1220 +460,352 @@ REFERENCE_GENERATION_FAILED
 CONCURRENT_MODIFICATION
 ```
 
-`TeamMember` utilise `TeamErrorCode` puisqu'il appartient au module `tp-team`.
-Les codes `*_NOT_AVAILABLE` couvrent `PENDING` et `UNAVAILABLE` lorsqu'un
-utilisateur `AVAILABLE` est obligatoire. Les codes `*_NOT_FOUND` restent
-distincts. `EMAIL_ALREADY_USED` est toujours évalué dans le tenant courant.
+`TeamMember` utilise `TeamErrorCode` puisqu'il appartient à `tp-team`.
 
-Ces enums restent dans leurs modules propriétaires. `tp-common` ne contient
-aucune enum globale d'erreurs métier ni exception métier racine imposée aux
-modules. Les futurs adapters web propres à chaque module traduiront les codes en
-messages et statuts HTTP sans modifier les règles métier.
+Les valeurs attendues des directories sont traduites dans le vocabulaire du
+consommateur. Une défaillance technique est enveloppée dans le code
+`*_DIRECTORY_UNAVAILABLE` approprié et sa cause publique est conservée. Aucune
+exception JPA, Spring ou interne au fournisseur ne franchit l'interface nommée.
 
-Une valeur `UNAVAILABLE` ou `NOT_FOUND` retournée par un directory est traitée
-comme un résultat métier puis traduite par le module consommateur dans son
-propre code. Une défaillance technique suit une chaîne de traduction explicite :
+Les futurs adapters Web traduiront les codes en contrats HTTP sans renvoyer les
+messages internes.
 
-```text
-exception technique de persistance
-  -> exception métier interne du module fournisseur
-  -> DirectoryException publique du contrat appelé
-  -> exception et code métier du module consommateur
-  -> réponse HTTP produite par son adapter web
-```
+### 7. Isoler les données tenantées dans PostgreSQL
 
-Ainsi, `ORGANIZATION_UNAVAILABLE` signifie que l'organisation existe mais que
-son statut interdit l'opération, tandis que
-`ORGANIZATION_DIRECTORY_UNAVAILABLE` signifie que `tp-organization` n'a pas pu
-répondre. `USER_DIRECTORY_UNAVAILABLE` porte la même distinction pour
-`UserDirectory`. Le module consommateur conserve l'exception publique comme
-cause lorsqu'il la traduit ; il ne capture jamais l'exception interne d'un
-autre module.
+TeamPulse combine ADR-TECH-002, ADR-TECH-006 et ADR-TECH-008 avec les contraintes
+suivantes :
 
-`TEAM_UNAVAILABLE` signifie que l'équipe a été trouvée dans le tenant mais que
-son statut `SUSPENDED` ou `ARCHIVED` interdit l'opération demandée.
-`INVALID_STATUS_TRANSITION` reste réservé aux transitions invalides du cycle de
-vie de `Team`.
-
-### 10. Isoler les données dans les schémas et les requêtes
-
-- `organizations` ne porte pas de colonne `organization_reference` réflexive ; sa
-  propre colonne `reference` constitue la référence du tenant.
-- `organizations.name` utilise `TEXT NOT NULL`. La migration impose
-  `char_length(name) BETWEEN 1 AND 200`, tandis que le domaine persiste la valeur
-  normalisée par `strip()` en conservant sa casse et ses espaces internes.
-- `teams.name` utilise également `TEXT NOT NULL` avec
-  `char_length(name) BETWEEN 1 AND 200`. La base n'impose aucune unicité sur ce
-  nom.
-- `adminReference`, `managerReference` et `userReference` sont persistés dans
-  `admin_reference`, `manager_reference` et `user_reference`.
-  `organizationReference` est persistée dans `organization_reference`. Une
-  future référence d'administrateur plateforme suivra
-  `platformAdminReference` en Java et `platform_admin_reference` en SQL, sans
-  introduire ce champ dans T04.
-- Les colonnes `admin_reference` et `manager_reference` de `organizations` sont
-  physiquement nullables. Les contraintes dépendantes du statut imposent
-  conceptuellement :
-
-  ```sql
-  CHECK (
-      status IN ('CREATING', 'ARCHIVED')
-      OR admin_reference IS NOT NULL
-  )
-
-  CHECK (
-      status <> 'ACTIVE'
-      OR manager_reference IS NOT NULL
-  )
-  ```
-
-  Elles autorisent donc un manager absent en `SUSPENDED` et les responsables
-  éventuellement absents en `CREATING` ou `ARCHIVED`.
-- La base ne vérifie ni `UserAvailability`, qui appartient à `tp-identity`, ni
-  la conservation historique des références lors de l'archivage. Les cas
-  d'usage et le domaine garantissent respectivement ces règles.
-- Les références d'administrateur et de manager d'une équipe sont obligatoires
-  dès son insertion en `ACTIVE`.
-- `teams` expose une contrainte unique sur `(id, organization_reference)` afin
-  de servir de cible à la clé étrangère composite de `team_members`.
-- `team_members` utilise la clé étrangère composite
-  `(team_id, organization_reference) -> teams(id, organization_reference)`.
-- `team_members` possède un index unique partiel sur
-  `(organization_reference, team_id, user_reference)` limité aux statuts `INVITED`,
-  `ACTIVE` et `SUSPENDED`.
-- `team_members.started_at` est nul pendant `INVITED` et obligatoire dans les
-  statuts `ACTIVE` et `SUSPENDED`. Dans `REMOVED`, il peut rester nul uniquement
-  si l'invitation n'a jamais été activée. `ended_at` est nul hors du statut
-  `REMOVED` et obligatoire dans ce statut. Lorsque les deux dates existent,
-  `ended_at >= started_at` est imposé par une contrainte `CHECK`.
-- Toute table possédée par un tenant porte `organization_reference TEXT NOT NULL`.
-- Les références persistées sont protégées par des contraintes `UNIQUE`.
+- `organizations.reference` est la racine du tenant ; la table ne possède pas
+  de colonne `organization_reference` réflexive.
+- Toute autre table tenantée porte `organization_reference TEXT NOT NULL`.
+- `organizations.name` et `teams.name` utilisent `TEXT NOT NULL` avec
+  `char_length(name) BETWEEN 1 AND 200`.
+- Le nom d'équipe n'est pas unique.
+- Les références fonctionnelles persistées sont uniques.
 - Les index de lecture tenantée commencent par `organization_reference` lorsque
-  les requêtes sont filtrées par tenant.
-- Les contraintes composites incluent `organization_reference` lorsque cela
-  empêche une association entre deux tenants.
-- Aucun module n'ajoute de clé étrangère vers l'identifiant technique d'un autre
+  les requêtes suivent ce filtre.
+- Les contraintes composites incluent `organization_reference` lorsqu'elles
+  empêchent une association entre tenants.
+- Les responsables d'une organisation sont physiquement nullables, mais des
+  `CHECK` imposent l'administrateur hors `CREATING`/`ARCHIVED` et le manager en
+  `ACTIVE`.
+- Les responsables d'une équipe sont obligatoires dès son insertion.
+- `teams` possède une contrainte unique sur `(id, organization_reference)`.
+- `team_members` possède la clé étrangère composite
+  `(team_id, organization_reference) -> teams(id, organization_reference)`.
+- `team_members` ne possède pas de `ON DELETE CASCADE`.
+- Un index unique partiel sur
+  `(organization_reference, team_id, user_reference)` limite à une seule
+  appartenance en `INVITED`, `ACTIVE` ou `SUSPENDED`.
+- Les contraintes temporelles imposent la cohérence de `started_at` et
+  `ended_at`, notamment `ended_at >= started_at` lorsque les deux existent.
+- Aucun schéma n'ajoute de clé étrangère vers l'identifiant technique d'un autre
   module.
-- La cohérence inter-module est vérifiée par les ports applicatifs, notamment
-  `UserDirectory` et `OrganizationDirectory`.
+- `UserAvailability` et `OrganizationAvailability` restent des contrôles
+  applicatifs et ne sont pas reproduits en SQL.
 
-PostgreSQL RLS n'est pas activé dans ce ticket. L'isolation W001 repose sur les
-contrats applicatifs, les requêtes tenantées et les contraintes relationnelles.
+### 8. Conserver l'état technique dans les entités JPA
 
-### 11. Préparer concurrence et audit sans modèle JPA partagé
+TeamPulse adopte ADR-TECH-010 avec les bindings suivants :
 
-- Chaque entité persistée porte un champ `version BIGINT` destiné au verrouillage
-  optimiste.
-- Le mapping JPA de chaque module applique `@Version` localement.
-- Le verrouillage pessimiste n'est pas généralisé. Il pourra être choisi par un
-  cas d'usage futur qui justifie le coût du verrou en base.
-- Chaque entité porte `createdAt`, `createdBy`, `modifiedAt` et `modifiedBy`.
-- En W001, `createdBy` et `modifiedBy` reçoivent la valeur `SYSTEM`.
-- Les dates utilisent `Instant` en Java et un type PostgreSQL avec fuseau adapté.
-- Les champs d'audit restent dupliqués dans les mappings de chaque module :
-  aucune `@MappedSuperclass` JPA n'est ajoutée à `tp-common`.
-- Pour `Organization` et `User`, l'identifiant technique, la version et l'audit
-  appartiennent exclusivement à `OrganizationEntity` et `UserEntity`. Ils ne
-  sont ni transmis aux factories du domaine ni réintroduits dans les modèles
-  lors de leur restauration.
-- Les mappings MapStruct des adapters copient uniquement l'état métier. Une
-  mise à jour cible l'entité JPA gérée avec `@MappingTarget` et ignore
-  explicitement `id`, `version` et les champs d'audit, afin de laisser JPA et
-  l'infrastructure gérer leur cycle de vie.
-- La configuration MapStruct transverse est exposée par l'interface nommée
-  `common::mapping`. Les modules consommateurs déclarent explicitement cette
-  dépendance sans ouvrir les autres packages internes de `tp-common`.
-- Ces champs ne remplacent pas un historique. W012 introduira les premiers
-  événements d'audit persistés pour la création de `Team` et `User`.
-- W012 ne couvre pas automatiquement l'historisation complète. Celle-ci devra
-  étendre W012 ou faire l'objet d'un ticket ultérieur dédié afin de conserver,
-  pour chaque modification, l'entité, l'action, l'ancien et le nouvel état,
-  l'auteur, la date et le tenant concernés.
+- `OrganizationEntity`, `UserEntity`, `TeamEntity` et `TeamMemberEntity` portent
+  localement `id`, `version`, `createdAt`, `createdBy`, `modifiedAt` et
+  `modifiedBy` selon les besoins de leur domaine.
+- `@Version` fournit le verrouillage optimiste ; aucun verrouillage pessimiste
+  global n'est introduit.
+- Les dates d'audit utilisent `Instant` et les acteurs valent `SYSTEM` en W001.
+- Aucune `BaseEntity` ou `@MappedSuperclass` JPA n'entre dans `tp-common`.
+- Pour `Organization` et `User`, id, version et audit restent exclusivement dans
+  l'entité JPA.
+- Pour `Team` et `TeamMember`, les identifiants nécessaires aux relations
+  internes restent dans le domaine ; version et audit restent exclusivement
+  dans les entités JPA.
+- TeamPulse utilise MapStruct pour les mappings de persistence.
+- `CommonMapperConfig` est exposé par l'interface nommée `common::mapping`.
+- Les mises à jour utilisent `@MappingTarget` sur l'entité gérée et ignorent
+  explicitement id, version et audit.
+- Les adapters utilisent une opération qui déclenche les violations connues
+  dans leur frontière de traduction, notamment `saveAndFlush()` lorsque cette
+  exécution immédiate est nécessaire.
+- Les violations connues deviennent les codes du module, dont
+  `CONCURRENT_MODIFICATION`, `EMAIL_ALREADY_USED` ou
+  `REFERENCE_GENERATION_FAILED`. Une violation inconnue reste technique.
+- Ces champs décrivent la création et le dernier état ; ils ne constituent pas
+  un historique complet.
 
-### 12. Mutualiser l'infrastructure des tests de persistance
+W012 introduira les premiers événements d'audit persistés pour `Team` et `User`.
+Une historisation complète reste une décision distincte.
 
-- Créer le module Maven `tp-test-support` pour porter l'infrastructure de test
-  réutilisable par `tp-identity`, `tp-organization`, `tp-team` et `tp-app`.
-- Placer dans ce module `TeamPulsePostgreSQLContainer`, la configuration
-  `@ServiceConnection` PostgreSQL, l'auditeur `SYSTEM` et le provider temporel
-  mutable utilisé par les assertions d'audit.
-- Séparer `PostgreSQLTestConfiguration`, réutilisable par les tests de contexte
-  de `tp-app`, de `JpaAuditingTestConfiguration`, nécessaire aux tests isolés de
-  persistance des modules métier.
-- Fournir `PersistenceIntegrationTestConfiguration` comme composition explicite
-  des configurations PostgreSQL et audit.
-- Conserver dans chaque module métier sa classe `@SpringBootApplication` de test
-  et son `AbstractIntegrationTest`, car le package racine à scanner et la
-  configuration Flyway restent propres au module.
-- Déclarer `tp-test-support` uniquement avec le scope Maven `test` dans les
-  modules consommateurs. Testcontainers ne doit apparaître dans aucun classpath
-  de production.
-- Ne pas annoter `tp-test-support` avec `@ApplicationModule` : il constitue un
-  module Maven d'outillage, pas un module fonctionnel de TeamPulse.
-- Exclure `io.teampulse.testsupport` du modèle analysé par Spring Modulith et
-  interdire avec ArchUnit toute dépendance du code de production vers ce package.
-- Ne conserver aucune classe Testcontainers dans `tp-common`.
+### 9. Mutualiser l'infrastructure des tests de persistance
 
-Cette décision remplace, à partir de W001-T04, la localisation de
-`TestcontainersConfiguration` dans `tp-app/src/test` décrite par ADR-W001-T02.
-Elle étend les contrôles définis par ADR-W001-T03. Le catalogue interne des
-modules métier est complété par R11 pour encadrer les dépendances et les
-annotations Spring des services applicatifs ; R10 reste le contrôle de
-cohérence du catalogue entre tous les modules métier.
+T04 concrétise l'option de support partagé prévue par ADR-TECH-003 :
 
-### 13. Autoriser un usage limité de Spring dans les services applicatifs
+- le module Maven `tp-test-support` porte `TeamPulsePostgreSQLContainer`,
+  `PostgreSQLTestConfiguration`, `JpaAuditingTestConfiguration`,
+  `PersistenceIntegrationTestConfiguration` et
+  `MutableAuditDateTimeProvider` ;
+- `PostgreSQLTestConfiguration` sert aux tests de contexte nécessitant seulement
+  PostgreSQL ;
+- `PersistenceIntegrationTestConfiguration` compose PostgreSQL et l'audit pour
+  les tests de persistence ;
+- chaque module métier garde son application de test et son
+  `AbstractIntegrationTest`, car son package et sa configuration Flyway lui
+  appartiennent ;
+- `tp-test-support` est consommé uniquement avec le scope Maven `test` ;
+- il ne porte pas `@ApplicationModule`, reste exclu du modèle Spring Modulith et
+  ne peut être référencé par le code de production ;
+- aucune classe Testcontainers n'entre dans `tp-common`.
 
-- Les classes placées dans `application.service` peuvent utiliser `@Service`,
-  `@Validated` et `@Transactional`.
-- `@Service` déclare directement le service comme bean et évite un wiring
-  répétitif dans une classe `@Configuration`.
-- `@Validated` active la validation déclarative des contraintes Jakarta
-  Validation portées par les paramètres des ports entrants et par leurs
-  commandes.
-- Tout service applicatif déclaré avec `@Service` porte aussi `@Validated` ; R11
-  protège cette convention pour éviter qu'une contrainte de port reste inactive
-  à cause d'une annotation oubliée.
-- `@Transactional` définit la frontière transactionnelle au niveau du cas
-  d'usage. Les opérations de lecture utilisent `@Transactional(readOnly = true)`
-  lorsque leur comportement est strictement en lecture.
-- Les annotations transactionnelles utilisées sont celles de Spring afin de
-  disposer notamment de l'attribut `readOnly` et d'une sémantique homogène avec
-  Spring Data.
-- Cette autorisation est limitée à ces trois annotations déclaratives. Un
-  service applicatif ne dépend ni de JPA, ni de Spring Data, ni d'une entité de
-  persistance, ni d'un contrôleur ou d'un type HTTP.
-- La logique d'orchestration reste exprimée avec les modèles du domaine et les
-  ports applicatifs. Elle reste testable sans base de données ; les tests qui
-  vérifient la validation et les transactions utilisent toutefois le bean
-  Spring proxifié.
-- Les services annotés ne sont pas déclarés une seconde fois avec `@Bean`.
-- Une transaction englobant un contrôle d'existence et une insertion ne suffit
-  pas à supprimer une course concurrente. Les contraintes PostgreSQL restent
-  la garantie finale d'unicité et les adapters traduisent leurs violations dans
-  le code d'erreur métier approprié.
+Cette décision remplace depuis T04 l'ancienne localisation de
+`TestcontainersConfiguration` dans `tp-app/src/test` décrite historiquement par
+T02. T02 reflète maintenant l'état courant et référence cette extension.
 
-Cette décision accepte un couplage Spring explicite et limité dans la couche
-application. Le domaine, les ports métier et leurs modèles restent indépendants
-de JPA, de Spring Data et des détails de transport.
+### 10. Appliquer la validation distribuée TeamPulse
 
-### 14. Répartir les tests selon la responsabilité de chaque couche
+TeamPulse adopte ADR-TECH-011 sans élargir son allowlist Spring :
 
-La stratégie distingue les tests unitaires, qui vérifient le comportement
-propre à une classe sans démarrer Spring, des tests d'intégration, qui vérifient
-un contrat fourni par Spring, Jakarta Validation, JPA, Flyway ou PostgreSQL.
-Chaque comportement est testé au niveau le plus bas qui permet de l'observer
-sans simuler le framework responsable de ce comportement.
+- les classes de `application.service` utilisent uniquement `@Service`,
+  `@Validated` et `@Transactional` ;
+- toute classe annotée `@Service` porte aussi `@Validated` ;
+- `@Transactional` définit la frontière du cas d'usage et `readOnly = true`
+  reste limité aux lectures ;
+- R11 interdit JPA, Spring Data, `infrastructure` et `config` dans
+  `application.service`, limite les types Spring autorisés et impose
+  `@Validated` ;
+- R10 continue de vérifier le même catalogue R01 à R09 et R11 pour tous les
+  modules métier.
 
-Le contrat HTTP utilisateur, ses contrôleurs, DTOs, erreurs et tests seront
-réalisés dans W001-T05. T04 définit le contrat de résolution du tenant qui sera
-utilisé par ces contrôleurs et valide le provider local indépendamment de HTTP.
+La répartition des validations est :
 
-| Couche | Tests unitaires | Tests d'intégration |
-| --- | --- | --- |
-| Contrôleurs (W001-T05) | Tester uniquement une transformation ou une décision propre au contrôleur lorsqu'elle existe. Les DTO ou mappers non triviaux peuvent être instanciés directement. Un contrôleur limité à l'adaptation HTTP n'a pas besoin d'un test unitaire qui reproduit Spring MVC. | Utiliser un test de slice Web avec le cas d'usage substitué pour vérifier désérialisation, Jakarta Validation, appel unique à `TenantContextProvider.current()` et transmission exacte du contexte obtenu, mapping requête/commande, codes HTTP, corps de réponse et traduction des erreurs. Conserver quelques scénarios HTTP complets avec les vrais services et PostgreSQL pour les parcours critiques, sans reproduire tous les cas métier. |
-| Services applicatifs | Instancier directement le service avec des ports sortants et une `ReferenceFactory` substitués. Vérifier l'orchestration, l'ordre des appels, la propagation du tenant, l'utilisation des valeurs canoniques du domaine, les erreurs métier et l'absence de persistence après un refus. | Utiliser le bean Spring proxifié pour vérifier `@Validated`, la validation en cascade des commandes, `@Transactional`, `readOnly`, le wiring et quelques interactions réelles service/repository. Ne pas attendre d'un test unitaire direct qu'il déclenche les proxies Spring. |
-| Repositories et persistence | Tester séparément un mapper lorsqu'il porte une transformation significative, ainsi que la traduction d'une exception technique par l'adapter si elle peut être isolée utilement. Ne pas mocker `JpaRepository` pour tester une simple délégation ou le fonctionnement de Spring Data. | Utiliser PostgreSQL réel avec Flyway et JPA pour vérifier migration, mapping complet, requêtes tenantées, contraintes `NOT NULL` et `UNIQUE`, unicité canonique par organisation, audit, traduction des violations et verrouillage optimiste. H2 n'est pas utilisé comme substitut aux comportements PostgreSQL. |
-
-La couverture suit donc les règles suivantes :
-
-- les invariants et transitions du domaine sont couverts par des tests unitaires
-  du domaine, sans Spring ;
-- l'orchestration des cas d'usage est principalement couverte par des tests
-  unitaires des services ;
-- les annotations déclaratives et le wiring sont couverts par des tests
-  d'intégration Spring ciblés ;
-- les garanties de stockage sont couvertes une seule fois par les tests
-  d'intégration PostgreSQL des repositories ;
-- les tests HTTP ne répètent pas exhaustivement les tests du domaine, des
-  services et de la persistence. Ils se concentrent sur le contrat HTTP et sur
-  un nombre réduit de parcours verticaux critiques ;
-- un test ne vérifie pas une annotation par réflexion lorsqu'il peut vérifier
-  directement son effet observable à travers le framework concerné.
-
-### 15. Adopter une validation distribuée par propriétaire de règle
-
-TeamPulse répartit les validations selon la responsabilité de chaque couche. Une
-règle est garantie par la couche la plus profonde capable de l'évaluer
-correctement. Une couche extérieure peut refuser une entrée plus tôt, mais elle
-ne devient jamais l'unique garantie d'un invariant métier.
-
-Les ports entrants et leurs commandes portent uniquement les contraintes
-structurelles Jakarta Validation : paramètres non nuls, valeurs obligatoires,
-validation en cascade et limites techniques du contrat lorsque nécessaire. Les
-services applicatifs annotés `@Validated` exécutent ces contraintes lorsqu'ils
-sont appelés au travers du bean Spring proxifié. `@Service` assure la découverte
-du bean et `@Transactional` sa frontière transactionnelle ; ces annotations ne
-portent aucune règle de validation supplémentaire. Afin d'éviter une activation
-silencieusement oubliée, R11 impose `@Validated` à toute classe de
-`application.service` déclarée avec `@Service`.
-
-Les value objects transverses garantissent leurs invariants à la construction.
-Ainsi, `TenantContext` interdit une `tenantReference` nulle ou blanche même hors
-de Spring, tandis que le port entrant exige que l'instance elle-même soit non
-nulle. Une commande telle que `CreateUserCommand` porte ses contraintes
-structurelles et le port déclenche leur évaluation en cascade avec `@Valid`.
-
-Les agrégats restent Java purs et sont valides par construction, restauration et
-après chaque opération métier. Ils portent la normalisation, les formats et
-longueurs métier, les invariants entre champs et les transitions de statut. Ils
-n'exposent pas de méthode publique `validate()` qu'un appelant pourrait oublier.
-La normalisation précède la validation lorsqu'elle appartient au contrat métier ;
-une valeur canonique invalide, comme une référence ou une timezone, n'est pas
-corrigée silencieusement.
-
-Une règle qui exige un repository, un `Directory`, une horloge ou un autre
-système est orchestrée par la couche application au travers d'un port. Elle
-constitue une décision ponctuelle du cas d'usage. La disponibilité des
-responsables est donc contrôlée lors de l'activation, de la réactivation ou du
-remplacement, tandis que l'agrégat conserve seulement l'invariant structurel
-durable correspondant à son statut.
-
-Les validations sont fail-fast par couche. Toute écriture intervient après les
-vérifications connues du cas d'usage. La source de vérité d'une règle reste
-prioritaire sur une optimisation artificielle de l'ordre des erreurs ou des
-appels. Une génération de référence peut laisser un trou après un refus
-ultérieur : l'unicité est exigée, pas la continuité de la séquence.
-
-PostgreSQL constitue la dernière défense des invariants persistants exprimables
-localement avec `NOT NULL`, `CHECK`, `UNIQUE`, clés relationnelles et verrouillage
-optimiste. Il ne contrôle ni les transitions métier ni les disponibilités
-inter-modules. Les adapters traduisent les violations de contraintes connues
-dans le code d'erreur de leur module ; une violation inconnue reste une erreur
-technique.
-
-Les erreurs de contrat Jakarta, les refus métier, les résultats attendus d'un
-autre module et les défaillances techniques restent distincts. Chaque module
-possède ses codes d'erreur et traduit les résultats externes dans son propre
-vocabulaire. Les predicates transverses peuvent retourner un résultat neutre,
-comme `ReferenceFormat.matches(...)`, afin de ne pas dépendre des erreurs des
-consommateurs. Les causes techniques sont conservées.
+- ports et commandes : contraintes structurelles Jakarta Validation ;
+- value objects transverses : invariants à la construction ;
+- domaines : normalisation, formats, invariants et transitions ;
+- application : règles nécessitant repository, directory, horloge ou autre I/O ;
+- PostgreSQL : `NOT NULL`, `CHECK`, `UNIQUE`, clés composites et verrouillage
+  optimiste ;
+- adapters : traduction des violations connues dans le vocabulaire du module.
 
 Une validation n'entre dans `tp-common` que si elle est identique pour tous ses
-consommateurs, indépendante d'un métier, sans I/O, sans Spring, sans JPA et sans
-code d'erreur de module. Elle reste placée avec le concept qu'elle protège. Le
-projet n'introduit donc ni package générique de validation, ni `ValidationUtils`,
-ni validateur générique par entité. Une policy applicative dédiée n'est extraite
-que lorsqu'une règle nécessitant des ports est complexe ou réutilisée, avec un
-nom décrivant la décision métier.
+consommateurs, indépendante du métier, sans I/O, sans Spring/JPA et sans code
+d'erreur de module. `ReferenceFormat` respecte ce contrat. TeamPulse n'ajoute ni
+`ValidationUtils`, ni validateur générique par entité.
 
-Chaque règle possède ses tests de référence dans sa couche propriétaire. Le
-domaine est testé sans Spring, les contrats Jakarta et transactions avec le bean
-proxifié, les garanties de persistence avec PostgreSQL réel, et le futur adapter
-Web sur son seul contrat HTTP. ArchUnit protège les frontières structurelles ;
-les tests comportementaux prouvent les invariants et les traductions d'erreurs.
+Les tests suivent la couche propriétaire : domaine sans Spring, orchestration
+avec ports substitués, validation/transactions avec bean proxifié, persistence
+avec PostgreSQL réel et futur contrat HTTP avec un test Web ciblé. Une
+annotation est testée par son effet observable, pas uniquement par réflexion.
+
+### 11. Limiter explicitement le périmètre T04
+
+- T04 ne contient aucun contrôleur, DTO, handler d'erreur HTTP, test Web ou
+  parcours HTTP vers PostgreSQL. Ces éléments appartiennent à W001-T05.
+- T04 n'authentifie aucun utilisateur et ne résout pas le tenant depuis JWT.
+  Ces mécanismes appartiennent à W008.
+- T04 ne garantit pas l'unicité absolue des références entre plusieurs JVM.
+- T04 ne synchronise pas automatiquement les statuts après une évolution d'un
+  responsable dans un autre module.
+- T04 ne fournit ni transaction distribuée ni saga.
+- T04 ne fournit pas d'historisation complète des modifications.
+- La séquence Slidev T04 reste un artefact pédagogique distinct.
 
 ## Alternatives envisagées
 
-### Centraliser toutes les validations dans un validateur par entité
-
-Option rejetée. Un `UserValidator` ou `OrganizationValidator` finirait par
-mélanger contraintes de contrat, invariants du domaine, consultations externes
-et règles de persistence. Il permettrait aussi de construire un agrégat avant
-d'avoir exécuté une validation qu'un appelant pourrait oublier.
-
-### Dupliquer les règles métier avec Jakarta Validation
-
-Option rejetée. Répéter les formats, normalisations et longueurs métier sur les
-commandes créerait deux sources de vérité susceptibles de diverger. Jakarta
-Validation reste limitée au contrat structurel ; le domaine garantit la règle
-fonctionnelle quelle que soit l'origine de l'appel.
-
-### Confier toute l'intégrité à PostgreSQL
-
-Option rejetée. La base ne peut pas exprimer les transitions, la disponibilité
-inter-module ou les règles dépendant d'un cas d'usage. Ses contraintes complètent
-les garanties applicatives face aux courses et aux chemins d'écriture défectueux,
-mais ne remplacent pas le domaine.
-
-### Propager l'identifiant `BIGINT` de l'organisation
-
-Option rejetée. Elle est simple dans un monolithe, mais couple tous les modules à
-la clé de persistance de `tp-organization` et prépare mal l'extraction future de
-services.
-
-### Utiliser un UUID brut comme référence publique
-
-Option non retenue pour W001. Elle offre une excellente entropie côté Java, mais
-ne respecte pas le format métier lisible avec trigramme, année et suffixe court.
-Un UUID peut rester une option future si l'exigence de format change.
-
-### Utiliser une séquence PostgreSQL pour la référence
-
-Option rejetée. Elle donne une unicité centralisée, mais rend la génération
-dépendante de la base et empêche de créer une référence avant l'appel de
-persistance.
-
-### Porter l'identifiant JPA, la version et l'audit dans les modèles métier
-
-Option rejetée. Ces champs sont nécessaires à la persistance, mais ne
-participent aux règles métier ni de `Organization`, ni de `User`. Les conserver
-dans leurs entités JPA évite de coupler le domaine au cycle de vie JPA et à la
-stratégie d'audit.
-
-### Utiliser uniquement dix caractères aléatoires
-
-Option rejetée comme mécanisme unique. La probabilité de collision est faible,
-mais le format n'est pas ordonnable, les tests sont moins déterministes et la
-garantie reste probabiliste.
-
-### Utiliser huit caractères de temps global et deux de compteur
-
-Option initialement envisagée puis remplacée. Elle encode les millisecondes
-depuis une époque TeamPulse fixe et fournit 1 296 valeurs par milliseconde, mais
-elle impose une limite d'environ 89 ans au format. Le découpage par journée
-évite cette date d'expiration et libère quatre caractères pour réduire le risque
-de collision après redémarrage.
-
-### Utiliser six caractères de temps, deux de nonce et deux de compteur
-
-Option rejetée. Elle conserve 1 296 générations par milliseconde, mais seulement
-1 296 nonces possibles. Dans le pire cas inter-redémarrage, la probabilité de
-collision serait de `1 / 1 296`, soit environ `0,07716 %` : insuffisant pour la
-garantie visée.
-
-### Utiliser cinq caractères de temps, trois de nonce et deux de compteur
-
-Option rejetée. `36^5` ne couvre pas les 86 400 000 millisecondes d'une journée.
-Il faudrait introduire une unité logique de deux millisecondes, ce qui
-complexifierait inutilement le format et les explications.
-
-### Utiliser six caractères de temps, trois de nonce et trois de compteur
-
-Option rejetée. Elle fournirait 46 656 compteurs par milliseconde, bien au-delà
-du besoin, mais seulement 46 656 nonces. À longueur totale identique, le
-découpage `6 + 4 + 2` affecte le caractère supplémentaire à la protection la
-plus utile après un redémarrage.
-
-### Réserver un lot de références en base
-
-Option rejetée pour T04. Une allocation de slots ou une stratégie hi-lo
-centraliserait l'unicité entre JVM, mais rendrait le générateur de `tp-common`
-dépendant d'un port de persistance et de son intégration. La décision reste une
-implémentation Java pure ; la coordination multi-nœud sera étudiée avant
-Kubernetes.
-
-### Utiliser une implémentation `synchronized`
-
-Option non retenue. Elle simplifierait le compteur, mais sérialiserait tous les
-appels. Un état atomique avec compare-and-set fournit la garantie mono-JVM sans
-verrou bloquant.
-
-### Introduire `ReferenceKind` ou `ReferencePrefix`
-
-Option rejetée. Ces types obligeraient `tp-common` à connaître la liste des
-concepts métier ou ajouteraient un emballage sans invariant supplémentaire. Le
-contrat reste `generate(String prefix)` ; la factory valide strictement
-`[A-Z]{3}` et chaque module reste propriétaire de sa constante locale.
-
-### Introduire immédiatement un `nodeId`
-
-Option reportée. Un identifiant de nœud n'est fiable que si son attribution est
-unique, stable et contrôlée. Cette infrastructure n'existe pas encore dans le
-déploiement local W001. Elle sera décidée avant Kubernetes.
-
-### Passer directement `organizationReference` aux ports entrants
-
-Option non retenue pour les cas d'usage tenantés. Une chaîne rendrait la
-référence obligatoire mais n'exprimerait pas aussi clairement qu'elle constitue
-le périmètre d'exécution complet du cas d'usage. `TenantContext` conserve cette
-intention dans le contrat. Les services contrôlent la cohérence entre ce
-contexte et l'agrégat avant d'appeler les ports d'écriture ; ces ports reçoivent
-ensuite l'agrégat sans référence redondante.
-
-### Créer un `PlatformContext` vide
-
-Option rejetée en W001. Sans identité authentifiée, rôle, permission ou autre
-information fiable, ce type ne ferait que matérialiser l'absence de tenant sans
-ajouter d'invariant utile. Les cas d'usage plateforme restent non tenantés ; un
-contexte de sécurité dédié pourra être décidé avec W008 lorsqu'il portera une
-information réelle.
-
-### Ajouter `userReference` à `TenantContext`
-
-Option rejetée. Le tenant et l'acteur répondent à deux responsabilités
-différentes. Des créations initiales, traitements système ou cas d'usage
-plateforme peuvent connaître leur tenant sans disposer d'un utilisateur
-authentifié. Ajouter une référence utilisateur à `TenantContext` créerait aussi
-une dépendance circulaire lors de la création du premier utilisateur. Un contrat
-d'acteur distinct sera décidé avec le premier parcours autorisé de W001-T05,
-puis alimenté par JWT en W008.
-
-### Insérer une organisation locale par Flyway
-
-Option rejetée. Une migration structurelle ne doit pas créer une ligne métier
-temporaire uniquement pour fournir le tenant d'un contrôleur pendant une version
-de développement.
-
-### Exiger les responsables dès l'insertion de l'organisation
-
-Option rejetée. L'administrateur et le manager sont des utilisateurs qui ont
-eux-mêmes besoin de la référence de l'organisation. L'état `CREATING` permet de
-créer la racine du tenant, puis ses utilisateurs, avant d'activer l'organisation
-avec ses deux responsables validés.
-
-### Recalculer la disponibilité d'une organisation à chaque consultation
-
-Option rejetée pour T04. Faire appeler `UserDirectory` par
-`OrganizationDirectory` à chaque consultation rendrait la disponibilité
-dynamique, ajouterait un coût et un couplage synchrones, et ne fournirait pas de
-garantie transactionnelle commune entre les deux modules. Le directory mappe
-donc uniquement le statut persistant de l'organisation.
-
-### Synchroniser immédiatement les changements de disponibilité utilisateur
-
-Option reportée. Un événement `UserAvailabilityChanged`, son listener, les
-recherches d'organisations et d'équipes par responsable, l'idempotence et la
-gestion des courses inter-modules constituent un mécanisme distinct. L'événement
-appartiendrait à `tp-identity`, propriétaire du statut utilisateur, et non à
-`tp-organization`. T04 ne suspend ni ne réactive automatiquement les équipes ou
-organisations ; `AVAILABLE` reste une précondition ponctuelle des cas d'usage
-qui créent, activent, réactivent ou remplacent un responsable.
-
-### Revérifier tous les responsables pour chaque opération de membre
-
-Option rejetée. La création, la réactivation et le remplacement établissent la
-validité ponctuelle des responsables. W001-T05 empêchera ensuite leur passage
-vers `SUSPENDED` ou `DEACTIVATED` tant que la responsabilité reste active.
-Rappeler systématiquement `UserDirectory` pour l'administrateur et le manager
-ajouterait des appels et des pannes possibles sans identifier l'utilisateur qui
-exécute réellement l'action. La disponibilité et les permissions de cet acteur
-seront contrôlées séparément avec les parcours autorisés de W001-T05.
-
-### Retirer un responsable d'équipe sans remplacement
-
-Option rejetée. Une équipe possède exactement un administrateur et un manager.
-Autoriser une absence temporaire ajouterait un état structurel et un code
-d'erreur d'activation sans besoin démontré. Le remplacement atomique permet de
-transférer une responsabilité en `ACTIVE` ou `SUSPENDED` sans rendre l'agrégat
-invalide.
-
-### Ne pas stocker `organizationReference` dans `TeamMember`
-
-Option rejetée. Déduire systématiquement le tenant par une jointure avec `Team`
-rend plus facile l'oubli du filtre, complique les index et limite les contraintes
-composites d'isolation.
-
-### Stocker `teamReference` dans `TeamMember`
-
-Option rejetée. `Team` et `TeamMember` appartiennent au même module et au même
-modèle de persistance. Une clé étrangère vers `teams.id` est plus directe et ne
-franchit aucune frontière. La référence d'équipe reste réservée aux contrats
-externes et est résolue dans le module avec la référence du tenant.
-
-### Donner une référence fonctionnelle propre à `TeamMember`
-
-Option rejetée. L'appartenance est une entité interne de l'équipe et aucun
-contrat inter-module n'a besoin de l'adresser indépendamment. Le triplet tenant,
-équipe et utilisateur identifie l'appartenance courante ; l'identifiant
-technique, `startedAt` et `endedAt` distinguent les périodes historiques.
-
-### Mapper `TeamMemberEntity` avec `@ManyToOne TeamEntity`
-
-Option rejetée. La navigation JPA ne justifie pas l'introduction d'un graphe de
-persistence entre l'équipe et ses appartenances. Elle rendrait les chargements,
-la frontière de tenant et les effets de cascade moins explicites. La clé
-étrangère composite conserve l'intégrité référentielle sans coupler les deux
-entités JPA.
-
-### Partager une `BaseEntity` JPA dans `tp-common`
-
-Option rejetée. Elle réduirait quelques lignes de mapping, mais ferait dépendre
-le module commun de JPA et contredirait les règles d'architecture du projet.
-
-### Placer l'infrastructure Testcontainers dans `tp-common`
-
-Option rejetée. Elle ajouterait Testcontainers aux dépendances de production de
-`tp-common` et, par transitivité, aux modules métier. L'infrastructure partagée
-reste dans un artefact explicitement consommé avec le scope Maven `test`.
-
-### Déclarer `tp-test-support` comme module Spring Modulith
-
-Option rejetée. `@ApplicationModule` l'ajouterait au graphe fonctionnel et à la
-documentation de l'application, alors qu'il ne participe qu'à l'exécution des
-tests. Son exclusion explicite conserve la distinction entre module Maven de
-support et module applicatif.
-
-### Générer immédiatement un client OpenAPI entre les modules
-
-Option reportée. Dans le monolithe modulaire, un port Java et un adapter local
-suffisent. OpenAPI sera étudié lorsque les modules communiqueront réellement par
-HTTP.
-
-### Placer les directories dans `application.directory`
-
-Option rejetée pour TeamPulse. Le contrat resterait techniquement un port
-applicatif valide, mais obligerait les modules consommateurs à dépendre de
-l'organisation interne de la couche application. Les packages `api` exposés par
-T01 matérialisent déjà la frontière publique et sont réutilisés.
-
-### Exposer toute l'API publique de `tp-identity` avec une interface générique `api`
-
-Option rejetée. Une interface nommée générique donnerait à chaque module
-consommateur l'accès à toutes les capacités publiques actuelles et futures de
-`tp-identity`. Le découpage par capacité avec `identity::user` applique le
-principe du moindre couplage et permet d'ajouter ultérieurement d'autres
-interfaces nommées sans élargir les dépendances existantes.
-
-### Déclarer un `UserDirectory` différent dans chaque module consommateur
-
-Option rejetée. Des ports presque identiques dans `tp-organization` et `tp-team`
-dupliqueraient la définition de la disponibilité et ses règles de mapping.
-L'API applicative publique de `tp-identity` fournit un contrat unique sans
-exposer son domaine ou sa persistence.
-
-### Placer `UserDirectory` dans `tp-common`
-
-Option rejetée. La disponibilité d'un utilisateur appartient au métier du module
-identité et ne constitue pas un type transverse neutre. `tp-common` reste donc
-indépendant des contrats métier.
-
-### Faire lire directement les organisations par `tp-team`
-
-Option rejetée. Accéder au domaine, au repository ou à l'entité JPA de
-`tp-organization` depuis `tp-team` violerait la propriété des données et
-couplerait la création d'équipe à la persistance interne d'un autre module.
-
-### Retourner un booléen depuis `OrganizationDirectory`
-
-Option rejetée. Un booléen ne permettrait pas de distinguer une organisation
-connue mais non opérationnelle d'une référence inexistante. L'enum
-`OrganizationAvailability` rend ces résultats explicites sans exposer
-`OrganizationStatus`.
-
-### Centraliser toutes les erreurs métier dans `tp-common`
-
-Option rejetée. Une enum globale couplerait les modules à des concepts qu'ils ne
-possèdent pas et transformerait `tp-common` en catalogue métier. Chaque module
-conserve donc sa propre enum.
-
-### Exposer les packages `domain.<domaine>.error` avec `@NamedInterface`
-
-Option rejetée. Un module consommateur serait alors couplé aux erreurs internes
-du fournisseur et pourrait dépendre de détails qui ne font pas partie du
-contrat appelé. Seules les exceptions techniques minimales des directories sont
-publiques dans leurs interfaces nommées dédiées.
-
-### Laisser traverser directement les exceptions JPA ou Spring
-
-Option rejetée. Elle ferait dépendre le module consommateur de l'infrastructure
-du fournisseur. Toute exception technique est traduite avant de franchir la
-frontière publique.
-
-### Utiliser une classe d'exception pour chaque code métier
-
-Option rejetée pour T04. Une exception non vérifiée par module, portant un code
-obligatoire, conserve un contrat lisible sans multiplier les classes.
-
-### Créer une enum d'erreurs séparée pour `TeamMember`
-
-Option rejetée pour T04. `TeamMember` est possédé par `tp-team` et ses erreurs
-sont utilisées par les mêmes cas d'usage d'équipe. Elles restent dans
-`TeamErrorCode` afin de ne pas fragmenter prématurément le contrat d'erreur.
+Les alternatives techniques génériques sont évaluées dans ADR-TECH-006 à
+ADR-TECH-012. T04 conserve uniquement les choix propres au domaine TeamPulse.
+
+- **Créer une organisation locale par Flyway** : rejeté, car une migration
+  structurelle ne doit pas créer une donnée métier temporaire.
+- **Exiger les responsables dès l'insertion de l'organisation** : rejeté, car
+  les utilisateurs responsables ont eux-mêmes besoin de la référence de
+  l'organisation. `CREATING` résout cette initialisation circulaire.
+- **Recalculer l'organisation via `UserDirectory` à chaque consultation** :
+  rejeté, car cela ajouterait un couplage synchrone sans garantie transactionnelle
+  distribuée. `OrganizationDirectory` mappe son statut persistant.
+- **Synchroniser immédiatement tous les changements utilisateur** : reporté.
+  Un futur événement, son idempotence et sa gestion des courses forment une
+  décision séparée.
+- **Revérifier tous les responsables pour chaque opération de membre** : rejeté.
+  Les validations sont ponctuelles aux opérations qui ouvrent ou rétablissent
+  un accès.
+- **Retirer un responsable d'équipe sans remplacement** : rejeté ; le
+  remplacement est atomique afin de conserver l'agrégat valide.
+- **Ne pas stocker `organizationReference` dans `TeamMember`** : rejeté, car la
+  duplication contrôlée permet des filtres, index et contraintes composites
+  tenantés.
+- **Stocker `teamReference` dans `TeamMember`** : rejeté ; `teamId` reste une
+  relation interne plus directe dans le même module.
+- **Donner une référence fonctionnelle à `TeamMember`** : rejeté en l'absence de
+  besoin d'adressage externe indépendant.
+- **Mapper `TeamMemberEntity` avec `@ManyToOne TeamEntity`** : rejeté pour éviter
+  les chargements et cascades implicites ; la clé étrangère composite suffit.
+- **Ajouter `userReference` à `TenantContext`** : rejeté, car tenant et acteur
+  sont deux responsabilités différentes.
+- **Ajouter un `PlatformContext` vide** : rejeté tant qu'il ne porte aucune
+  identité ou permission fiable.
 
 ## Justification
 
-Une référence fonctionnelle découple le contrat d'intégration de la persistence
-interne tout en restant exploitable dans les logs, URLs et futurs événements. La
-référence d'organisation devient une clé de tenant uniforme sans exposer la clé
-primaire du module organisation.
+`Organization.reference` fournit une identité tenant uniforme sans exposer la
+clé primaire de `tp-organization`. Le contexte explicite rend l'oubli du tenant
+visible dans les signatures et les tests, tout en préparant une future
+résolution JWT indépendante des cas d'usage.
 
-Le générateur monotone répond au besoin de concurrence d'une instance Java et
-reste testable grâce à `Clock`. La contrainte d'unicité PostgreSQL conserve une
-dernière défense cohérente avec l'exigence d'intégrité. La limite multi-nœud est
-rendue explicite plutôt que de revendiquer une garantie que W001 ne peut pas
-encore démontrer.
+Les directories conservent la propriété des informations dans leurs modules et
+permettent à `tp-organization` et `tp-team` de vérifier ponctuellement les
+préconditions sans dépendre des domaines ou entités JPA externes.
 
-Le `TenantContext` explicite et les signatures tenantées rendent l'oubli du
-tenant visible à la compilation et dans les tests. Le champ générique
-`tenantReference` exprime le périmètre isolé sans coupler `tp-common` à
-`Organization`. Ce contrat prépare JWT sans introduire de contexte ambiant caché
-avant que la sécurité ne fournisse une identité fiable.
-
-Enfin, les ports inter-modules préservent l'architecture hexagonale : chaque
-module reste propriétaire de ses modèles, enums et adapters de persistance.
-
-La validation distribuée conserve cette propriété : le domaine garantit ses
-invariants sans framework, l'application orchestre les règles nécessitant des
-ports, `tp-common` ne reçoit que les mécanismes neutres et PostgreSQL protège le
-dernier état persisté. Cette répartition évite une abstraction générique qui
-masquerait la responsabilité réelle de chaque règle.
-
-La mutualisation dans `tp-test-support` évite la duplication de l'image
-PostgreSQL, des identifiants de connexion, du wiring `@ServiceConnection` et de
-l'audit déterministe. Le scope Maven `test`, l'exclusion Spring Modulith et la
-règle ArchUnit forment trois protections complémentaires contre une fuite de
-cette infrastructure dans le runtime.
+Les contraintes PostgreSQL renforcent les invariants tenantés exprimables
+localement, tandis que les domaines et services possèdent les transitions et
+les règles inter-modules. L'état JPA, l'audit et la concurrence restent hors des
+modèles métier sauf lorsqu'un identifiant a un sens interne démontré.
 
 ## Conséquences positives
 
-- Les identifiants techniques ne franchissent plus les frontières de modules.
-- La référence de tenant est uniforme et utilisable dans les futurs transports
-  HTTP et événementiels.
-- Les opérations tenantées rendent leur contexte explicite avec
-  `TenantContext(tenantReference)`.
-- Les services applicatifs partagent une convention déclarative unique pour
-  leur découverte, la validation de leurs entrées et leurs transactions.
-- Les opérations plateforme ne dépendent pas d'un type vide sans invariant.
-- Le générateur est indépendant de Spring et testable avec une horloge
-  contrôlée.
-- Les appels concurrents d'une même JVM ne nécessitent pas de verrou bloquant.
-- Le suffixe `6 + 4 + 2` fournit 1 296 références par milliseconde logique,
-  1 679 616 nonces de démarrage possibles et fonctionne sans date d'expiration
-  liée à une époque fixe.
-- Les contraintes et index PostgreSQL renforcent les invariants applicatifs.
-- `OrganizationDirectory` reste stable et ne provoque pas d'appel vers
-  `tp-identity` lors des consultations.
-- `tp-common` reste framework-agnostic.
-- `UserDirectory` évite le couplage de `tp-organization` et `tp-team` avec le
-  domaine ou la persistence de `tp-identity`.
-- `OrganizationDirectory` permet à `tp-team` d'exiger une organisation active
-  sans dépendre du domaine ou de la persistence de `tp-organization`.
-- Les interfaces nommées dédiées rendent les dépendances inter-modules visibles
-  et vérifiables par Spring Modulith.
-- Les codes d'erreur restent stables et indépendants des messages ou du
-  protocole d'exposition.
-- Chaque module reste propriétaire de son vocabulaire d'échec.
-- Les résultats métier attendus sont distingués des défaillances techniques.
-- Les exceptions de persistance et les erreurs internes ne fuient pas vers les
-  modules consommateurs.
-- Les modèles préparent le verrouillage optimiste et l'audit futur.
-- Les tests de persistance réutilisent une configuration PostgreSQL et d'audit
-  unique sans ajouter Testcontainers aux artefacts de production.
-- `tp-test-support` reste absent du graphe fonctionnel Spring Modulith.
-- Chaque invariant possède une source de vérité explicite et testable dans sa
-  couche propriétaire.
-- Les modèles du domaine restent valides indépendamment du transport, de Spring
-  et de la persistence.
-- Les validations communes restent neutres et réutilisables sans coupler les
-  modules à leurs catalogues d'erreurs.
+- Les identifiants techniques ne franchissent pas les frontières de modules.
+- Le tenant est explicite dans les cas d'usage et les repositories.
+- Les modèles métier restent indépendants de Spring et JPA.
+- Les contrats `identity::user` et `organization::organization` sont étroits et
+  transport-indépendants.
+- Chaque module conserve son vocabulaire d'erreur.
+- PostgreSQL protège l'isolation, les contraintes temporelles, l'unicité et les
+  mises à jour concurrentes.
+- Le support de test est mutualisé sans entrer dans le runtime.
+- Les validations et leurs preuves ont un propriétaire explicite.
 
 ## Conséquences négatives / compromis
 
-- Les références sont plus longues qu'un identifiant numérique.
-- Le découpage du suffixe et l'interprétation « millisecondes dans la journée »
-  font partie du format persistant et devront être conservés ou versionnés lors
-  d'une évolution incompatible.
-- `organizationReference` doit être propagée dans de nombreuses signatures et
-  clés d'index.
-- Les mappings d'audit et de version contiennent une duplication volontaire
-  entre modules.
-- Les références des responsables d'une organisation sont nullables selon son
-  statut et exigent des contraintes PostgreSQL dépendantes de ce statut.
-- Un responsable validé peut devenir indisponible après la transaction.
-  L'organisation reste alors temporairement `ACTIVE` jusqu'à l'introduction
-  d'un mécanisme de synchronisation inter-module.
-- La cohérence inter-module n'est pas garantie par des clés étrangères vers les
-  identifiants techniques externes.
-- Le contexte local change après redémarrage et n'est adapté qu'au développement.
-- `TenantContext` ajoute volontairement un petit emballage autour d'une référence
-  textuelle afin de rendre le périmètre tenant explicite dans les ports entrants.
-- La couche application accepte une dépendance limitée à trois annotations
-  Spring. Un appel direct construit avec `new` ne déclenche ni la validation de
-  méthode, ni la transaction ; ces garanties nécessitent le bean proxifié.
-- La stratégie W001 ne démontre pas encore une unicité absolue multi-instance.
-- La garantie après redémarrage ou entre plusieurs JVM reste probabiliste ; une
-  collision exceptionnelle fait échouer l'insertion au lieu d'être masquée par
-  un retry automatique.
-- Le verrouillage optimiste peut produire une erreur de concurrence que le cas
-  d'usage devra traduire proprement.
-- La création d'équipe ajoute un appel applicatif synchrone vers
-  `tp-organization` avant les contrôles utilisateurs.
-- Les enums devront rester limitées aux échecs stables et actionnables afin de
-  ne pas devenir des catalogues fourre-tout.
-- La traduction d'une défaillance à chaque frontière ajoute quelques classes et
-  blocs de mapping explicites.
-- Les exceptions publiques des directories deviennent des éléments stables de
-  l'API Java du module.
-- Le module de support doit rester explicitement exclu du modèle Spring Modulith
-  tant que son package se trouve sous la racine `io.teampulse`.
-- Certaines garanties sont volontairement répétées entre le domaine et
-  PostgreSQL. Cette duplication défensive doit rester alignée et couverte à ses
-  deux niveaux.
-- Une validation de méthode dépend du passage par le proxy Spring ; les tests
-  directs des services ne couvrent donc pas Jakarta Validation ou les
-  transactions.
+- Les références et `organizationReference` augmentent la taille des index et le
+  nombre de paramètres propagés.
+- La génération reste probabiliste après redémarrage ou entre plusieurs JVM.
+- Les mappings d'id, version et audit sont volontairement répétés entre modules.
+- Le contexte local change éventuellement après redémarrage et ne constitue pas
+  une sécurité.
+- Un responsable peut devenir indisponible après sa validation ponctuelle.
+- L'absence de clé étrangère inter-module impose des contrôles applicatifs et
+  des tests de contrat.
+- Les appels synchrones aux directories ajoutent des chemins de défaillance.
+- Les beans instanciés directement ne déclenchent ni validation de méthode ni
+  transaction Spring.
+- L'audit `SYSTEM` ne fournit pas encore l'auteur réel ni l'historique complet.
 
 ## Impact technique
 
 ### `tp-common`
 
-- Type `TenantContext(tenantReference)` en Java pur ; aucun `PlatformContext`
-  vide.
-- Contrat Java pur `TenantContextProvider.current()` dans
-  `io.teampulse.common.context`, exposé avec `TenantContext` par l'interface
-  nommée `common::context`.
-- Contrat `ReferenceFactory.generate(String prefix)` et implémentation
-  `MonotonicReferenceFactory`.
-- Contrat stateless `ReferenceFormat.matches(reference, expectedPrefix)` pour
-  la validation syntaxique commune, sans préfixe ni erreur métier embarqués.
-- Validation stricte du préfixe `[A-Z]{3}` sans normalisation automatique.
-- Injection directe de `java.time.Clock` dans la factory.
-- `CommonMapperConfig` exposé uniquement via l'interface Spring Modulith nommée
-  `mapping`.
-- `ConstraintNameExtractor` exposé uniquement via l'interface Spring Modulith
-  nommée `common::persistence`. Ce composant reste indépendant de Hibernate :
-  le type d'exception et la `Function` d'extraction sont fournis par chaque
-  adapter de persistence.
+- `TenantContext` et `TenantContextProvider` dans `common::context`.
+- `ReferenceFactory`, `MonotonicReferenceFactory`, `ReferenceFormat` et
+  `GenerationState` dans `common::reference`.
+- `CommonMapperConfig` dans `common::mapping`.
+- `ConstraintNameExtractor` dans `common::persistence`.
 
 ### `tp-test-support`
 
-- `TeamPulsePostgreSQLContainer` basé sur `postgres:18-bookworm`.
-- Configurations de test PostgreSQL, audit JPA et persistance composée.
-- `MutableAuditDateTimeProvider` pour les assertions temporelles déterministes.
-- Dépendances Spring Boot Test et Testcontainers confinées dans cet artefact.
+- Conteneur PostgreSQL 18, configurations de test PostgreSQL/audit et provider
+  temporel mutable.
+- Dépendances Spring Boot Test et Testcontainers confinées au support de test.
 
 ### `tp-organization`
 
-- Domaine `Organization` limité aux six propriétés métier `reference`, `name`,
-  `timezone`, `adminReference`, `managerReference` et `status`.
-- Normalisation du nom avec `strip()`, conservation de sa casse et de ses
-  espaces internes, et limite de 200 caractères dans le domaine et les
-  commandes applicatives concernées.
-- Cycle des responsables dépendant du statut, validation ponctuelle par
-  `UserDirectory` et retrait du manager depuis `ACTIVE` entraînant
-  `SUSPENDED`.
-- Ports de création et de consultation par référence.
-- `OrganizationEntity` portant l'identifiant technique, la version et l'audit,
-  avec un mapping qui préserve ces données lors des mises à jour.
-- Service exposant ou validant la référence d'organisation.
-- `OrganizationDirectory`, `OrganizationAvailability` et
-  `OrganizationDirectoryException` dans
-  `io.teampulse.organization.api.organization`, exposé par
-  `@NamedInterface("organization")`.
-- `OrganizationErrorCode` et `OrganizationException` dans le package interne
-  `io.teampulse.organization.domain.organization.error`.
-- Consommation de l'API publique `UserDirectory` pour valider les responsables.
-- Dépendances Spring Modulith limitées aux interfaces nommées
-  `common::mapping`, `common::persistence`, `common::reference` et
-  `identity::user`. `common::context` n'est pas consommé par
-  `tp-organization`, car ses cas d'usage plateforme reçoivent explicitement
-  `organizationReference`.
-- MapStruct est déclaré comme dépendance directe de `tp-organization` pour son
-  mapper de persistence ; PostgreSQL et `tp-test-support` restent limités au
-  scope `test`.
+- Domaine, cycle de vie et persistence de `Organization`.
+- Ports et services de cycle de vie et de responsables.
+- Consommation de `identity::user`.
+- Publication de `organization::organization`.
+- Schéma `tp_organization` et migration `V0.1.0__create_organizations.sql`.
 
 ### `tp-identity`
 
-- Domaine `User`, statuts et transitions initiales.
-- Séparation explicite entre l'état métier de `User` et les données techniques
-  de `UserEntity` (`id`, version et audit).
-- Canonisation de l'email, unicité tenantée de sa forme canonique et limites de
-  254 caractères pour l'email et de 100 caractères pour chaque nom.
-- `UserDirectory`, `UserAvailability` et `UserDirectoryException` dans
-  `io.teampulse.identity.api.user`, exposé par `@NamedInterface("user")`.
-- `UserErrorCode` et `UserException` dans le package interne
-  `io.teampulse.identity.domain.user.error`.
-- Repositories toujours filtrés par `organizationReference`.
-- Services applicatifs déclarés avec `@Service`, validés avec `@Validated` et
-  transactionnels avec `@Transactional`, sans dépendance vers JPA, Spring Data,
-  `UserEntity` ou la couche HTTP.
-- Implémentation de `UserDirectory` sans exposition du domaine ou de JPA.
+- Domaine, cycle de vie et persistence tenantée de `User`.
+- Services applicatifs et repositories toujours filtrés par organisation.
+- Publication de `identity::user`.
+- Schéma `tp_identity` et migration `V0.1.0__create_users.sql`.
 
 ### `tp-team`
 
-- Verticale interne complète définie par T04 pour les domaines `Team` et
-  `TeamMember`, leurs ports, services applicatifs, persistance et tests.
-- `TeamErrorCode`, incluant les erreurs de `TeamMember`, et `TeamException` dans
-  le package interne `io.teampulse.team.domain.team.error`.
-- Consommation de l'API publique `OrganizationDirectory` de `tp-organization`.
-- Consommation de l'API publique `UserDirectory` de `tp-identity`.
-- Nom d'équipe normalisé, limité à 200 caractères et non unique.
-- Vérification ponctuelle de l'organisation, de l'administrateur, du manager et
-  des membres dans le tenant selon l'opération.
-- Remplacement atomique des responsables en `ACTIVE` ou `SUSPENDED`, sans
-  responsabilité vide ni réactivation implicite.
-- Matrice explicite des opérations d'appartenance autorisées lorsque
-  l'organisation ou l'équipe est suspendue ou archivée.
-- Repositories et contraintes composites tenantés.
-- Périodes d'appartenance explicites avec `startedAt` et `endedAt`.
-- Dépendances Spring Modulith limitées à `organization::organization`,
-  `identity::user` et `common`.
+- Domaines, cycles de vie, persistence et tests de `Team` et `TeamMember`.
+- Consommation de `identity::user` et `organization::organization`.
+- Contraintes composites et périodes d'appartenance.
+- Schéma `tp_team` et migrations `V0.1.0__create_teams.sql` et
+  `V0.1.1__create_team_members.sql`.
 
 ### `tp-app`
 
-- Wiring des factories, horloges, ports inter-modules et adapters.
-- `LocalTenantContextProvider` dans `io.teampulse.context`, stratégie lazy,
-  singleton et thread-safe qui réutilise le bean `ReferenceFactory` et conserve
-  un unique `TenantContext` valide pendant l'exécution.
-- `LocalTenantConfiguration` limitée au profil `local`, sans provider local de
-  secours hors de ce profil.
-- Tests unitaires de `LocalTenantContextProvider` et test de câblage Spring de
-  `LocalTenantConfiguration`, sans dépendance à PostgreSQL ou Testcontainers.
-- Aucun mécanisme JWT ou `hasPermission` dans W001.
-- Dépendance `tp-test-support` en scope `test` et import explicite de
-  `PostgreSQLTestConfiguration` dans les tests de contexte.
-- Exclusion de `io.teampulse.testsupport` du modèle Spring Modulith et règle
-  ArchUnit interdisant sa consommation par le code de production.
-
-### PostgreSQL / Flyway
-
-- Tables `organizations`, `users`, `teams` et `team_members` dans leurs schémas
-  propriétaires.
-- Identifiants `BIGINT`, références `TEXT`, versions `BIGINT` et champs d'audit.
-- Nom d'organisation `TEXT NOT NULL`, limité à 200 caractères.
-- Nom d'équipe `TEXT NOT NULL`, limité à 200 caractères sans unicité métier.
-- Contraintes de responsables imposant l'administrateur en `ACTIVE` et
-  `SUSPENDED`, et le manager uniquement en `ACTIVE`.
-- Contraintes d'unicité, de non-nullité et d'isolation tenant.
-- Contraintes temporelles des appartenances, incluant
-  `ended_at >= started_at` lorsque les deux dates existent.
-- Index commençant par `organization_reference` pour les recherches tenantées.
-- Aucune donnée métier locale insérée par une migration structurelle.
-
-### Documentation pédagogique
-
-- Le Slidev explique la différence entre identifiant et référence.
-- Il illustre l'année, le segment `JOUR_MOIS`, le temps logique interne, le
-  découpage base 36 `6 + 4 + 2`, le nonce JVM, le compteur jusqu'à `ZZ`, son
-  débordement et le comportement lors d'un recul d'horloge.
-- Il explique que l'unicité est déterministe pendant le cycle de vie d'une
-  factory singleton, probabiliste après redémarrage, et que la référence ne
-  remplace pas `createdAt` comme source temporelle exacte.
-- Il compare verrouillage optimiste et pessimiste.
-- Il mentionne explicitement que l'identité de nœud deviendra importante avant
-  Kubernetes, sans détailler prématurément son orchestration.
+- Wiring de la factory, de l'horloge et des contrats inter-modules.
+- `LocalTenantContextProvider` et `LocalTenantConfiguration` sous profil local.
+- Dépendance `tp-test-support` en scope `test`.
+- Exclusion de `io.teampulse.testsupport` du modèle Spring Modulith.
 
 ## Validation
 
-### Stratégie de tests par couche
+### Gate de clôture historique du 16 septembre 2026
 
-- Pour chaque contrôleur, couvrir avec un test Web les requêtes valides, les
-  erreurs de validation, la résolution du tenant, le mapping du résultat et la
-  traduction des principales erreurs métier en réponses HTTP.
-- Pour chaque service applicatif, couvrir unitairement le succès, les refus
-  métier, les interactions avec les ports et la propagation du tenant. Ajouter
-  uniquement les tests Spring nécessaires pour les contraintes déclaratives,
-  les transactions et le wiring.
-- Pour chaque adapter de persistence, couvrir sur PostgreSQL les requêtes
-  tenantées et les garanties réellement portées par le schéma ou JPA. Réserver
-  les tests unitaires aux transformations ou traductions propres à l'adapter.
-- Maintenir au moins un parcours vertical HTTP vers PostgreSQL pour chaque flux
-  critique, notamment la création tenantée, sans dupliquer toute la matrice des
-  couches inférieures.
-- Vérifier qu'aucun test de contrôleur ne simule la logique métier du service et
-  qu'aucun test de service ne simule le comportement interne de JPA ou de
-  PostgreSQL.
+Les commandes suivantes ont réussi depuis la racine du dépôt :
 
-### Générateur de références
+```bash
+./mvnw --batch-mode --no-transfer-progress -pl tp-identity verify
+./mvnw --batch-mode --no-transfer-progress -pl tp-organization verify
+./mvnw --batch-mode --no-transfer-progress -pl tp-team verify
+./mvnw --batch-mode --no-transfer-progress verify
+```
 
-- Vérifier que `ReferenceFactory` expose `generate(String prefix)` et que
-  `MonotonicReferenceFactory` respecte ce contrat.
-- Vérifier que `ReferenceFormat` accepte toute référence syntaxiquement valide
-  pour le préfixe attendu, et refuse les valeurs nulles, mal formées ou issues
-  d'un autre préfixe sans dépendre des modules métier.
-- Vérifier que `ORG`, `USR` et `TEM` sont acceptés.
-- Vérifier qu'une valeur nulle, une longueur différente de trois, des
-  minuscules, des espaces ou des caractères non ASCII majuscules provoquent une
-  `IllegalArgumentException`, sans normalisation implicite.
-- Vérifier le format, l'année UTC, le segment `JOUR_MOIS` au format `JJMM` et le
-  suffixe alphanumérique de douze caractères.
-- Vérifier le découpage fixe du suffixe `MMMMMMNNNNCC` : six caractères base 36
-  pour les millisecondes logiques depuis le début de la journée UTC, quatre
-  caractères pour le nonce de démarrage et deux pour le compteur.
-- Injecter une source de nonce déterministe dans les tests et vérifier que le
-  nonce est généré une seule fois puis reste stable pendant le cycle de vie de
-  la factory.
-- Vérifier les bornes temporelles de la journée, de `000000` jusqu'à
-  l'encodage de `86 399 999`, ainsi que les passages de jour et d'année.
-- Vérifier les valeurs limites `00` et `ZZ`, soit 1 296 générations dans une
-  même milliseconde logique.
-- Vérifier que la génération suivante avance le temps logique d'une milliseconde
-  et reprend le compteur à `00` sans attendre l'horloge.
-- Vérifier que l'année, `JOUR_MOIS` et le suffixe temporel restent issus du même
-  instant logique lorsque l'horloge recule.
-- Générer plusieurs valeurs avec une horloge figée et vérifier leur unicité.
-- Exécuter des générations concurrentes et vérifier l'absence de doublon.
-- Simuler une horloge qui recule et vérifier la monotonie du temps logique.
-- Simuler l'épuisement du compteur d'une unité de temps.
-- Vérifier qu'une collision signalée par une contrainte `UNIQUE` ne déclenche
-  aucun retry, ne remplace pas la donnée existante et est traduite en
-  `REFERENCE_GENERATION_FAILED` par le module concerné.
+Cette exécution historique a produit :
 
-### Frontière tenant
+- `tp-identity` : 102 tests, zéro échec et zéro erreur ;
+- `tp-organization` : 217 tests, zéro échec et zéro erreur ;
+- `tp-team` : 152 tests, zéro échec et zéro erreur ;
+- réacteur complet : 576 tests, zéro échec et zéro erreur ;
+- PostgreSQL 18.4 via Testcontainers avec migrations Flyway ;
+- `git diff --check 5fda261b^..HEAD` réussi.
 
-- Vérifier qu'un cas d'usage tenanté exige un `TenantContext` non nul dont la
-  `tenantReference` est non nulle, non vide et non blanche, sans normalisation
-  implicite.
-- Vérifier que `TenantContextProvider.current()` est exposé avec
-  `TenantContext` par `common::context` et reste un contrat Java pur.
-- Vérifier unitairement que `LocalTenantContextProvider` n'appelle pas la
-  factory avant `current()`, transmet exactement `ORG` à `generate`, construit
-  la `tenantReference` retournée, mémorise la même instance et ne déclenche
-  qu'une génération lors d'appels concurrents.
-- Vérifier qu'une génération en erreur ou une référence générée invalide ne
-  mémorise aucun contexte, propage l'erreur et permet une nouvelle tentative.
-- Avec un contexte Spring ciblé sous le profil `local`, vérifier qu'un unique
-  bean `TenantContextProvider` réutilise le vrai bean `ReferenceFactory`, que
-  deux résolutions retournent la même instance et que sa référence commence par
-  `ORG-`. Sans le profil `local`, vérifier qu'aucun provider local n'est créé.
-- Ces tests du provider et du câblage ne nécessitent ni PostgreSQL ni
-  Testcontainers. Les tests PostgreSQL restent réservés aux contraintes et à
-  l'isolation des adapters de persistance.
-- Lorsque les contrôleurs tenantés seront introduits, vérifier par leurs tests
-  Web que le contexte fourni est transmis tel quel au cas d'usage et qu'aucune
-  référence de tenant libre n'est lue, fabriquée ou résolue auprès de
-  `tp-organization`.
-- Vérifier qu'en W001 `tenantReference` contient `Organization.reference`, puis
-  que le service applicatif l'utilise comme `organizationReference` pour les
-  ports sortants de lecture et d'existence. Les écritures reçoivent un agrégat
-  dont la référence d'organisation a été contrôlée par le service.
-- Vérifier que T04 ne place aucune référence utilisateur dans `TenantContext`.
-  Lorsque l'acteur sera introduit en W001-T05, vérifier que sa source
-  applicative est contrôlée et distincte du tenant transmis au cas d'usage,
-  sans la présenter comme une authentification avant W008.
-- Vérifier qu'aucun `PlatformContext` vide n'est introduit et que les cas
-  d'usage plateforme restent non tenantés jusqu'à W008.
-- Vérifier qu'aucun port applicatif tenanté ne propose une opération globale.
-- Créer deux organisations de test et prouver qu'une référence de A ne permet
-  jamais de lire, modifier ou supprimer une donnée de B.
+Ces nombres constituent une preuve datée et ne sont pas un invariant durable de
+la suite.
 
-### Services applicatifs
+### Catégories de preuves
 
-- Vérifier que les services placés dans `application.service` utilisent
-  uniquement `@Service`, `@Validated` et `@Transactional` parmi les annotations
-  Spring autorisées dans cette couche.
-- Vérifier avec R11 que tout service applicatif déclaré avec `@Service` porte
-  également `@Validated`.
-- Vérifier sur le bean Spring proxifié que les contraintes des ports entrants
-  rejettent un `TenantContext` ou une commande invalide avant l'exécution de
-  l'orchestration.
-- Vérifier que les créations s'exécutent dans une transaction et que les cas
-  d'usage strictement en lecture déclarent `@Transactional(readOnly = true)`.
-- Tester directement la logique d'orchestration avec des ports substitués, sans
-  démarrer Spring ni PostgreSQL.
-- Vérifier avec ArchUnit que les services applicatifs ne dépendent ni de JPA,
-  ni de Spring Data, ni d'`infrastructure`, ni de `config`.
-- Vérifier avec ArchUnit que les modèles du domaine ne dépendent ni de Spring,
-  ni de Jakarta Validation, ni de JPA : leurs invariants restent exécutables en
-  Java pur.
+- **Références et tenant** : format, monotonie mono-JVM, concurrence,
+  `TenantContext`, provider local et wiring Spring.
+- **Architecture** : ports tenantés, interfaces nommées, Spring Modulith,
+  règles R01 à R11 et exclusion de `tp-test-support`.
+- **Persistence PostgreSQL** : migrations, mappings, isolation A/B, contraintes,
+  audit `SYSTEM` et verrouillage optimiste dans les quatre adapters JPA.
+- **Comportement inter-module** : disponibilités, erreurs
+  `*_DIRECTORY_UNAVAILABLE` et causes conservées.
+- **Collision sans retry** : une seule tentative d'écriture et conservation de
+  la donnée existante par PostgreSQL.
 
-### Modèles et persistance
-
-- Vérifier toutes les transitions autorisées et interdites de `Organization`,
-  `User`, `Team` et `TeamMember`.
-- Vérifier que `Organization` et `User` n'exposent ni identifiant JPA, ni
-  version, ni champ d'audit, et que leurs mappings conservent ces valeurs dans
-  les entités JPA.
-- Vérifier que le nom d'organisation est obligatoire, normalisé par `strip()`,
-  non vide et limité à 200 caractères, tout en conservant sa casse et ses
-  espaces internes.
-- Vérifier que le cas d'usage accepte 200 caractères normalisés et propage le
-  refus du domaine pour 201, sans dupliquer la limite métier avec Jakarta
-  Validation sur la commande.
-- Vérifier que le nom d'équipe suit la même normalisation et la même limite de
-  200 caractères, tout en autorisant deux équipes de même nom.
-- Vérifier la canonisation et la limite de 254 caractères de l'email, ainsi que
-  la suppression des espaces périphériques et la limite de 100 caractères de
-  `firstName` et `lastName`.
-- Vérifier qu'une organisation `CREATING` peut être persistée sans responsables,
-  puis que son activation échoue tant que les deux responsables valides ne sont
-  pas affectés.
-- Vérifier la matrice des responsables pour `CREATING`, `ACTIVE`, `SUSPENDED` et
-  `ARCHIVED`, y compris le cas où les deux références sont identiques.
-- Vérifier que l'administrateur ne peut pas être supprimé sans remplacement,
-  que le manager peut être retiré et que son retrait depuis `ACTIVE` réalise
-  atomiquement `ACTIVE -> SUSPENDED`.
-- Vérifier que le remplacement direct d'un responsable exige `AVAILABLE` mais
-  ne change pas le statut, et qu'une réactivation revalide les deux
-  responsables.
-- Vérifier que l'archivage depuis `CREATING` accepte zéro, une ou deux
-  références, conserve celles qui existent et bloque ensuite toute mutation.
-- Vérifier qu'une suspension d'organisation ou d'équipe ne modifie pas en
-  cascade les statuts des entités enfants.
-- Vérifier que la réactivation d'une équipe revalide l'organisation et ses deux
-  responsables, puis laisse l'équipe `SUSPENDED` après tout refus.
-- Vérifier que les responsables d'une équipe sont remplaçables en `ACTIVE` ou
-  `SUSPENDED` par un utilisateur `AVAILABLE`, sans changement de statut ni
-  responsabilité vide, et qu'`ARCHIVED` interdit toute modification.
-- Vérifier la matrice des opérations de membre : toutes les transitions métier
-  depuis une équipe `ACTIVE`, uniquement suspension et retrait depuis
-  `SUSPENDED`, et aucune mutation depuis `ARCHIVED`.
-- Vérifier qu'une organisation `UNAVAILABLE` interdit les opérations qui ouvrent
-  ou rétablissent une appartenance sans empêcher celles qui la réduisent ou la
-  terminent.
-- Vérifier qu'aucun statut terminal ne peut être quitté.
-- Vérifier la timezone avec des identifiants IANA valides et invalides.
-- Vérifier les contraintes `NOT NULL`, `UNIQUE` et composites avec PostgreSQL.
-- Vérifier avec PostgreSQL qu'un nom normalisé de 200 caractères est accepté et
-  qu'une insertion directe de 201 caractères viole la contrainte de longueur.
-- Vérifier avec PostgreSQL les mêmes bornes pour le nom d'équipe, sans contrainte
-  d'unicité sur ce nom.
-- `JpaOrganizationRepositoryAdapterIT` vérifie avec PostgreSQL et les vrais
-  composants JPA la séquence des IDs, les statuts et responsables obligatoires,
-  l'absence de FK inter-module et la conservation de la limite de 200 caractères.
-- Vérifier une concurrence de modification déclenchant le verrouillage
-  optimiste.
-- Vérifier que les quatre champs d'audit sont renseignés avec `SYSTEM` en W001.
-- Vérifier que `tp-organization` et `tp-team` utilisent uniquement l'API publique
-  `UserDirectory`, sans dépendre d'une entité ou d'un repository de
-  `tp-identity`.
-- Vérifier que `UserDirectory`, `UserAvailability` et
-  `UserDirectoryException` sont accessibles via `identity::user`, tandis que
-  `io.teampulse.identity.domain.user.error` reste interne.
-- Vérifier que `UserDirectory` rejette toute référence d'organisation ou
-  d'utilisateur nulle, vide ou blanche comme violation du contrat, sans appeler
-  le repository et sans produire `NOT_FOUND` ou `UserDirectoryException`.
-- Vérifier le mapping de chaque `OrganizationStatus` vers
-  `OrganizationAvailability`.
-- Vérifier que `OrganizationDirectory` mappe `ACTIVE` vers `AVAILABLE` sans
-  appeler `UserDirectory`.
-- Vérifier que `tp-team` utilise uniquement l'API publique
-  `OrganizationDirectory`, sans dépendre d'une entité, d'un enum de domaine ou
-  d'un repository de `tp-organization`.
-- Vérifier que `OrganizationDirectory`, `OrganizationAvailability` et
-  `OrganizationDirectoryException` sont accessibles via
-  `organization::organization`, tandis que
-  `io.teampulse.organization.domain.organization.error` reste interne.
-- Vérifier qu'une équipe ne peut être créée que si `OrganizationDirectory`
-  retourne `AVAILABLE`, et que `UNAVAILABLE` ou `NOT_FOUND` refusent la création.
-- Vérifier que `TEAM_UNAVAILABLE` est retourné pour une opération interdite sur
-  une équipe trouvée mais suspendue ou archivée, sans le confondre avec
-  `NOT_FOUND` ou `INVALID_STATUS_TRANSITION`.
-- Vérifier que chaque validation, transition, indisponibilité et conflit couvert
-  par T04 produit le code attendu dans l'enum propriétaire.
-- Vérifier que chaque exception métier interne exige un code non nul et conserve
-  sa cause lorsqu'elle traduit une erreur antérieure.
-- Vérifier qu'un résultat `NOT_FOUND`, `PENDING` ou `UNAVAILABLE` est traité sans
-  exception inter-module.
-- Simuler une panne technique de chaque directory et vérifier sa traduction en
-  exception publique, puis dans le code `*_DIRECTORY_UNAVAILABLE` du module
-  consommateur, sans exposition d'une exception JPA ou Spring.
-- Vérifier que les erreurs de `TeamMember` utilisent `TeamErrorCode`.
-- Vérifier qu'aucune enum globale d'erreurs métier n'est ajoutée à `tp-common`.
-- Vérifier que les enums ne dépendent ni d'un statut HTTP, ni d'un message de
-  présentation.
-- Vérifier le mapping de chaque `UserStatus` vers `UserAvailability`.
-- Vérifier qu'un utilisateur d'un autre tenant retourne `NOT_FOUND`.
-- Vérifier que seuls des responsables `AVAILABLE` au moment du cas d'usage
-  permettent d'activer ou réactiver une organisation, de remplacer directement
-  l'un de ses responsables, de créer ou réactiver une équipe, ou de remplacer
-  directement l'un des responsables de l'équipe.
-- Vérifier qu'une indisponibilité ultérieure d'un responsable ne modifie pas
-  automatiquement `OrganizationStatus` ou `TeamStatus` dans T04.
-- Vérifier que l'affectation d'un administrateur ou d'un manager d'équipe ne
-  crée pas automatiquement de `TeamMember`, et que chacun peut être membre ou
-  non indépendamment de sa responsabilité.
-- Vérifier que la clé étrangère composite de `TeamMember` accepte une équipe du
-  même tenant et refuse le couple `teamId`/`organizationReference` incohérent.
-- Vérifier que `team_members` ne stocke ni `teamReference`, ni l'identifiant
-  technique d'un utilisateur du module identité.
-- Vérifier que l'index unique partiel refuse une seconde appartenance non
-  terminée pour le même tenant, la même équipe et le même utilisateur.
-- Vérifier qu'une nouvelle ligne peut être créée après `REMOVED` et que
-  l'ancienne ligne n'est ni réactivée ni remplacée.
-- Vérifier que `startedAt` reste nul pendant `INVITED`, est fixé à l'entrée en
-  `ACTIVE` et survit à une suspension, puis que `endedAt` est fixé uniquement au
-  passage à `REMOVED` et ne précède jamais `startedAt` lorsque celle-ci existe.
-- En W001-T05, vérifier qu'une transition de `User` vers `SUSPENDED` ou
-  `DEACTIVATED` est refusée tant qu'une responsabilité active existe, qu'une
-  responsabilité archivée reste historique et qu'une simple appartenance ne
-  bloque pas la transition.
-
-### Infrastructure de test partagée
-
-- Exécuter `JpaUserRepositoryAdapterIT` avec les vrais beans injectés, sans
-  spy Mockito. Les scénarios PostgreSQL couvrent le refus d'une organisation
-  nulle, les contraintes d'unicité, l'isolation tenant, le mapping, la
-  conservation de l'identifiant et de l'audit de création, ainsi que l'évolution
-  de la version et de `modifiedAt`.
-- Vérifier dans ce test d'intégration qu'un conflit entre deux transactions
-  réelles devient `CONCURRENT_MODIFICATION` à la frontière de l'adapter et
-  préserve la modification déjà commitée.
-- Exécuter `JpaUserRepositoryAdapterTest` pour vérifier qu'une collision de
-  référence devient `REFERENCE_GENERATION_FAILED` avec sa cause conservée et
-  une seule tentative d'écriture. Ce test unitaire utilise un repository mocké,
-  `ArgumentCaptor` et `times(1)` ; le test PostgreSQL conserve la vérification
-  de la collision réelle et de la préservation de l'utilisateur existant.
-- Valider les migrations par le démarrage du contexte sur une base PostgreSQL
-  vide avec Flyway puis `hibernate.ddl-auto=validate`. Ne pas ajouter
-  d'assertion sur `flyway_schema_history` ni sur les métadonnées internes de
-  Flyway : ces assertions testeraient la bibliothèque plutôt qu'un comportement
-  TeamPulse.
-- Vérifier que `tp-identity` charge sa propre application de test, sa
-  configuration Flyway et `PersistenceIntegrationTestConfiguration` sans
-  démarrer de serveur Web.
-- Vérifier que `tp-app` et ses tests de modules importent la configuration
-  PostgreSQL depuis `tp-test-support`.
-- Vérifier avec l'arbre Maven `runtime` que `tp-test-support` et Testcontainers
-  sont absents des dépendances de production des modules consommateurs.
-- Vérifier que Spring Modulith ne découvre aucun module pour
-  `io.teampulse.testsupport`.
-- Vérifier que la règle ArchUnit échoue si une classe de production dépend de
-  `io.teampulse.testsupport`.
-
-### Architecture
-
-- Exécuter les tests ArchUnit existants.
-- Vérifier que `tp-common` ne dépend d'aucun module métier, de Spring ou de JPA.
-- Vérifier que les adapters utilisent `common::persistence` pour parcourir les
-  causes techniques, tout en conservant leurs traductions métier locales.
-- Vérifier que les domaines ne dépendent pas de l'infrastructure.
-- Vérifier qu'aucune référence externe n'est remplacée par l'identifiant
-  technique d'un autre module.
-- Exécuter `ApplicationModules.verify()` et vérifier que les consommateurs
-  dépendent uniquement de `identity::user` et `organization::organization`,
-  jamais des packages `domain.<domaine>.error` externes.
-- Exécuter la validation globale `./mvnw --batch-mode --no-transfer-progress
-  verify` depuis la racine avec Docker actif.
+Les contrôleurs, DTO, erreurs HTTP, tests Web et parcours HTTP vers PostgreSQL
+ne font pas partie de cette validation.
 
 ## Risques
 
-- Une méthode de repository ajoutée ultérieurement sans tenant pourrait
-  contourner la convention.
-- Une factory recréée plusieurs fois dans la même JVM fragmenterait l'état
-  atomique ; son cycle de vie doit être unique dans l'application.
-- Un redémarrage simultané ou plusieurs nœuds peuvent tirer le même nonce et
-  réutiliser un état logique compatible. Le risque au pire est de `1 / 36^4`
-  pour le nonce ; la contrainte en base détecte le conflit, mais la stratégie
-  devra évoluer avant Kubernetes.
-- Une référence trop longue peut augmenter la taille des index par rapport à un
-  `BIGINT`.
-- L'absence de clé étrangère inter-module impose des contrôles applicatifs
-  fiables et des tests de contrat.
-- Une enum d'erreurs enrichie sans discipline pourrait exposer des détails
-  internes ou accumuler des codes sans comportement consommateur associé.
-- Une traduction oubliée à la frontière d'un directory pourrait laisser fuir
-  une exception technique ; les tests de contrat doivent couvrir ce chemin.
-- L'ajout d'un type dans le package `api` l'intègre au contrat public du module
-  et exige ensuite une évolution compatible avec ses consommateurs.
-- Le singleton local pourrait être activé par erreur dans un environnement non
-  local.
-- Une organisation peut rester en `CREATING` après un provisioning incomplet ;
-  un futur cas d'usage devra permettre sa reprise ou son archivage.
-- Un responsable peut devenir indisponible après sa validation ponctuelle si un
-  chemin contourne l'orchestration prévue ou si deux modifications concurrentes
-  franchissent les frontières des modules. W001-T05 réduira ce risque en
-  refusant la transition utilisateur tant qu'une responsabilité active existe ;
-  T04 ne prétend pas fournir de transaction distribuée ni de surveillance
-  continue. L'organisation ou l'équipe conserve alors son statut persistant
-  jusqu'à une action explicite.
-- `SYSTEM` ne permet pas encore d'identifier l'auteur réel d'une modification.
-- Une modification accidentelle du scope Maven ou de l'exclusion Modulith
-  pourrait faire apparaître l'outillage de test dans l'architecture de
-  production ; les contrôles Maven et ArchUnit doivent rester actifs.
+- Une méthode de repository ajoutée sans tenant pourrait contourner la
+  convention.
+- Plusieurs instances de la factory fragmenteraient son état monotone.
+- Plusieurs JVM peuvent réutiliser un nonce compatible ; la stratégie doit
+  évoluer avant Kubernetes.
+- Une dépendance inter-module oubliée pourrait laisser fuiter un type interne ou
+  une exception technique.
+- Un module peut oublier de traduire une contrainte PostgreSQL connue.
+- Une organisation peut rester en `CREATING` après un provisioning incomplet.
+- Une disponibilité validée peut devenir obsolète après la transaction.
+- Le provider local pourrait être activé par erreur hors développement si le
+  profil est mal configuré.
+- Une modification de scope Maven ou d'exclusion Modulith pourrait faire entrer
+  `tp-test-support` dans l'architecture de production.
 
 ## Notes
 
-- La conception d'un `nodeId`, son attribution et la gestion d'horloge en
-  environnement distribué sont reportées à l'étape Kubernetes.
-- W001-T05 distinguera l'acteur du tenant avec les premiers parcours
-  d'administration, sans ajouter sa référence à `TenantContext`. Les permissions
-  par `hasPermission`, l'organisation et l'acteur issus du JWT, ainsi que le
-  contrôle authentifié de l'appartenance seront traités plus tard avec W008.
-- Le contrôle synchrone prévu en W001-T05 suivra ce flux :
-
-  ```text
-  administration
-      -> consulte les responsabilités actives dans tp-organization et tp-team
-      -> refuse SUSPENDED ou DEACTIVATED tant qu'elles ne sont pas transférées
-      -> appelle ensuite le cas d'usage de tp-identity
-  ```
-
-  Un futur événement `UserAvailabilityChanged` pourra servir à la réconciliation
-  ou à l'observabilité, mais ne suspendra ni ne réactivera aveuglément les
-  agrégats. Son listener, son idempotence et la gestion des courses restent hors
-  périmètre de T04.
-- Les champs d'audit de W001 n'enregistrent que la création et le dernier état.
-  W012 introduira les premiers événements persistés de création de `Team` et
-  `User`. L'historisation complète devra être ajoutée par une extension de W012
-  ou par un ticket ultérieur dédié.
+- W001-T05 ajoute les parcours HTTP et le contrôle d'un acteur applicatif sans
+  modifier `TenantContext`.
+- W008 remplace le provider local par une résolution authentifiée du tenant et
+  des permissions.
+- La coordination multi-nœud et l'identité de nœud sont reportées avant le
+  déploiement Kubernetes.
+- Un futur événement de disponibilité pourra servir à la réconciliation ou à
+  l'observabilité, mais ne modifiera pas automatiquement les agrégats sans une
+  décision d'idempotence et de gestion des courses.
+- W012 introduira les premiers événements d'audit persistés ; l'historisation
+  complète reste hors périmètre.
+- La séquence Slidev T04 est un artefact de clôture distinct.
+- Copier un ADR technique dans un autre projet ne suffit pas à l'adopter : le
+  projet cible doit créer son propre ADR avec ses agrégats, tenant root,
+  préfixes, packages, contraintes, erreurs et déviations.
