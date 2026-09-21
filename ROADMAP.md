@@ -17,7 +17,8 @@ increment starts from a functional or operational problem and connects:
 The detailed planning workbook remains available in
 [`docs/teampulse-roadmap-v9-code-infra-detaille.xlsx`](docs/teampulse-roadmap-v9-code-infra-detaille.xlsx).
 The workbook describes intent; merged pull requests, requirements, ADRs, tests,
-and release tags are the evidence of delivered work.
+ticket traceability tags, and product release tags are the evidence of
+delivered work.
 
 ## Program at a glance
 
@@ -113,8 +114,8 @@ approximately 30%.
 - Detailed roadmap workbook:
   [`docs/teampulse-roadmap-v9-code-infra-detaille.xlsx`](docs/teampulse-roadmap-v9-code-infra-detaille.xlsx)
 - Learning material: [`slidev`](slidev)
-- Delivery evidence: merged pull requests, automated checks, and `W00X-TYY`
-  release tags
+- Delivery evidence: merged pull requests, automated checks, `W00X-TYY` ticket
+  traceability tags, and `vX.Y.Z` product release tags
 - Community work:
   [open issues](https://github.com/amrine/from-dev-to-architect/issues) and
   [`CONTRIBUTING.md`](CONTRIBUTING.md)
