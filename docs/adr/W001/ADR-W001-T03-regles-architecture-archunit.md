@@ -1,149 +1,250 @@
-# ADR-W001-T03 - Regles d'architecture executables avec ArchUnit
+# ADR-W001-T03 - Règles d'architecture exécutables avec ArchUnit
 
 ## Statut
+
 Accepted
 
-## Ticket lie
-W001-T03 - Regles d'architecture executables avec ArchUnit
+## Ticket lié
 
-## Besoin associe
+W001-T03 - Règles d'architecture exécutables avec ArchUnit
+
+## Besoin associé
+
 `docs/besoins/W001/W001-T03-regles-architecture-archunit.md`
 
+## ADR techniques adoptés
+
+- [ADR-TECH-004 - Hexagonal boundaries inside business modules](../technical/ADR-TECH-004-hexagonal-business-module-boundaries.md)
+- [ADR-TECH-005 - Executable architecture rules with ArchUnit](../technical/ADR-TECH-005-executable-architecture-rules-with-archunit.md)
+
+Cet ADR décide leur adoption par TeamPulse et documente le contrat de packages,
+le catalogue de règles et le paramétrage ArchUnit propres au projet.
+ADR-TECH-004 reste propriétaire des frontières hexagonales réutilisables.
+ADR-TECH-005 reste propriétaire de la stratégie générique d'enforcement.
+
 ## Contexte
-Spring Modulith verifie les frontieres et les dependances entre les modules metier
-`identity`, `organization`, `team` et `common`. Il ne decrit pas suffisamment la
-direction des dependances a l'interieur d'un module metier.
 
-TeamPulse doit donc rendre executables les conventions d'architecture hexagonale
-avant l'apparition des premieres classes metier, sans creer de classes de production
-factices uniquement pour activer les regles.
+Spring Modulith vérifie les frontières et les dépendances entre les modules
+TeamPulse. Il ne décrit pas suffisamment la direction des dépendances à
+l'intérieur d'un module métier ni le placement des composants techniques.
 
-## Decision
+TeamPulse doit rendre ses conventions hexagonales exécutables sans dupliquer
+les règles dans chaque module et sans créer de classes de production factices
+pour peupler des packages encore inutilisés.
 
-- Conserver `ApplicationModules.verify()` comme verification de reference des
-  frontieres inter-modules.
-- Utiliser ArchUnit pour verifier l'organisation interne de `identity`,
-  `organization` et `team`.
-- Declarer explicitement ArchUnit dans `tp-app` avec le scope Maven `test`.
-- Decouvrir dynamiquement les modules metier a partir du modele Spring Modulith de
-  `TpAppApplication`, sans maintenir une liste dans une configuration de test.
-- Exclure de ce catalogue les modules declares comme partages par Spring Modulith,
-  notamment `common`.
-- Centraliser les regles communes dans une fabrique parametree par le nom et le
-  package de base de chaque module decouvert.
-- Appliquer le meme catalogue de regles a tous les modules metier decouverts.
-- Placer les tests d'architecture dans `tp-app`, qui assemble les classes de
+## Décision
+
+### Responsabilité des contrôles
+
+| Contrôle | Responsabilité TeamPulse |
+| --- | --- |
+| Maven | Dépendances physiques entre les modules Maven et scopes de dépendances. |
+| Spring Modulith | Frontières, cycles, surfaces publiques et dépendances autorisées entre modules applicatifs. |
+| ArchUnit | Placement et direction des dépendances à l'intérieur des modules métier. |
+
+- Conserver `ApplicationModules.verify()` comme vérification de référence des
+  frontières inter-modules.
+- Ne pas reproduire avec ArchUnit les contrôles déjà possédés par Spring
+  Modulith.
+- Utiliser ArchUnit `1.4.2`, déclaré explicitement dans `tp-app` avec le scope
+  Maven `test`.
+- Exécuter les tests d'architecture dans `tp-app`, qui assemble les classes de
   production de tous les modules.
-- Importer uniquement les classes de production sous le package racine derive de
-  `TpAppApplication`, en excluant les classes de test.
-- Placer les ports entrants et sortants dans `application.port.in` et
-  `application.port.out`.
-- Garder les entites metier dans `domain` et les entites JPA, repositories Spring
-  Data et mappings dans `infrastructure.persistence`.
-- Garder les controleurs et types HTTP dans `infrastructure.web`.
-- Garder les configurations Spring dans `config`.
-- Autoriser temporairement une regle sans classe cible lorsque le package concerne
-  est encore vide.
-- Ne creer aucune classe de production factice pour satisfaire ArchUnit.
+- Importer uniquement les classes de production sous le package racine dérivé
+  de `TpAppApplication`, en excluant les classes de test.
+- Exécuter ces tests sans démarrer Spring Boot, PostgreSQL ou Testcontainers.
 
-ArchUnit controle la structure et la direction des dependances internes. Maven
-controle les dependances physiques entre modules. Spring Modulith controle les
-frontieres et dependances inter-modules. Ces responsabilites restent
-complementaires.
+### Catalogue des modules analysés
 
-## Alternatives envisagees
+- Construire `ArchitectureModules` à partir du modèle Spring Modulith de
+  `TpAppApplication`.
+- Découvrir les modules métier dynamiquement au lieu de maintenir une seconde
+  liste dans les tests.
+- Exclure les modules déclarés comme partagés par Spring Modulith, notamment
+  `common`, du catalogue des règles internes métier.
+- Appliquer aujourd'hui le contrat commun aux modules découverts `identity`,
+  `organization` et `team`.
+- Paramétrer les règles avec l'identifiant et le package de base retournés par
+  le modèle Spring Modulith.
+- Centraliser les règles dans `BusinessModuleArchitectureRules` et vérifier
+  avec R10 que tous les modules métier reçoivent le même catalogue.
 
-- Conserver uniquement des conventions documentees sans verification executable.
-- Utiliser Spring Modulith pour verifier aussi les couches internes.
-- Dupliquer les regles ArchUnit dans chaque module metier.
+L'exclusion supplémentaire de `io.teampulse.testsupport` du modèle applicatif
+est une extension décidée par W001-T04. Elle est décrite plus bas sans être
+réattribuée rétroactivement à T03.
+
+### Adoption TeamPulse des contrats techniques
+
+TeamPulse applique les conventions génériques de packages définies par
+ADR-TECH-004 à ces racines de modules :
+
+| Module | `<module-root>` |
+| --- | --- |
+| `identity` | `io.teampulse.identity` |
+| `organization` | `io.teampulse.organization` |
+| `team` | `io.teampulse.team` |
+
+Les suffixes `domain`, `application.port.in`, `application.port.out`,
+`application.service`, `infrastructure.persistence`, `infrastructure.web`,
+`infrastructure.messaging`, `config`, `api` et `events` sont appliqués sans
+déviation par rapport à ADR-TECH-004.
+
+TeamPulse spécialise le catalogue générique R01 à R10 d'ADR-TECH-005 ainsi :
+
+- R01 considère Spring, Jakarta Validation et JPA comme frameworks interdits au
+  domaine, en plus des packages externes du module.
+- R04 confine Jakarta Persistence, Spring Data, les entités JPA, repositories et
+  mappers dans `infrastructure.persistence`.
+- R05 confine Spring Web, Spring HTTP et Jakarta Servlet dans
+  `infrastructure.web` et interdit au Web de dépendre directement de la
+  persistence.
+- R07 utilise `api` et `events` comme surface publique autonome des modules.
+- R08 place les configurations Spring dans `config`, les repositories Spring
+  dans `infrastructure.persistence` et réserve la racine du module à
+  `package-info`.
+- R02, R03, R06 et R09 sont appliquées sans spécialisation supplémentaire.
+- R01 à R09 sont construites par `BusinessModuleArchitectureRules`.
+- R10 est vérifiée séparément par `InternalArchitectureTests`, car elle contrôle
+  le catalogue lui-même plutôt qu'une dépendance de production.
+
+### Extensions possédées par W001-T04
+
+W001-T04 complète le dispositif sans modifier la propriété des décisions T03 :
+
+- R11 autorise dans `application.service` uniquement les types Spring
+  déclaratifs retenus par T04, interdit JPA, Spring Data, `infrastructure` et
+  `config`, puis impose `@Validated` aux classes annotées `@Service`.
+- `TestSupportArchitectureTests` vérifie que `tp-test-support` reste hors du
+  modèle Spring Modulith et qu'aucun code de production n'en dépend.
+- `ArchitectureModules` exclut `io.teampulse.testsupport` du modèle analysé.
+
+Le catalogue actuellement retourné par `BusinessModuleArchitectureRules`
+contient donc R01 à R09 et R11. R10 vérifie cette liste pour chaque module
+métier. La justification métier et technique de R11 et de `tp-test-support`
+reste dans [ADR-W001-T04](ADR-W001-T04-multi-tenancy-organization-reference.md).
+
+### Packages encore vides
+
+- Autoriser temporairement `allowEmptyShould(true)` lorsqu'une règle ne possède
+  encore aucune classe cible.
+- Ne jamais présenter une règle vide comme une preuve que la frontière a été
+  exercée.
+- Ne créer aucune classe, interface ou abstraction de production uniquement
+  pour activer ArchUnit.
+- Appliquer automatiquement la règle dès qu'une capacité réelle introduit une
+  classe dans le package concerné.
+- Toute exception propre à un module doit être explicite, justifiée et associée
+  à un ticket ou une condition de suppression lorsqu'elle est temporaire.
+
+## Alternatives envisagées
+
+- Conserver uniquement des conventions documentées et la revue de code.
+- Utiliser Spring Modulith pour les couches internes.
+- Dupliquer les règles ArchUnit dans chaque module métier.
+- Maintenir manuellement une liste de modules distincte du modèle Modulith.
 - Placer les ports dans `domain.port`.
-- Utiliser directement les entites JPA comme modele metier.
-- Ajouter ArchUnit uniquement par dependance transitive.
-- Creer des classes de production factices pour peupler les packages vides.
+- Utiliser directement les entités JPA comme modèles métier et contrats publics.
+- Ajouter ArchUnit uniquement par dépendance transitive.
+- Créer des classes factices pour peupler les packages vides.
+
+Les alternatives structurelles et d'enforcement sont évaluées respectivement
+dans ADR-TECH-004 et ADR-TECH-005. Elles ne sont pas redéveloppées ici.
 
 ## Justification
 
-Une fabrique commune evite la divergence des regles entre les modules metier. La
-decouverte a partir du modele Spring Modulith conserve une seule source de verite :
-un nouveau module metier est automatiquement soumis aux regles, tandis qu'un module
-partage reste hors du contrat interne R01 a R09. Le placement dans `tp-app` permet
-une analyse unique du code assemble sans ajouter ArchUnit au runtime des modules de
-production.
+La découverte depuis Spring Modulith maintient une seule source de vérité : un
+nouveau module métier est soumis automatiquement au contrat, tandis qu'un module
+partagé ou technique ne reçoit pas accidentellement des règles métier.
 
-Les ports appartiennent a l'application car ils expriment les contrats des cas
-d'usage. Le domaine reste independant de l'infrastructure et des frameworks.
+La fabrique commune empêche la divergence des règles entre `identity`,
+`organization` et `team`. Son placement dans `tp-app` donne accès au classpath
+assemblé sans ajouter ArchUnit aux modules de production.
 
-La separation entre entites metier et entites JPA protege le domaine de la
-persistence. Les decisions de performance JPA detaillees, telles que les projections,
-les plans de chargement et la prevention des problemes N+1, seront documentees avec
-les tickets qui introduiront les premiers cas d'usage et agregats.
+Le découpage hexagonal garde le domaine indépendant des frameworks, place les
+ports avec les cas d'usage qui les possèdent et confine les décisions JPA ou HTTP
+dans leurs adapters. Les règles structurelles protègent ces frontières ; elles
+ne remplacent pas les tests de comportement.
 
-## Consequences positives
+## Conséquences positives
 
-- Les violations internes sont detectees pendant le build Maven.
-- Tous les modules metier decouverts suivent le meme contrat executable.
-- L'ajout d'un module metier ne necessite pas de modifier une liste propre aux tests
-  ArchUnit.
-- Le package racine n'est pas code en dur dans les tests, ce qui facilite la reprise
-  du projet comme squelette.
-- Les tests d'architecture peuvent s'executer sans Spring Boot, PostgreSQL ou
-  Testcontainers.
-- Les entites JPA restent confinees a la persistence.
-- Les futures classes sont controlees automatiquement des leur apparition.
-- Spring Modulith et ArchUnit gardent des responsabilites distinctes.
+- Les violations internes sont détectées pendant le build Maven.
+- Tous les modules métier découverts suivent le même contrat exécutable.
+- Un nouveau module métier ne nécessite pas la modification d'une liste ArchUnit
+  parallèle.
+- Les tests s'exécutent sans contexte Spring ni infrastructure externe.
+- Les entités JPA et types HTTP restent confinés à leurs adapters.
+- Les futures classes sont contrôlées dès leur apparition.
+- Maven, Spring Modulith et ArchUnit gardent des responsabilités distinctes.
 
-## Consequences negatives / compromis
+## Conséquences négatives / compromis
 
-- Certaines regles restent sans cible tant que les packages sont vides.
-- Le mapping entre modele metier et modele de persistence ajoute du code et des
-  allocations ; il devra etre mesure et limite aux frontieres utiles.
-- Les regles doivent evoluer si de nouvelles zones techniques sont introduites.
-- Une regle structurelle ne prouve ni le comportement fonctionnel ni la performance
-  des requetes JPA.
+- Les prédicats et conditions ArchUnit personnalisés doivent évoluer avec
+  l'architecture.
+- Une règle sans cible peut donner une fausse impression de couverture si son
+  statut n'est pas interprété correctement.
+- La séparation des modèles métier, persistence et transport ajoute du mapping.
+- Une règle structurelle ne prouve ni comportement fonctionnel, ni wiring
+  Spring, ni transaction, ni performance SQL.
+- Une évolution légitime des packages nécessite une mise à jour coordonnée des
+  règles et de cet ADR.
 
 ## Impact technique
 
-- `pom.xml` pour la version ArchUnit.
-- `tp-app/pom.xml` pour la dependance ArchUnit de test.
-- `tp-app/src/test/java/io/teampulse/architecture` pour la fabrique et les tests
-  ArchUnit partages.
-- `ArchitectureModules` derive le catalogue des modules du modele Spring Modulith et
-  exclut les modules partages.
-- `BusinessModuleArchitectureRules` construit les regles R01 a R09 pour chaque
-  module decouvert.
-- `InternalArchitectureTests` execute ces regles et verifie avec R10 que leur
-  catalogue reste identique pour tous les modules metier.
-- `ModulithArchitectureTests` reste la verification inter-modules.
-- Aucun fichier de production ne doit etre ajoute uniquement pour ArchUnit.
+- `pom.xml` pour `archunit.version`.
+- `tp-app/pom.xml` pour la dépendance ArchUnit en scope `test`.
+- `tp-app/src/test/java/io/teampulse/architecture/ArchitectureModules.java`.
+- `tp-app/src/test/java/io/teampulse/architecture/BusinessModuleArchitectureRules.java`.
+- `tp-app/src/test/java/io/teampulse/architecture/InternalArchitectureTests.java`.
+- `tp-app/src/test/java/io/teampulse/architecture/ModulithArchitectureTests.java`.
+- Extension T04 :
+  `tp-app/src/test/java/io/teampulse/architecture/TestSupportArchitectureTests.java`.
+- Packages de production des modules `tp-identity`, `tp-organization` et
+  `tp-team`.
 
 ## Validation
 
-1. Executer les tests ArchUnit seuls et verifier qu'ils ne demarrent ni Spring Boot,
-   ni PostgreSQL, ni Testcontainers.
-2. Executer `mvn clean verify` et verifier que les tests Modulith et ArchUnit sont
-   decouverts.
-3. Introduire temporairement dans `domain` une dependance interdite vers `config` et
-   constater l'echec de R01 avec un message explicite.
-4. Supprimer la violation et constater le retour au vert.
-5. Verifier que la dependance ArchUnit reste en scope Maven `test`.
+- Exécuter les contrôles ciblés :
+
+  ```bash
+  ./mvnw --batch-mode --no-transfer-progress \
+    -pl tp-app -am \
+    -Dtest=InternalArchitectureTests,ModulithArchitectureTests,TestSupportArchitectureTests \
+    -Dsurefire.failIfNoSpecifiedTests=false \
+    test
+  ```
+
+- Vérifier que cette exécution ne démarre ni Spring Boot, ni PostgreSQL, ni
+  Testcontainers.
+- Exécuter `./mvnw --batch-mode --no-transfer-progress clean verify` pour la
+  validation complète du reactor.
+- Introduire temporairement une dépendance de `domain` vers `config`, constater
+  l'échec explicite de R01, supprimer la violation et constater le retour au
+  vert.
+- Vérifier que `archunit` et `tp-test-support` restent absents des scopes de
+  production.
+- Vérifier que `ApplicationModules.verify()` et les règles ArchUnit sont tous
+  découverts par le build standard.
 
 ## Risques
 
-- Une regle appliquee a un package vide peut donner une fausse impression de
-  couverture ; les packages cibles devront etre testes des l'apparition des classes.
-- Une mauvaise strategie de chargement JPA peut annuler les gains apportes par la
-  separation architecturale ; ce point sera valide avec les premiers cas concrets.
-- Une exception propre a un seul module pourrait faire diverger le contrat commun.
+- Une règle appliquée à un package vide ne prouve pas encore son efficacité sur
+  une classe réelle.
+- Une dépendance indirecte ou créée par réflexion peut ne pas être visible comme
+  dépendance de bytecode ordinaire.
+- Un prédicat trop large peut bloquer une évolution légitime ; l'exception ne
+  doit toutefois jamais être ajoutée silencieusement pour un seul module.
+- Une nouvelle catégorie d'adapter ou un nouvel usage de framework peut exiger
+  une décision complémentaire et une extension du catalogue.
 
 ## Notes
 
-Les regles R01 a R09 sont centralisees dans une fabrique commune. R10 est verifiee
-par un test qui s'assure que les memes identifiants de regles sont appliques a tous
-les modules metier decouverts.
-
-`AGENTS.md` est aligne sur la decision `application.port.in` et
+`AGENTS.md` est aligné sur les ports dans `application.port.in` et
 `application.port.out`.
 
-Validation acceptee le 22 juillet 2026 apres l'echec controle de R01, la suppression
-de la violation temporaire et le retour au vert des 29 tests d'architecture puis des
-35 tests executes par `mvn clean verify`.
+Les nombres historiques de tests ne font pas partie de la décision : ils
+évoluent avec le code. La preuve durable est constituée par les commandes de
+validation, les règles exécutées et le résultat observé au moment du changement.
+
+Copier ADR-TECH-004 ou ADR-TECH-005 dans un autre projet ne suffit pas à les y
+adopter. Le projet cible doit créer son propre ADR avec ses modules, packages,
+outils, règles, exceptions et commandes de validation.
