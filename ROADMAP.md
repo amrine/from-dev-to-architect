@@ -36,18 +36,20 @@ and release tags are the evidence of delivered work.
 **Phase 1 is in progress.** The current public increment is
 [`W001 - TeamPulse backend foundation`](docs/besoins/W001/README.md).
 
-Delivered through `main`:
+Delivered and validated in the current W001 increment:
 
 - `W001-T01`: modular Spring Boot backend foundation;
 - `W001-T02`: local PostgreSQL with module-owned Flyway schemas;
 - `W001-T03`: executable architecture rules with ArchUnit and Spring Modulith.
+- `W001-T04`: organization-scoped multi-tenancy with `organization_ref`,
+  tenant-scoped application contracts, persistence constraints, and
+  PostgreSQL-backed validation.
 
 The next W001 sequence is:
 
-1. `W001-T04`: organization-scoped multi-tenancy with `organization_ref`;
-2. `W001-T05`: minimal users API and persistence vertical;
-3. `W001-T06`: production-oriented multi-stage container image;
-4. `W001-T07`: explicit local and LocalStack configuration profiles.
+1. `W001-T05`: minimal users API and persistence vertical;
+2. `W001-T06`: production-oriented multi-stage container image;
+3. `W001-T07`: explicit local and LocalStack configuration profiles.
 
 An increment is considered delivered only when its requirement, ADR,
 implementation, tests, documentation, and learning material agree.
