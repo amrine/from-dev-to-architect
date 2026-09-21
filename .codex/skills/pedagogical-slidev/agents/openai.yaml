@@ -1,0 +1,4 @@
+interface:
+  display_name: "Pedagogical Slidev"
+  short_description: "Conception pédagogique et génération Slidev TeamPulse"
+  default_prompt: "Use $pedagogical-slidev to analyze TeamPulse resources, build the learning path and storyline, then generate or review a French Slidev deck with presenter notes and executable proof."

@@ -81,14 +81,14 @@ Before implementing any ticket: check for the ADR, create it if absent, implemen
 
 ### Slidev training deck
 
-The deck lives in `slidev/` and is the progressive training resource for the project. It is generated and maintained via the `.codex/skills/generate-teampulse-slidev/` skill.
+The deck lives in `slidev/` and is the progressive training resource for the project. It is generated and maintained via the `.codex/skills/pedagogical-slidev/` skill.
 
 Key conventions:
 - Entry point: `slidev/slides.md` (frontmatter, cover, `src:` imports of week pages).
 - Week pages: `slidev/pages/weeks/W001.md`, etc.
 - Generated zones are bounded by `<!-- AUTO-GENERATED:W001:START -->` / `<!-- AUTO-GENERATED:W001:END -->` markers. Manual content outside these markers must never be overwritten.
 - The design system is fully defined in `slidev/styles/index.css` (tokens and utility classes) and `slidev/components/PulseLine.vue`. All slides must use only these tokens — no inline colors or new CSS classes.
-- Full style reference and slide-type patterns: `.codex/skills/generate-teampulse-slidev/references/slidev-requirements.md`.
+- Full style reference and slide-type patterns: `.codex/skills/pedagogical-slidev/references/slidev-guidelines.md`.
 
 ### Key constraints
 
