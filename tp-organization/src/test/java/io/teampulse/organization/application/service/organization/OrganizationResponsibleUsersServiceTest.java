@@ -86,7 +86,7 @@ class OrganizationResponsibleUsersServiceTest {
         }
 
         @Test
-        void assignsAnAvailableAdministratorAndActivatesWhenTheManagerIsAlreadyAvailable() {
+        void refusesTheFinalAvailableAdministratorWithoutChangingTheOrganization() {
             Organization organization = Organization.restore(
                 ORGANIZATION_REFERENCE,
                 "Team Pulse",
@@ -106,20 +106,28 @@ class OrganizationResponsibleUsersServiceTest {
                 MANAGER_REFERENCE
             )).thenReturn(true);
 
-            service.assignAdministrator(command(ADMINISTRATOR_REFERENCE));
+            OrganizationException exception = assertThrows(
+                OrganizationException.class,
+                () -> service.assignAdministrator(command(ADMINISTRATOR_REFERENCE))
+            );
 
-            assertEquals(OrganizationStatus.ACTIVE, organization.getStatus());
+            assertEquals(
+                OrganizationErrorCode.LIFECYCLE_TRANSITION_DEFERRED,
+                exception.getErrorCode()
+            );
+            assertNull(organization.getAdminReference());
+            assertEquals(OrganizationStatus.CREATING, organization.getStatus());
             verify(responsibleUsersValidator)
                 .areResponsibleUsersAvailable(
                     ORGANIZATION_REFERENCE,
                     ADMINISTRATOR_REFERENCE,
                     MANAGER_REFERENCE
                 );
-            verify(organizationRepository).update(organization);
+            verify(organizationRepository, never()).update(any(Organization.class));
         }
 
         @Test
-        void assignsAnAvailableManagerAndActivatesWhenBothAreAvailable() {
+        void refusesTheFinalAvailableManagerWithoutChangingTheOrganization() {
             Organization organization = creatingOrganizationWithAdministrator();
             givenOrganization(organization);
             when(responsibleUsersValidator.validateAssignableManager(
@@ -132,16 +140,24 @@ class OrganizationResponsibleUsersServiceTest {
                 MANAGER_REFERENCE
             )).thenReturn(true);
 
-            service.assignManager(command(MANAGER_REFERENCE));
+            OrganizationException exception = assertThrows(
+                OrganizationException.class,
+                () -> service.assignManager(command(MANAGER_REFERENCE))
+            );
 
-            assertEquals(OrganizationStatus.ACTIVE, organization.getStatus());
+            assertEquals(
+                OrganizationErrorCode.LIFECYCLE_TRANSITION_DEFERRED,
+                exception.getErrorCode()
+            );
+            assertNull(organization.getManagerReference());
+            assertEquals(OrganizationStatus.CREATING, organization.getStatus());
             verify(responsibleUsersValidator)
                 .areResponsibleUsersAvailable(
                     ORGANIZATION_REFERENCE,
                     ADMINISTRATOR_REFERENCE,
                     MANAGER_REFERENCE
                 );
-            verify(organizationRepository).update(organization);
+            verify(organizationRepository, never()).update(any(Organization.class));
         }
 
         @Test
@@ -216,7 +232,7 @@ class OrganizationResponsibleUsersServiceTest {
         }
 
         @Test
-        void assignsAnAvailableManagerToASuspendedOrganizationAndReactivatesIt() {
+        void refusesTheFinalAvailableManagerForASuspendedOrganization() {
             Organization organization = suspendedOrganizationWithoutManager();
             givenOrganization(organization);
             when(responsibleUsersValidator.validateAssignableManager(
@@ -229,10 +245,18 @@ class OrganizationResponsibleUsersServiceTest {
                 MANAGER_REFERENCE
             )).thenReturn(true);
 
-            service.assignManager(command(MANAGER_REFERENCE));
+            OrganizationException exception = assertThrows(
+                OrganizationException.class,
+                () -> service.assignManager(command(MANAGER_REFERENCE))
+            );
 
-            assertEquals(OrganizationStatus.ACTIVE, organization.getStatus());
-            verify(organizationRepository).update(organization);
+            assertEquals(
+                OrganizationErrorCode.LIFECYCLE_TRANSITION_DEFERRED,
+                exception.getErrorCode()
+            );
+            assertNull(organization.getManagerReference());
+            assertEquals(OrganizationStatus.SUSPENDED, organization.getStatus());
+            verify(organizationRepository, never()).update(any(Organization.class));
         }
 
         @Test

@@ -74,7 +74,7 @@ public class UserHttpErrorAdvice {
             case EMAIL_ALREADY_USED -> error(
                 HttpStatus.CONFLICT,
                 "USER_EMAIL_ALREADY_USED",
-                    "Email is already used in this organization"
+                "Email is already used in this organization"
             );
             case TRANSITION_NOT_ALLOWED -> error(
                 HttpStatus.CONFLICT,

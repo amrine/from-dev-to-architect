@@ -35,8 +35,21 @@ public class OrganizationResponsibleUsersService
                 command.responsibleReference()
             );
 
+        if (Objects.equals(
+            organization.getAdminReference(),
+            command.responsibleReference()
+        )) {
+            organization.assignAdministrator(command.responsibleReference());
+            return organization;
+        }
+
+        rejectDeferredTransition(
+            organization,
+            command.responsibleReference(),
+            organization.getManagerReference(),
+            availability
+        );
         organization.assignAdministrator(command.responsibleReference());
-        activateWhenResponsibleUsersAreAvailable(organization, availability);
 
         return organizationRepository.update(organization);
     }
@@ -51,8 +64,21 @@ public class OrganizationResponsibleUsersService
                 command.responsibleReference()
             );
 
+        if (Objects.equals(
+            organization.getManagerReference(),
+            command.responsibleReference()
+        )) {
+            organization.assignManager(command.responsibleReference());
+            return organization;
+        }
+
+        rejectDeferredTransition(
+            organization,
+            organization.getAdminReference(),
+            command.responsibleReference(),
+            availability
+        );
         organization.assignManager(command.responsibleReference());
-        activateWhenResponsibleUsersAreAvailable(organization, availability);
 
         return organizationRepository.update(organization);
     }
@@ -106,36 +132,35 @@ public class OrganizationResponsibleUsersService
         return organizationRepository.update(organization);
     }
 
-    private void activateWhenResponsibleUsersAreAvailable(
+    private void rejectDeferredTransition(
         Organization organization,
+        String administratorReference,
+        String managerReference,
         UserAvailability assignedUserAvailability
     ) {
-        if (assignedUserAvailability != UserAvailability.AVAILABLE
-            || organization.getAdminReference() == null
-            || organization.getManagerReference() == null) {
+        if (assignedUserAvailability != UserAvailability.AVAILABLE) {
             return;
         }
 
-        if (organization.getStatus() != OrganizationStatus.CREATING
-            && organization.getStatus() != OrganizationStatus.SUSPENDED) {
+        if ((organization.getStatus() != OrganizationStatus.CREATING
+                && organization.getStatus() != OrganizationStatus.SUSPENDED)
+            || administratorReference == null
+            || managerReference == null) {
             return;
         }
 
-        boolean bothAvailable = responsibleUsersValidator
-            .areResponsibleUsersAvailable(
-                organization.getReference(),
-                organization.getAdminReference(),
-                organization.getManagerReference()
-            );
-        if (!bothAvailable) {
+        if (!responsibleUsersValidator.areResponsibleUsersAvailable(
+            organization.getReference(),
+            administratorReference,
+            managerReference
+        )) {
             return;
         }
 
-        if (organization.getStatus() == OrganizationStatus.CREATING) {
-            organization.activate();
-        } else {
-            organization.reactivate();
-        }
+        throw new OrganizationException(
+            OrganizationErrorCode.LIFECYCLE_TRANSITION_DEFERRED,
+            "Completing available organization responsibilities is deferred"
+        );
     }
 
     private Organization findOrganization(String organizationReference) {

@@ -102,5 +102,15 @@ Each adopting project records its local decision in a project ADR, including:
 The technical ADR remains reusable. Its status does not automatically adopt a
 publisher, listener or registry for another project.
 
+## Implementation progress
+
+The identity vertical publishes `UserInvited` after successful persistence.
+The fact contains only the organization and user references; a focused service
+test verifies the publish follows persistence and carries no user details.
+The real HTTP test verifies an invitation is persisted in `INVITED` status.
+There is no listener, Event Publication Registry, replay path or notification
+delivery in T05. `./mvnw --batch-mode --no-transfer-progress -pl tp-identity
+-am verify` passes. This ADR remains `Draft`.
+
 ## References
 - [Spring Modulith — Working with Application Events](https://docs.spring.io/spring-modulith/reference/events.html)

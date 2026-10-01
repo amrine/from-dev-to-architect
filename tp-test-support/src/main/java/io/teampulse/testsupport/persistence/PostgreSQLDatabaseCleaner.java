@@ -39,7 +39,7 @@ public final class PostgreSQLDatabaseCleaner {
         try (Connection connection = dataSource.getConnection()) {
             String applicationTables;
             try (Statement query = connection.createStatement();
-                    ResultSet result = query.executeQuery(APPLICATION_TABLES_QUERY)) {
+                 ResultSet result = query.executeQuery(APPLICATION_TABLES_QUERY)) {
                 if (!result.next()) {
                     return;
                 }
