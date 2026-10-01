@@ -14,3 +14,6 @@ spring:
     open-in-view: false
     hibernate:
       ddl-auto: validate
+
+server:
+  address: 127.0.0.1

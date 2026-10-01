@@ -1,22 +1,22 @@
-package io.teampulse.team;
+package io.teampulse;
 
-import io.teampulse.testsupport.persistence.PersistenceIntegrationTestConfiguration;
+import io.teampulse.testsupport.persistence.PostgreSQLTestConfiguration;
 import io.teampulse.testsupport.web.AbstractHttpIntegrationTest;
 import io.teampulse.testsupport.web.HttpIntegrationTestConfiguration;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureRestTestClient;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 
-@ActiveProfiles("local")
 @SpringBootTest(
-    classes = TeamTestApplication.class,
+    classes = TpAppApplication.class,
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT
 )
 @AutoConfigureRestTestClient
+@ActiveProfiles("local")
 @Import({
-    PersistenceIntegrationTestConfiguration.class,
+    PostgreSQLTestConfiguration.class,
     HttpIntegrationTestConfiguration.class
 })
-public abstract class AbstractTeamHttpIntegrationTest extends AbstractHttpIntegrationTest {
+public abstract class AbstractTpAppHttpIntegrationTest extends AbstractHttpIntegrationTest {
 }

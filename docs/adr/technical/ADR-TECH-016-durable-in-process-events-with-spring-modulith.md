@@ -120,6 +120,12 @@ There is no listener, Event Publication Registry, replay path or notification
 delivery in T05. `./mvnw --batch-mode --no-transfer-progress -pl tp-identity
 -am verify` passes. This ADR remains `Draft`.
 
+The administration HTTP vertical continues to issue commands through the
+public synchronous Java contracts of the owning modules. It adds no listener,
+publication registry, replay path or notification side effect; no
+`OrganizationActivated` event is published before W008. The full reactor
+`verify` passes. This ADR remains `Draft`.
+
 ## References
 - [Spring Modulith — Working with Application Events](https://docs.spring.io/spring-modulith/reference/events.html)
 - [Spring Modulith 2.0.x event publication API](https://docs.spring.io/spring-modulith/docs/2.0.x/api/org/springframework/modulith/events/core/package-summary.html)

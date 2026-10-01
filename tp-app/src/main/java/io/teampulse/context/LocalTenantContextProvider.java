@@ -2,7 +2,10 @@ package io.teampulse.context;
 
 import io.teampulse.common.context.TenantContext;
 import io.teampulse.common.context.TenantContextProvider;
-import io.teampulse.common.reference.ReferenceFactory;
+import io.teampulse.organization.api.organization.OrganizationLifecycleState;
+import io.teampulse.organization.api.organization.OrganizationProvisioning;
+import io.teampulse.organization.api.organization.OrganizationProvisioningCommand;
+import io.teampulse.organization.api.organization.OrganizationProvisioningResult;
 
 import java.util.Objects;
 
@@ -12,16 +15,17 @@ import java.util.Objects;
 public final class LocalTenantContextProvider
     implements TenantContextProvider {
 
-    private static final String ORGANIZATION_REFERENCE_PREFIX = "ORG";
+    private static final String DEMO_ORGANIZATION_NAME = "TeamPulse Local Demo";
+    private static final String DEMO_ORGANIZATION_TIMEZONE = "Europe/Paris";
 
-    private final ReferenceFactory referenceFactory;
+    private final OrganizationProvisioning organizationProvisioning;
 
     private volatile TenantContext tenantContext;
 
-    public LocalTenantContextProvider(ReferenceFactory referenceFactory) {
-        this.referenceFactory = Objects.requireNonNull(
-            referenceFactory,
-            "referenceFactory must not be null"
+    public LocalTenantContextProvider(OrganizationProvisioning organizationProvisioning) {
+        this.organizationProvisioning = Objects.requireNonNull(
+            organizationProvisioning,
+            "organizationProvisioning must not be null"
         );
     }
 
@@ -34,16 +38,27 @@ public final class LocalTenantContextProvider
                 resolvedContext = tenantContext;
 
                 if (resolvedContext == null) {
-                    resolvedContext = new TenantContext(
-                        referenceFactory.generate(
-                            ORGANIZATION_REFERENCE_PREFIX
-                        )
-                    );
+                    resolvedContext = createDemoOrganizationContext();
                     tenantContext = resolvedContext;
                 }
             }
         }
 
         return resolvedContext;
+    }
+
+    private TenantContext createDemoOrganizationContext() {
+        OrganizationProvisioningResult organization = organizationProvisioning.createOrganization(
+            new OrganizationProvisioningCommand(
+                DEMO_ORGANIZATION_NAME,
+                DEMO_ORGANIZATION_TIMEZONE
+            )
+        );
+        if (organization.status() != OrganizationLifecycleState.CREATING) {
+            throw new IllegalStateException(
+                "The local demo organization must remain in CREATING"
+            );
+        }
+        return new TenantContext(organization.organizationReference());
     }
 }

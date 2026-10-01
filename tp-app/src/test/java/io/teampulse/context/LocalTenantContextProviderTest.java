@@ -1,7 +1,10 @@
 package io.teampulse.context;
 
 import io.teampulse.common.context.TenantContext;
-import io.teampulse.common.reference.ReferenceFactory;
+import io.teampulse.organization.api.organization.OrganizationLifecycleState;
+import io.teampulse.organization.api.organization.OrganizationProvisioning;
+import io.teampulse.organization.api.organization.OrganizationProvisioningCommand;
+import io.teampulse.organization.api.organization.OrganizationProvisioningResult;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -25,89 +28,56 @@ class LocalTenantContextProviderTest {
         "ORG-2026-0609-00000ZA7B900";
 
     @Test
-    void doesNotGenerateTenantBeforeFirstResolution() {
-        AtomicInteger generationCount = new AtomicInteger();
-        ReferenceFactory referenceFactory = _ -> {
-            generationCount.incrementAndGet();
-            return ORGANIZATION_REFERENCE;
-        };
-
-        new LocalTenantContextProvider(referenceFactory);
-
-        assertEquals(0, generationCount.get());
-    }
-
-    @Test
-    void generatesOrganizationReferenceOnFirstResolution() {
-        AtomicInteger generationCount = new AtomicInteger();
-        AtomicReference<String> generatedPrefix = new AtomicReference<>();
-        ReferenceFactory referenceFactory = prefix -> {
-            generatedPrefix.set(prefix);
-            generationCount.incrementAndGet();
-            return ORGANIZATION_REFERENCE;
+    void provisionsTheDemoOrganizationLazilyAndUsesItsPersistedReference() {
+        AtomicInteger provisioningCount = new AtomicInteger();
+        AtomicReference<OrganizationProvisioningCommand> command = new AtomicReference<>();
+        OrganizationProvisioning organizationProvisioning = requestedCommand -> {
+            provisioningCount.incrementAndGet();
+            command.set(requestedCommand);
+            return organization(ORGANIZATION_REFERENCE, OrganizationLifecycleState.CREATING);
         };
         LocalTenantContextProvider provider =
-            new LocalTenantContextProvider(referenceFactory);
+            new LocalTenantContextProvider(organizationProvisioning);
 
-        TenantContext tenantContext = provider.current();
-
-        assertEquals(
-            ORGANIZATION_REFERENCE,
-            tenantContext.tenantReference()
-        );
-        assertEquals("ORG", generatedPrefix.get());
-        assertEquals(1, generationCount.get());
-    }
-
-    @Test
-    void returnsTheSameContextForEveryResolution() {
-        AtomicInteger generationCount = new AtomicInteger();
-        ReferenceFactory referenceFactory = _ -> {
-            generationCount.incrementAndGet();
-            return ORGANIZATION_REFERENCE;
-        };
-        LocalTenantContextProvider provider =
-            new LocalTenantContextProvider(referenceFactory);
-
+        assertEquals(0, provisioningCount.get());
         TenantContext firstContext = provider.current();
         TenantContext secondContext = provider.current();
 
+        assertEquals(ORGANIZATION_REFERENCE, firstContext.tenantReference());
         assertSame(firstContext, secondContext);
-        assertEquals(1, generationCount.get());
+        assertEquals(1, provisioningCount.get());
+        assertEquals("TeamPulse Local Demo", command.get().name());
+        assertEquals("Europe/Paris", command.get().timezone());
     }
 
     @Test
-    void generatesOnlyOneContextWhenResolvedConcurrently() throws Exception {
+    void provisionsOnlyOneOrganizationWhenResolvedConcurrently() throws Exception {
         int threadCount = 12;
         CountDownLatch ready = new CountDownLatch(threadCount);
         CountDownLatch start = new CountDownLatch(1);
-        CountDownLatch generationStarted = new CountDownLatch(1);
-        CountDownLatch releaseGeneration = new CountDownLatch(1);
-        AtomicInteger generationCount = new AtomicInteger();
-
-        ReferenceFactory referenceFactory = _ -> {
-            generationCount.incrementAndGet();
-            generationStarted.countDown();
-
+        CountDownLatch provisioningStarted = new CountDownLatch(1);
+        CountDownLatch releaseProvisioning = new CountDownLatch(1);
+        AtomicInteger provisioningCount = new AtomicInteger();
+        OrganizationProvisioning organizationProvisioning = _ -> {
+            provisioningCount.incrementAndGet();
+            provisioningStarted.countDown();
             try {
-                if (!releaseGeneration.await(5, TimeUnit.SECONDS)) {
+                if (!releaseProvisioning.await(5, TimeUnit.SECONDS)) {
                     throw new IllegalStateException(
-                        "Timed out while waiting to complete tenant generation"
+                        "Timed out while waiting to provision the local demo organization"
                     );
                 }
             } catch (InterruptedException exception) {
                 Thread.currentThread().interrupt();
                 throw new IllegalStateException(
-                    "Tenant generation was interrupted",
+                    "Local demo organization provisioning was interrupted",
                     exception
                 );
             }
-
-            return ORGANIZATION_REFERENCE;
+            return organization(ORGANIZATION_REFERENCE, OrganizationLifecycleState.CREATING);
         };
-
         LocalTenantContextProvider provider =
-            new LocalTenantContextProvider(referenceFactory);
+            new LocalTenantContextProvider(organizationProvisioning);
         ExecutorService executor = Executors.newFixedThreadPool(threadCount);
         List<Future<TenantContext>> futures = new ArrayList<>();
 
@@ -122,40 +92,34 @@ class LocalTenantContextProviderTest {
 
             assertTrue(ready.await(5, TimeUnit.SECONDS));
             start.countDown();
-            assertTrue(generationStarted.await(5, TimeUnit.SECONDS));
-            releaseGeneration.countDown();
+            assertTrue(provisioningStarted.await(5, TimeUnit.SECONDS));
+            releaseProvisioning.countDown();
 
-            TenantContext expectedContext = futures.getFirst()
-                .get(5, TimeUnit.SECONDS);
-
+            TenantContext expectedContext = futures.getFirst().get(5, TimeUnit.SECONDS);
             for (Future<TenantContext> future : futures) {
-                assertSame(
-                    expectedContext,
-                    future.get(5, TimeUnit.SECONDS)
-                );
+                assertSame(expectedContext, future.get(5, TimeUnit.SECONDS));
             }
         } finally {
-            releaseGeneration.countDown();
+            releaseProvisioning.countDown();
             executor.shutdownNow();
         }
 
-        assertEquals(1, generationCount.get());
+        assertEquals(1, provisioningCount.get());
     }
 
     @Test
-    void retriesResolutionAfterGenerationFailure() {
-        RuntimeException generationFailure =
-            new IllegalStateException("Reference generation failed");
-        AtomicInteger generationCount = new AtomicInteger();
-        ReferenceFactory referenceFactory = _ -> {
-            if (generationCount.getAndIncrement() == 0) {
-                throw generationFailure;
+    void retriesResolutionAfterProvisioningFailure() {
+        RuntimeException provisioningFailure =
+            new IllegalStateException("Organization provisioning failed");
+        AtomicInteger provisioningCount = new AtomicInteger();
+        OrganizationProvisioning organizationProvisioning = _ -> {
+            if (provisioningCount.getAndIncrement() == 0) {
+                throw provisioningFailure;
             }
-
-            return ORGANIZATION_REFERENCE;
+            return organization(ORGANIZATION_REFERENCE, OrganizationLifecycleState.CREATING);
         };
         LocalTenantContextProvider provider =
-            new LocalTenantContextProvider(referenceFactory);
+            new LocalTenantContextProvider(organizationProvisioning);
 
         RuntimeException thrownException = assertThrows(
             RuntimeException.class,
@@ -163,41 +127,40 @@ class LocalTenantContextProviderTest {
         );
         TenantContext tenantContext = provider.current();
 
-        assertSame(generationFailure, thrownException);
-        assertEquals(
-            ORGANIZATION_REFERENCE,
-            tenantContext.tenantReference()
-        );
-        assertEquals(2, generationCount.get());
+        assertSame(provisioningFailure, thrownException);
+        assertEquals(ORGANIZATION_REFERENCE, tenantContext.tenantReference());
+        assertEquals(2, provisioningCount.get());
     }
 
     @Test
-    void retriesResolutionAfterInvalidGeneratedReference() {
-        AtomicInteger generationCount = new AtomicInteger();
-        ReferenceFactory referenceFactory = _ ->
-            generationCount.getAndIncrement() == 0
-                ? " "
-                : ORGANIZATION_REFERENCE;
+    void refusesAndRetriesAnOrganizationThatIsNotCreating() {
+        AtomicInteger provisioningCount = new AtomicInteger();
+        OrganizationProvisioning organizationProvisioning = _ -> {
+            OrganizationLifecycleState state = provisioningCount.getAndIncrement() == 0
+                ? OrganizationLifecycleState.ACTIVE
+                : OrganizationLifecycleState.CREATING;
+            return organization(ORGANIZATION_REFERENCE, state);
+        };
         LocalTenantContextProvider provider =
-            new LocalTenantContextProvider(referenceFactory);
+            new LocalTenantContextProvider(organizationProvisioning);
 
-        assertThrows(IllegalArgumentException.class, provider::current);
-
-        TenantContext resolvedContext = provider.current();
-
-        assertEquals(
-            ORGANIZATION_REFERENCE,
-            resolvedContext.tenantReference()
-        );
-        assertSame(resolvedContext, provider.current());
-        assertEquals(2, generationCount.get());
+        assertThrows(IllegalStateException.class, provider::current);
+        assertEquals(ORGANIZATION_REFERENCE, provider.current().tenantReference());
+        assertEquals(2, provisioningCount.get());
     }
 
     @Test
-    void rejectsNullReferenceFactory() {
+    void rejectsANullProvisioningContract() {
         assertThrows(
             NullPointerException.class,
             () -> new LocalTenantContextProvider(null)
         );
+    }
+
+    private static OrganizationProvisioningResult organization(
+        String reference,
+        OrganizationLifecycleState status
+    ) {
+        return new OrganizationProvisioningResult(reference, status);
     }
 }

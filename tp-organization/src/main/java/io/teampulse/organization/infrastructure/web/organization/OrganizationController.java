@@ -7,6 +7,7 @@ import io.teampulse.organization.application.port.in.organization.OrganizationRe
 import io.teampulse.organization.domain.organization.model.Organization;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/organizations")
+@Profile({"local", "development"})
 @AllArgsConstructor
 public class OrganizationController {
 
