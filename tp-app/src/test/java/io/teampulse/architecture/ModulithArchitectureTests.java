@@ -1,6 +1,8 @@
 package io.teampulse.architecture;
 
 import com.tngtech.archunit.core.domain.JavaClass;
+import io.teampulse.common.context.ActorContext;
+import io.teampulse.common.context.ActorContextProvider;
 import io.teampulse.common.context.TenantContext;
 import io.teampulse.common.context.TenantContextProvider;
 import io.teampulse.common.mapping.CommonMapperConfig;
@@ -65,6 +67,8 @@ public class ModulithArchitectureTests {
     private static Stream<Arguments> commonNamedInterfaces() {
         return Stream.of(
             Arguments.of("context", Set.of(
+                ActorContext.class.getName(),
+                ActorContextProvider.class.getName(),
                 TenantContext.class.getName(),
                 TenantContextProvider.class.getName())),
             Arguments.of("mapping", Set.of(

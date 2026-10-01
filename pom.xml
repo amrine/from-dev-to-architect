@@ -21,6 +21,7 @@
         <module>tp-organization</module>
         <module>tp-identity</module>
         <module>tp-team</module>
+        <module>tp-administration</module>
         <module>tp-app</module>
         <module>tp-common</module>
         <module>tp-test-support</module>
@@ -120,6 +121,12 @@
             <dependency>
                 <groupId>io.teampulse</groupId>
                 <artifactId>tp-team</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.teampulse</groupId>
+                <artifactId>tp-administration</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
