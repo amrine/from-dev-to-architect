@@ -246,3 +246,17 @@ report des notifications évite d'ajouter leur persistance et leur exploitation
   transport sur HTTP réel avec Flyway/PostgreSQL ;
   `./mvnw --batch-mode --no-transfer-progress -pl tp-organization -am verify`
   passe. Cet ADR reste `Draft`.
+- La verticale équipe expose en HTTP les cycles de vie d'équipe, la gestion des
+  responsables et les appartenances T04, avec un contrat OpenAPI et un client
+  généré utilisé par une DSL de test locale. Chaque requête tenantée appelle
+  `TenantContextProvider.current()` une seule fois ; aucune donnée de tenant
+  client ne sélectionne le tenant. Le contrat Java
+  `team::team` ajoute une lecture tenantée des responsabilités admin/manager,
+  avec référence et état d'équipe uniquement ; les membres ordinaires ne sont
+  pas des responsabilités. Les cas HTTP utilisent le vrai serveur, Flyway et
+  PostgreSQL Testcontainers, avec stubs limités aux contrats publics
+  `UserDirectory` et `OrganizationDirectory`. Les erreurs métier restent
+  locales et les contrôles T04 de disponibilité sont conservés. Les dix tests
+  HTTP, le test PostgreSQL de responsabilités et
+  `./mvnw --batch-mode --no-transfer-progress -pl tp-team -am verify`
+  passent. Cet ADR reste `Draft`.

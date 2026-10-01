@@ -1,0 +1,433 @@
+openapi: 3.0.3
+info:
+  title: TeamPulse Team API
+  version: 0.1.0-SNAPSHOT
+  description: Team lifecycle, responsibility, and membership operations owned by tp-team.
+servers:
+  - url: http://localhost
+tags:
+  - name: Teams
+    description: Tenant-scoped teams and memberships.
+paths:
+  /api/teams:
+    post:
+      tags: [Teams]
+      operationId: createTeam
+      summary: Create an active team in the current tenant
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTeamInput'
+      responses:
+        '201':
+          description: Team created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeamResponse'
+        '400':
+          $ref: '#/components/responses/RequestError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+        '422':
+          $ref: '#/components/responses/DomainValidationError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+        '503':
+          $ref: '#/components/responses/DependencyError'
+  /api/teams/{teamReference}/suspension:
+    parameters:
+      - $ref: '#/components/parameters/TeamReference'
+    post:
+      tags: [Teams]
+      operationId: suspendTeam
+      summary: Suspend an active team
+      responses:
+        '200':
+          description: Team suspended
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeamResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /api/teams/{teamReference}/reactivation:
+    parameters:
+      - $ref: '#/components/parameters/TeamReference'
+    post:
+      tags: [Teams]
+      operationId: reactivateTeam
+      summary: Reactivate a suspended team when its organization and responsible users are available
+      responses:
+        '200':
+          description: Team reactivated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeamResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+        '503':
+          $ref: '#/components/responses/DependencyError'
+  /api/teams/{teamReference}/archive:
+    parameters:
+      - $ref: '#/components/parameters/TeamReference'
+    post:
+      tags: [Teams]
+      operationId: archiveTeam
+      summary: Archive a team
+      responses:
+        '200':
+          description: Team archived
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeamResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /api/teams/{teamReference}/administrator:
+    parameters:
+      - $ref: '#/components/parameters/TeamReference'
+    put:
+      tags: [Teams]
+      operationId: replaceTeamAdministrator
+      summary: Replace an administrator in an active or suspended team
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResponsibleUserInput'
+      responses:
+        '200':
+          description: Administrator replaced without changing the team status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeamResponse'
+        '400':
+          $ref: '#/components/responses/RequestError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+        '503':
+          $ref: '#/components/responses/DependencyError'
+  /api/teams/{teamReference}/manager:
+    parameters:
+      - $ref: '#/components/parameters/TeamReference'
+    put:
+      tags: [Teams]
+      operationId: replaceTeamManager
+      summary: Replace a manager in an active or suspended team
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResponsibleUserInput'
+      responses:
+        '200':
+          description: Manager replaced without changing the team status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeamResponse'
+        '400':
+          $ref: '#/components/responses/RequestError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+        '503':
+          $ref: '#/components/responses/DependencyError'
+  /api/teams/{teamReference}/members:
+    parameters:
+      - $ref: '#/components/parameters/TeamReference'
+    post:
+      tags: [Teams]
+      operationId: addTeamMember
+      summary: Add an available user as an active team member
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TeamMemberInput'
+      responses:
+        '201':
+          description: Active team membership created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeamMemberResponse'
+        '400':
+          $ref: '#/components/responses/RequestError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+        '503':
+          $ref: '#/components/responses/DependencyError'
+  /api/teams/{teamReference}/invitations:
+    parameters:
+      - $ref: '#/components/parameters/TeamReference'
+    post:
+      tags: [Teams]
+      operationId: inviteTeamMember
+      summary: Create an INVITED team membership for an available or pending user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TeamMemberInput'
+      responses:
+        '201':
+          description: Invited team membership created; this does not accept an identity invitation or activate an account
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeamMemberResponse'
+        '400':
+          $ref: '#/components/responses/RequestError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+        '503':
+          $ref: '#/components/responses/DependencyError'
+  /api/teams/{teamReference}/members/{userReference}/activation:
+    parameters:
+      - $ref: '#/components/parameters/TeamReference'
+      - $ref: '#/components/parameters/UserReference'
+    post:
+      tags: [Teams]
+      operationId: activateTeamMember
+      summary: Activate an invited membership for an available user
+      responses:
+        '200':
+          description: Team membership activated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeamMemberResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+        '503':
+          $ref: '#/components/responses/DependencyError'
+  /api/teams/{teamReference}/members/{userReference}/suspension:
+    parameters:
+      - $ref: '#/components/parameters/TeamReference'
+      - $ref: '#/components/parameters/UserReference'
+    post:
+      tags: [Teams]
+      operationId: suspendTeamMember
+      summary: Suspend an active team membership
+      responses:
+        '200':
+          description: Team membership suspended
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeamMemberResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /api/teams/{teamReference}/members/{userReference}/reactivation:
+    parameters:
+      - $ref: '#/components/parameters/TeamReference'
+      - $ref: '#/components/parameters/UserReference'
+    post:
+      tags: [Teams]
+      operationId: reactivateTeamMember
+      summary: Reactivate a suspended team membership for an available user
+      responses:
+        '200':
+          description: Team membership reactivated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeamMemberResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+        '503':
+          $ref: '#/components/responses/DependencyError'
+  /api/teams/{teamReference}/members/{userReference}/removal:
+    parameters:
+      - $ref: '#/components/parameters/TeamReference'
+      - $ref: '#/components/parameters/UserReference'
+    post:
+      tags: [Teams]
+      operationId: removeTeamMember
+      summary: End a team membership while retaining its history
+      responses:
+        '200':
+          description: Team membership removed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeamMemberResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+components:
+  parameters:
+    TeamReference:
+      name: teamReference
+      in: path
+      required: true
+      schema:
+        type: string
+        minLength: 1
+    UserReference:
+      name: userReference
+      in: path
+      required: true
+      schema:
+        type: string
+        minLength: 1
+  schemas:
+    CreateTeamInput:
+      type: object
+      required: [name, administratorReference, managerReference]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        administratorReference:
+          type: string
+          minLength: 1
+        managerReference:
+          type: string
+          minLength: 1
+    ResponsibleUserInput:
+      type: object
+      required: [userReference]
+      properties:
+        userReference:
+          type: string
+          minLength: 1
+    TeamMemberInput:
+      type: object
+      required: [userReference]
+      properties:
+        userReference:
+          type: string
+          minLength: 1
+    TeamResponse:
+      type: object
+      required: [reference, name, status, administratorReference, managerReference]
+      properties:
+        reference:
+          type: string
+        name:
+          type: string
+        status:
+          type: string
+          enum: [ACTIVE, SUSPENDED, ARCHIVED]
+        administratorReference:
+          type: string
+        managerReference:
+          type: string
+    TeamMemberResponse:
+      type: object
+      required: [userReference, status]
+      properties:
+        userReference:
+          type: string
+        status:
+          type: string
+          enum: [INVITED, ACTIVE, SUSPENDED, REMOVED]
+        startedAt:
+          type: string
+          format: date-time
+          nullable: true
+        endedAt:
+          type: string
+          format: date-time
+          nullable: true
+    ApiError:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+  responses:
+    RequestError:
+      description: Request structure or required fields are invalid
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    NotFoundError:
+      description: Team, team member, organization, or user was not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    ConflictError:
+      description: Operation conflicts with team, organization, user, or membership state
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    DomainValidationError:
+      description: Team business data is invalid
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    DependencyError:
+      description: Organization or user availability could not be checked
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    InternalError:
+      description: The request could not be completed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'

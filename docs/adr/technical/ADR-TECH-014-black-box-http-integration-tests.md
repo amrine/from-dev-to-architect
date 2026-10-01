@@ -122,5 +122,18 @@ stubs only the public `UserDirectory` contract. The existing
 `./mvnw --batch-mode --no-transfer-progress -pl tp-organization -am verify`
 passes. This ADR remains `Draft` until the complete T05 decision is validated.
 
+The team vertical adds `TeamControllerHttpIntegrationTest` with its local
+generated-client DSL. It uses the real team application on a random port,
+Flyway and PostgreSQL Testcontainers, stubbing only the public
+`UserDirectory` and `OrganizationDirectory` contracts. The HTTP cases verify
+tenant-provider resolution and isolation, lifecycle and membership rules,
+organization-availability refusals, both administrator and manager
+replacement, and persisted states. A PostgreSQL integration test for the
+public responsibility query confirms tenant scoping, responsible-role
+deduplication and exclusion of ordinary team membership. The existing
+`AbstractIntegrationTest` remains `WebEnvironment.NONE`. The team
+`./mvnw --batch-mode --no-transfer-progress -pl tp-team -am verify` command
+passes; this ADR remains `Draft` until the complete T05 decision is validated.
+
 ## References
 - [Spring Boot 4.1 testing applications](https://docs.spring.io/spring-boot/reference/testing/spring-boot-applications.html)

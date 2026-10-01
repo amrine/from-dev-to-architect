@@ -6,7 +6,8 @@
             "common::persistence",
             "common::reference",
             "identity::user",
-            "organization::organization"
+            "organization::organization",
+            "websupport"
         })
 package io.teampulse.team;
 
