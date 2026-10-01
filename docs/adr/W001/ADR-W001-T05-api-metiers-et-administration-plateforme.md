@@ -260,3 +260,20 @@ report des notifications évite d'ajouter leur persistance et leur exploitation
   HTTP, le test PostgreSQL de responsabilités et
   `./mvnw --batch-mode --no-transfer-progress -pl tp-team -am verify`
   passent. Cet ADR reste `Draft`.
+- Le noyau `tp-administration` est ajouté au reactor et à `tp-app`. Il ne porte
+  ni entité, ni repository, ni règle métier des modules propriétaires. Son
+  provisioning appelle les contrats Java publics synchrones : il conserve
+  l'organisation créée en `CREATING`, construit le `TenantContext` du premier
+  utilisateur à partir de la référence réellement retournée par le contrat
+  organisation, puis crée ou invite ce premier utilisateur sans affectation
+  finale de responsables. Les contrôles avant suspension/désactivation lisent
+  les contrats publics de responsabilités d'organisation et d'équipe ; ils
+  refusent les responsabilités `CREATING`, `ACTIVE` ou `SUSPENDED` d'une
+  organisation et `ACTIVE` ou `SUSPENDED` d'une équipe, mais laissent passer
+  `ARCHIVED` et une simple appartenance `TeamMember`. Des tests d'intégration
+  assemblent les vrais modules sur PostgreSQL Testcontainers et vérifient l'état
+  persisté. `ActorContextProvider` alimente `AuditorAware`; son implémentation
+  par défaut fournit `SYSTEM` en W001 et n'authentifie ni n'autorise. Cet ADR
+  reste `Draft`. `./mvnw --batch-mode --no-transfer-progress
+  -pl tp-administration -am verify` passe, avec dix tests d'intégration du
+  noyau d'administration sur PostgreSQL Testcontainers.
