@@ -129,10 +129,11 @@ TeamPulse doit donc disposer :
 - Extraction de la référence d'organisation depuis un utilisateur connecté.
 - Autorisation par rôle, `hasPermission` et contrôle de l'appartenance de
   l'utilisateur à l'organisation ou à l'équipe.
-- Contexte distinct de l'acteur d'une action et contrôle de sa disponibilité ou
-  de ses permissions. `TenantContext` reste limité au tenant ; W001-T05
-  introduira le contrat d'acteur et ces contrôles, puis W008 leur fournira une
-  identité authentifiée issue du JWT.
+- Contexte distinct de l'acteur d'une action et contrôle de ses permissions.
+  `TenantContext` reste limité au tenant ; W001-T05 peut introduire un
+  `ActorContext` distinct pour l'audit et l'orchestration seulement. Il ne
+  constitue ni une authentification, ni une autorisation ; W008 fournira
+  l'identité issue du JWT et les rôles/permissions.
 - Contrôle transversal empêchant le passage d'un utilisateur vers `SUSPENDED`
   ou `DEACTIVATED` tant qu'il porte une responsabilité active. Cette
   orchestration appartient à W001-T05 et ne crée pas de dépendance inverse de
@@ -654,10 +655,10 @@ précède une transition de `User` vers `SUSPENDED` ou `DEACTIVATED` :
 
 Le remplacement d'un responsable reste possible sur une organisation ou une
 équipe `SUSPENDED` afin de permettre le départ d'un utilisateur. W001-T05
-introduira un acteur explicite, distinct du tenant, et vérifiera sa disponibilité
-ainsi que ses permissions applicatives. En W001, cet acteur proviendra d'une
-source applicative contrôlée sans constituer une preuve d'authentification ;
-W008 remplacera cette source par l'identité issue d'un JWT validé.
+introduira un `ActorContext` explicite, distinct du tenant, uniquement pour
+l'audit et l'orchestration si ces capacités le nécessitent. En W001, sa source
+applicative ne constitue pas une preuve d'authentification ; W008 fournira
+l'identité issue d'un JWT validé et les contrôles d'autorisation.
 
 ### Erreurs métier et défaillances inter-modules
 
@@ -1222,9 +1223,9 @@ de RLS, de JWT et de coordination Kubernetes resteront hors de ce chapitre.
 - Dépend de : W001-T01 pour le découpage Maven multi-module.
 - Dépend de : W001-T02 pour PostgreSQL, les schémas et Flyway.
 - Dépend de : W001-T03 pour les règles d'architecture et les tests ArchUnit.
-- Prépare : W001-T05 pour l'identité de l'acteur, le contrôle transversal des
-  responsabilités avant indisponibilité d'un utilisateur, les rôles et leurs
-  affectations, ainsi que les contrats HTTP et leurs tests.
+- Prépare : W001-T05 pour le contexte d'acteur réservé à l'audit/orchestration,
+  le contrôle transversal des responsabilités avant indisponibilité d'un
+  utilisateur, et les contrats HTTP/test des modules métier.
 - Prépare : W002 pour enrichir les cas d'usage autour des équipes et membres
   sans réimplémenter leurs cycles internes livrés par T04.
 - Prépare : W008 pour JWT, la résolution réelle du contexte et les permissions.

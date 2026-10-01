@@ -386,10 +386,12 @@ d'usage consommateurs.
 
 #### Préparation de W001-T05
 
-`TenantContext` reste limité au tenant. W001-T05 introduira un contrat d'acteur
-distinct et consultera les responsabilités actives avant de suspendre ou
-désactiver un utilisateur. Cette orchestration d'administration ne sera pas
-placée dans `tp-identity`, afin d'éviter un cycle avec ses consommateurs.
+`TenantContext` reste limité au tenant. W001-T05 peut introduire un
+`ActorContext` distinct pour l'audit et l'orchestration seulement ; il ne porte
+pas l'authentification ni les permissions, qui relèvent de W008. T05 consultera
+les responsabilités actives avant de suspendre ou désactiver un utilisateur.
+Cette orchestration d'administration ne sera pas placée dans `tp-identity`, afin
+d'éviter un cycle avec ses consommateurs.
 
 Une responsabilité d'organisation est active en `CREATING`, `ACTIVE` ou
 `SUSPENDED`. Une responsabilité d'équipe est active en `ACTIVE` ou `SUSPENDED`.
@@ -794,8 +796,9 @@ ne font pas partie de cette validation.
 
 ## Notes
 
-- W001-T05 ajoute les parcours HTTP et le contrôle d'un acteur applicatif sans
-  modifier `TenantContext`.
+- W001-T05 ajoute les parcours HTTP, le contrôle transversal des responsabilités
+  et, si nécessaire, un contexte d'acteur d'audit/orchestration sans modifier
+  `TenantContext` ni introduire de permissions.
 - W008 remplace le provider local par une résolution authentifiée du tenant et
   des permissions.
 - La coordination multi-nœud et l'identité de nœud sont reportées avant le

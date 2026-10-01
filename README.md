@@ -135,7 +135,7 @@ tasks will be labelled
 [`good first issue`](https://github.com/amrine/from-dev-to-architect/labels/good%20first%20issue).
 
 Product versioning and release tags are documented in
-[docs/VERSIONING.md](docs/VERSIONING.md).
+[VERSIONING.md](VERSIONING.md).
 
 ## Security
 

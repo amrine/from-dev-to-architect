@@ -136,7 +136,7 @@ Ticket delivery and product releases use separate tags:
 - `v0.1.0` identifies a coherent product release.
 
 The first `v0.1.0` release is created only after all W001 tickets are complete,
-validated, and merged into `main`. See [docs/VERSIONING.md](docs/VERSIONING.md)
+validated, and merged into `main`. See [VERSIONING.md](VERSIONING.md)
 for the complete convention and release workflow.
 
 ## Commit messages

@@ -266,7 +266,7 @@ L'apprenant doit notamment savoir expliquer :
 - Depend de : W001-T01 pour la structure multi-module et les frontieres Spring Modulith.
 - Depend de : W001-T02 pour les premieres configurations techniques portees par les modules.
 - Prepare : W001-T04, qui introduira la persistence multi-tenant avec `organization_ref`.
-- Prepare : W001-T05, qui introduira la premiere verticale API, application, domaine et persistence.
+- Prepare : W001-T05, qui exposera par HTTP les capacités métier livrées en T04.
 
 ## Decision associee
 La decision est documentee dans
