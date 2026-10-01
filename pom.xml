@@ -180,6 +180,7 @@
                         <generateApiDocumentation>false</generateApiDocumentation>
                         <generateModelDocumentation>false</generateModelDocumentation>
                         <configOptions>
+                            <openApiNullable>false</openApiNullable>
                             <useSpringBoot4>true</useSpringBoot4>
                             <useJackson3>true</useJackson3>
                         </configOptions>

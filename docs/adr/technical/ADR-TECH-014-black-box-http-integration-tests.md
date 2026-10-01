@@ -101,7 +101,15 @@ application. Identity has a deterministic tenant provider; organization and
 team retain only their existing public-contract stubs. The pre-existing
 `AbstractIntegrationTest` classes remain `WebEnvironment.NONE`.
 
-`./mvnw --batch-mode --no-transfer-progress -pl tp-test-support,tp-identity,tp-organization,tp-team -am test-compile` compiles the support and module test sources. This foundation does not yet prove an HTTP request against a business endpoint; that proof belongs to the first API vertical. The ADR remains `Draft` until the complete T05 decision is validated.
+The identity vertical adds `UserControllerHttpIntegrationTest` and a module-
+local DSL over the generated client. Against the real identity application,
+Flyway and PostgreSQL Testcontainers, it verifies create, invite and tenant-
+scoped list operations, persisted status, one tenant-provider call per
+tenant-scoped request, and that a client-supplied organization reference cannot
+select the tenant. It also checks local business-error mapping and shared
+request-validation handling. `./mvnw --batch-mode --no-transfer-progress
+-pl tp-identity -am verify` passes. This ADR remains `Draft` until the complete
+T05 decision is validated.
 
 ## References
 - [Spring Boot 4.1 testing applications](https://docs.spring.io/spring-boot/reference/testing/spring-boot-applications.html)

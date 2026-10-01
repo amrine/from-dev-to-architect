@@ -110,6 +110,16 @@ reduce coupling and unnecessary propagation of personal data.
 - T05-to-T10 is an intentional gap: previously created invitations are not
   notified retroactively.
 
+## Implementation progress
+
+The identity vertical publishes `UserInvited` after successful persistence.
+The fact contains only the organization and user references; a focused service
+test verifies the publish follows persistence and carries no user details.
+The real HTTP test verifies an invitation is persisted in `INVITED` status.
+There is no listener, Event Publication Registry, replay path or notification
+delivery in T05. `./mvnw --batch-mode --no-transfer-progress -pl tp-identity
+-am verify` passes. This ADR remains `Draft`.
+
 ## References
 - [Spring Modulith — Working with Application Events](https://docs.spring.io/spring-modulith/reference/events.html)
 - [Spring Modulith 2.0.x event publication API](https://docs.spring.io/spring-modulith/docs/2.0.x/api/org/springframework/modulith/events/core/package-summary.html)
