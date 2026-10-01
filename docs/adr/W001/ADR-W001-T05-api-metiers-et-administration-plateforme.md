@@ -205,3 +205,10 @@ report des notifications évite d'ajouter leur persistance et leur exploitation
   `AbstractIntegrationTest` existantes en `NONE` restent inchangées. La
   compilation des sources de test passe ; le parcours HTTP réel
   sera prouvé par la première verticale API. Le statut de cet ADR reste `Draft`.
+- L'implémentation de `W001-T05-shared-http-errors` ajoute `ApiError` avec les
+  champs `code` et `message`, ainsi que l'advice Spring partagé auto-configuré
+  dans `tp-web-support`. Les détails techniques et les données personnelles ne
+  sont pas renvoyés dans les réponses ; les mappings métier restent locaux et
+  prioritaires. `tp-common` et `tp-web-support` passent `verify`. La preuve
+  HTTP réelle sera apportée par les verticales propriétaires ; le statut de cet
+  ADR reste `Draft`.

@@ -17,9 +17,9 @@ unrelated modules coordinate their error evolution.
 - Add a dedicated `tp-web-support` module for shared Spring Web error-adapter
   behavior. It depends on the neutral response contract but not on business
   modules.
-- Keep a small Java-only `ApiError` response DTO in `tp-common`. It contains
-  stable response data only; it does not use Spring's `ResponseEntity`,
-  `ProblemDetail`, servlet types or annotations.
+- Keep a small Java-only `ApiError` response DTO in `tp-common`. Its stable
+  response fields are `code` and `message`; it does not use Spring's
+  `ResponseEntity`, `ProblemDetail`, servlet types or annotations.
 - Use shared advice for transport/framework failures such as malformed input,
   Jakarta validation failures and unexpected technical failures. Do not place
   module-specific error codes, exception classes or business translations in
@@ -81,3 +81,19 @@ stable shape.
   mappings; exception ownership and handler precedence must be tested.
 - A response-contract change can affect every API client and therefore needs
   compatibility review.
+
+## Implementation progress
+
+The `W001-T05-shared-http-errors` branch adds the Java-only `ApiError` record
+with `code` and `message`, plus `tp-web-support` with Spring Boot
+auto-configuration for the shared advice. The advice returns stable generic
+codes and safe messages for malformed requests, validation failures and
+framework errors; unexpected failures are logged server-side and return a
+generic 500 response. The shared advice has lowest precedence so module-owned
+business mappings can take precedence.
+
+`./mvnw --batch-mode --no-transfer-progress -pl tp-common,tp-web-support -am verify`
+passes. The real-HTTP proof of local mapping precedence and response
+serialization belongs to the first owning API vertical, because no owner has a
+controller yet. This ADR remains `Draft` until the complete T05 decision is
+validated.
