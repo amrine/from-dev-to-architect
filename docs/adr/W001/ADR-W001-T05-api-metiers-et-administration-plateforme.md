@@ -257,3 +257,8 @@ report des notifications évite d'ajouter leur persistance et leur exploitation
   prioritaires. `tp-common` et `tp-web-support` passent `verify`. La preuve
   HTTP réelle sera apportée par les verticales propriétaires ; le statut de cet
   ADR reste `Draft`.
+- L'implémentation de `W001-T05-openapi-test-clients` fixe la version du
+  générateur dans le POM parent et configure la génération de clients Java
+  uniquement pour les sources de test, sous `target/generated-test-sources`.
+  Les contrats et la preuve de compilation arrivent avec les verticales
+  propriétaires ; le statut de cet ADR reste `Draft`.
