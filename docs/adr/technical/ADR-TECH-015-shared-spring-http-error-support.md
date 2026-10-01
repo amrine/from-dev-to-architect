@@ -100,3 +100,12 @@ validation maps to the shared sanitized `400 VALIDATION_FAILED` response. The
 responses contain no submitted email or internal exception details, and
 `./mvnw --batch-mode --no-transfer-progress -pl tp-identity -am verify` passes.
 This ADR remains `Draft` until the complete T05 decision is validated.
+
+The organization vertical adds a higher-precedence local mapper for
+`OrganizationException`. It maps unavailable responsible users and deferred
+organization transitions to module-owned `409` responses, missing users to
+`404`, invalid domain values to `422`, and a failed `UserDirectory` check to a
+sanitized `503`. Real HTTP tests verify the deferred assignment code and safe
+message, the local timezone validation response, and the shared
+`400 VALIDATION_FAILED` response. The organization `verify` command passes.
+This ADR remains `Draft` until the complete T05 decision is validated.

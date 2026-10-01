@@ -6,6 +6,8 @@ import io.teampulse.organization.AbstractIntegrationTest;
 import io.teampulse.organization.application.port.in.organization.OrganizationResponsibleCommand;
 import io.teampulse.organization.application.port.in.organization.OrganizationResponsibleUsersUseCase;
 import io.teampulse.organization.application.port.out.organization.OrganizationRepository;
+import io.teampulse.organization.domain.organization.error.OrganizationErrorCode;
+import io.teampulse.organization.domain.organization.error.OrganizationException;
 import io.teampulse.organization.domain.organization.model.Organization;
 import io.teampulse.organization.domain.organization.model.OrganizationStatus;
 import io.teampulse.organization.infrastructure.persistence.entity.OrganizationEntity;
@@ -18,6 +20,7 @@ import jakarta.inject.Inject;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
@@ -52,7 +55,7 @@ class OrganizationResponsibleUsersServiceIT extends AbstractIntegrationTest {
     }
 
     @Test
-    void assignsBothAvailableUsersAndActivatesTheOrganization() {
+    void refusesTheFinalAvailableAssignmentAndPersistsNoActiveTransition() {
         givenOrganization(creatingOrganization());
         when(userDirectory.check(
             ORGANIZATION_REFERENCE,
@@ -64,15 +67,57 @@ class OrganizationResponsibleUsersServiceIT extends AbstractIntegrationTest {
         )).thenReturn(UserAvailability.AVAILABLE);
 
         responsibleUsers.assignAdministrator(command(ADMINISTRATOR_REFERENCE));
-        Organization result = responsibleUsers.assignManager(
-            command(MANAGER_REFERENCE)
+        OrganizationException exception = assertThrows(
+            OrganizationException.class,
+            () -> responsibleUsers.assignManager(command(MANAGER_REFERENCE))
         );
 
-        assertEquals(OrganizationStatus.ACTIVE, result.getStatus());
         assertEquals(
-            OrganizationStatus.ACTIVE,
+            OrganizationErrorCode.LIFECYCLE_TRANSITION_DEFERRED,
+            exception.getErrorCode()
+        );
+        assertEquals(OrganizationStatus.CREATING, findStoredOrganization().getStatus());
+        assertEquals(ADMINISTRATOR_REFERENCE, findStoredOrganization().getAdminReference());
+        assertNull(findStoredOrganization().getManagerReference());
+    }
+
+    @Test
+    void refusesToReactivateASuspendedOrganizationByAssigningItsMissingManager() {
+        Organization suspended = Organization.restore(
+            ORGANIZATION_REFERENCE,
+            "TeamPulse",
+            "UTC",
+            ADMINISTRATOR_REFERENCE,
+            null,
+            OrganizationStatus.SUSPENDED
+        );
+        inTransactionTemplate(() -> {
+            jpaRepository.deleteAllInBatch();
+            organizationRepository.create(suspended);
+        });
+        when(userDirectory.check(
+            ORGANIZATION_REFERENCE,
+            ADMINISTRATOR_REFERENCE
+        )).thenReturn(UserAvailability.AVAILABLE);
+        when(userDirectory.check(
+            ORGANIZATION_REFERENCE,
+            MANAGER_REFERENCE
+        )).thenReturn(UserAvailability.AVAILABLE);
+
+        OrganizationException exception = assertThrows(
+            OrganizationException.class,
+            () -> responsibleUsers.assignManager(command(MANAGER_REFERENCE))
+        );
+
+        assertEquals(
+            OrganizationErrorCode.LIFECYCLE_TRANSITION_DEFERRED,
+            exception.getErrorCode()
+        );
+        assertEquals(
+            OrganizationStatus.SUSPENDED,
             findStoredOrganization().getStatus()
         );
+        assertNull(findStoredOrganization().getManagerReference());
     }
 
     @Test

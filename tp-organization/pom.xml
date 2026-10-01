@@ -55,6 +55,11 @@
 
         <dependency>
             <groupId>io.teampulse</groupId>
+            <artifactId>tp-web-support</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>io.teampulse</groupId>
             <artifactId>tp-identity</artifactId>
         </dependency>
 
@@ -88,5 +93,14 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.openapitools</groupId>
+                <artifactId>openapi-generator-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>
