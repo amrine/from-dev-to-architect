@@ -5,6 +5,7 @@ import io.teampulse.common.reference.ReferenceFormat;
 import io.teampulse.identity.AbstractIntegrationTest;
 import io.teampulse.identity.application.port.in.user.CreateUserCommand;
 import io.teampulse.identity.application.port.in.user.UserLifecycleUseCase;
+import io.teampulse.identity.application.port.out.user.UserRepository;
 import io.teampulse.identity.domain.user.error.UserErrorCode;
 import io.teampulse.identity.domain.user.error.UserException;
 import io.teampulse.identity.domain.user.model.User;
@@ -39,6 +40,9 @@ class UserLifecycleServiceIT extends AbstractIntegrationTest {
 
     @Inject
     private JpaUserRepository jpaUserRepository;
+
+    @Inject
+    private UserRepository userRepository;
 
     @BeforeEach
     void cleanDatabase() {
@@ -144,6 +148,85 @@ class UserLifecycleServiceIT extends AbstractIntegrationTest {
 
         assertEquals(UserErrorCode.EMAIL_ALREADY_USED, exception.getErrorCode());
         assertEquals(1L, jpaUserRepository.count());
+    }
+
+    @Test
+    void invitesAndPersistsAUserInInvitedStatus() {
+        User invitedUser = userLifecycleUseCase.invite(
+            tenant(ORGANIZATION_A),
+            validCommand()
+        );
+
+        assertEquals(UserStatus.INVITED, invitedUser.getStatus());
+        assertEquals(
+            UserStatus.INVITED,
+            findStoredUser(ORGANIZATION_A, invitedUser.getReference()).getStatus()
+        );
+    }
+
+    @Test
+    void suspendsAnActiveUserWithinTheProvidedTenant() {
+        User activeUser = userRepository.create(User.restore(
+            "USR-2026-3108-00000ZA7B902",
+            ORGANIZATION_A,
+            "active@example.com",
+            "Active",
+            "User",
+            UserStatus.ACTIVE
+        ));
+
+        User suspendedUser = userLifecycleUseCase.suspend(
+            tenant(ORGANIZATION_A),
+            activeUser.getReference()
+        );
+
+        assertEquals(UserStatus.SUSPENDED, suspendedUser.getStatus());
+        assertEquals(
+            UserStatus.SUSPENDED,
+            findStoredUser(ORGANIZATION_A, activeUser.getReference()).getStatus()
+        );
+    }
+
+    @Test
+    void deactivatesAUserWithinTheProvidedTenant() {
+        User createdUser = userLifecycleUseCase.create(
+            tenant(ORGANIZATION_A),
+            validCommand()
+        );
+
+        User deactivatedUser = userLifecycleUseCase.deactivate(
+            tenant(ORGANIZATION_A),
+            createdUser.getReference()
+        );
+
+        assertEquals(UserStatus.DEACTIVATED, deactivatedUser.getStatus());
+        assertEquals(
+            UserStatus.DEACTIVATED,
+            findStoredUser(ORGANIZATION_A, createdUser.getReference()).getStatus()
+        );
+    }
+
+    @Test
+    void refusesToTransitionAUserOutsideTheProvidedTenant() {
+        User activeUser = userRepository.create(User.restore(
+            "USR-2026-3108-00000ZA7B903",
+            ORGANIZATION_A,
+            "active@example.com",
+            "Active",
+            "User",
+            UserStatus.ACTIVE
+        ));
+
+        UserException exception = assertThrows(
+            UserException.class,
+            () -> userLifecycleUseCase.suspend(tenant(ORGANIZATION_B), activeUser.getReference())
+        );
+
+        assertEquals(UserErrorCode.NOT_FOUND, exception.getErrorCode());
+        assertEquals(
+            UserStatus.ACTIVE,
+            findStoredUser(ORGANIZATION_A, activeUser.getReference()).getStatus()
+        );
     }
 
     @Test

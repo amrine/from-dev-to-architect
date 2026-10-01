@@ -7,7 +7,8 @@ import io.teampulse.identity.application.port.out.user.UserRepository;
 import io.teampulse.identity.domain.user.error.UserErrorCode;
 import io.teampulse.identity.domain.user.error.UserException;
 import io.teampulse.identity.domain.user.model.User;
-import org.junit.jupiter.api.BeforeEach;
+import io.teampulse.identity.domain.user.model.UserStatus;
+import io.teampulse.identity.events.UserInvited;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,8 +19,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockMakers;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.stream.Stream;
 
@@ -28,11 +29,9 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.inOrder;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.withSettings;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -47,6 +46,8 @@ class UserLifecycleServiceTest {
     private UserRepository userRepository;
     @Mock
     private ReferenceFactory referenceFactory;
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
     @InjectMocks
     private UserLifecycleService service;
 
@@ -206,6 +207,52 @@ class UserLifecycleServiceTest {
 
             assertSame(generationFailure, exception);
             verifyNoInteractions(userRepository);
+        }
+    }
+
+    @Nested
+    class InvitationTests {
+
+        @Test
+        void persistsAnInvitedUserAndPublishesOnlyReferencesAfterPersistence() {
+            when(referenceFactory.generate("USR")).thenReturn(USER_REFERENCE);
+            when(userRepository.existsByEmail(
+                ORGANIZATION_REFERENCE,
+                "alice.smith@example.com"
+            )).thenReturn(false);
+            when(userRepository.create(any(User.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+            User invitedUser = service.invite(validTenantContext(), validCommand());
+
+            assertEquals(UserStatus.INVITED, invitedUser.getStatus());
+            InOrder orderedInteractions = inOrder(referenceFactory, userRepository, eventPublisher);
+            orderedInteractions.verify(referenceFactory).generate("USR");
+            orderedInteractions.verify(userRepository).existsByEmail(
+                ORGANIZATION_REFERENCE,
+                "alice.smith@example.com"
+            );
+            orderedInteractions.verify(userRepository).create(any(User.class));
+            orderedInteractions.verify(eventPublisher).publishEvent(
+                new UserInvited(ORGANIZATION_REFERENCE, USER_REFERENCE)
+            );
+        }
+
+        @Test
+        void doesNotPublishAnInvitationWhenTheEmailIsAlreadyUsed() {
+            when(referenceFactory.generate("USR")).thenReturn(USER_REFERENCE);
+            when(userRepository.existsByEmail(
+                ORGANIZATION_REFERENCE,
+                "alice.smith@example.com"
+            )).thenReturn(true);
+
+            assertThrows(
+                UserException.class,
+                () -> service.invite(validTenantContext(), validCommand())
+            );
+
+            verify(userRepository, never()).create(any(User.class));
+            verifyNoInteractions(eventPublisher);
         }
     }
 

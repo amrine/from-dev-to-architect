@@ -215,5 +215,21 @@ report des notifications évite d'ajouter leur persistance et leur exploitation
 - L'implémentation de `W001-T05-openapi-test-clients` fixe la version du
   générateur dans le POM parent et configure la génération de clients Java
   uniquement pour les sources de test, sous `target/generated-test-sources`.
-  Les contrats et la preuve de compilation arrivent avec les verticales
-  propriétaires ; le statut de cet ADR reste `Draft`.
+  La verticale identité fournit maintenant le premier contrat OpenAPI et la
+  compilation de son client généré ; les autres propriétaires ajoutent leurs
+  contrats dans leurs verticales. Le statut de cet ADR reste `Draft`.
+- L'implémentation de `W001-T05-identity-api` expose `POST /api/users`,
+  `POST /api/users/invitations` et `GET /api/users`. Chaque route tenantée
+  résout une fois le `TenantContext` et les écritures utilisent le tenant du
+  provider même si le corps contient une référence d'organisation inconnue du
+  contrat. L'invitation persiste `INVITED` et publie `UserInvited` avec les
+  références utilisateur/organisation seulement.
+- Le contrat Java public `identity::lifecycle` fournit à `tp-administration`
+  les commandes synchrones de création, invitation, suspension et
+  désactivation avec des types de contrat sans modèle domaine identité.
+  L'administration reste responsable des vérifications de responsabilités T04
+  avant les deux transitions de fermeture. Aucun endpoint HTTP identité ne
+  contourne cette orchestration. Le mapping métier identité prévaut sur l'advice
+  partagé ; les erreurs de transport restent génériques et masquées. Les tests
+  HTTP/PostgreSQL et `./mvnw --batch-mode --no-transfer-progress -pl tp-identity
+  -am verify` passent. Cet ADR reste `Draft`.

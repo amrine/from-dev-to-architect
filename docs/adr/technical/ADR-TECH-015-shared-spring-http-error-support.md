@@ -93,7 +93,10 @@ generic 500 response. The shared advice has lowest precedence so module-owned
 business mappings can take precedence.
 
 `./mvnw --batch-mode --no-transfer-progress -pl tp-common,tp-web-support -am verify`
-passes. The real-HTTP proof of local mapping precedence and response
-serialization belongs to the first owning API vertical, because no owner has a
-controller yet. This ADR remains `Draft` until the complete T05 decision is
-validated.
+passes. The identity vertical adds a higher-precedence local advice for
+`UserException` and verifies over real HTTP that duplicate email maps to its
+module-owned `409 USER_EMAIL_ALREADY_USED` response while Jakarta request
+validation maps to the shared sanitized `400 VALIDATION_FAILED` response. The
+responses contain no submitted email or internal exception details, and
+`./mvnw --batch-mode --no-transfer-progress -pl tp-identity -am verify` passes.
+This ADR remains `Draft` until the complete T05 decision is validated.

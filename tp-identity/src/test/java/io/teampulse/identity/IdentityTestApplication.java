@@ -9,6 +9,7 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 
 import java.time.Clock;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @TestConfiguration
 @SpringBootApplication
@@ -23,7 +24,30 @@ public class IdentityTestApplication {
     }
 
     @Bean
-    TenantContextProvider testTenantContextProvider() {
-        return () -> TEST_TENANT;
+    DeterministicTenantContextProvider testTenantContextProvider() {
+        return new DeterministicTenantContextProvider(TEST_TENANT);
+    }
+
+    public static class DeterministicTenantContextProvider implements TenantContextProvider {
+        private final TenantContext tenantContext;
+        private final AtomicInteger calls = new AtomicInteger();
+
+        public DeterministicTenantContextProvider(TenantContext tenantContext) {
+            this.tenantContext = tenantContext;
+        }
+
+        @Override
+        public TenantContext current() {
+            calls.incrementAndGet();
+            return tenantContext;
+        }
+
+        public int calls() {
+            return calls.get();
+        }
+
+        public void resetCalls() {
+            calls.set(0);
+        }
     }
 }
