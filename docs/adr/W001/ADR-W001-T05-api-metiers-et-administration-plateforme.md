@@ -199,3 +199,9 @@ report des notifications évite d'ajouter leur persistance et leur exploitation
   notification/email déplacés de T05 vers T10 ; activation effective de
   l'organisation et publication de `OrganizationActivated` différées à W008.
 - Les documents Draft T08-T14 de `ztmp` ne sont pas officialisés par cet ADR.
+- L'implémentation de `W001-T05-http-test-support` prépare le support
+  `RestTestClient`, le nettoyage des écritures PostgreSQL et les bases de test
+  avec serveur réel dédiées à identité, organisation et équipe. Les bases
+  `AbstractIntegrationTest` existantes en `NONE` restent inchangées. La
+  compilation des sources de test passe ; le parcours HTTP réel
+  sera prouvé par la première verticale API. Le statut de cet ADR reste `Draft`.

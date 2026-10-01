@@ -1,0 +1,20 @@
+package io.teampulse.team;
+
+import io.teampulse.testsupport.persistence.PersistenceIntegrationTestConfiguration;
+import io.teampulse.testsupport.web.AbstractHttpIntegrationTest;
+import io.teampulse.testsupport.web.HttpIntegrationTestConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureRestTestClient;
+import org.springframework.context.annotation.Import;
+
+@SpringBootTest(
+    classes = TeamTestApplication.class,
+    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT
+)
+@AutoConfigureRestTestClient
+@Import({
+    PersistenceIntegrationTestConfiguration.class,
+    HttpIntegrationTestConfiguration.class
+})
+public abstract class AbstractTeamHttpIntegrationTest extends AbstractHttpIntegrationTest {
+}
