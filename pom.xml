@@ -24,6 +24,7 @@
         <module>tp-app</module>
         <module>tp-common</module>
         <module>tp-test-support</module>
+        <module>tp-web-support</module>
     </modules>
 
     <properties>
@@ -130,6 +131,12 @@
             <dependency>
                 <groupId>io.teampulse</groupId>
                 <artifactId>tp-test-support</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.teampulse</groupId>
+                <artifactId>tp-web-support</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
