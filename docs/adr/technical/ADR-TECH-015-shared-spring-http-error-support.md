@@ -109,3 +109,9 @@ sanitized `503`. Real HTTP tests verify the deferred assignment code and safe
 message, the local timezone validation response, and the shared
 `400 VALIDATION_FAILED` response. The organization `verify` command passes.
 This ADR remains `Draft` until the complete T05 decision is validated.
+
+The team vertical adds a local mapper for `TeamException` and documents the
+team error responses in its OpenAPI contract. Real HTTP checks cover business
+refusals and sanitized shared validation errors; module-owned mappings keep
+precedence over the generic transport advice. The team `verify` command passes.
+This ADR remains `Draft` until the complete T05 decision is validated.

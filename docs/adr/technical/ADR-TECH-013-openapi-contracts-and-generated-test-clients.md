@@ -112,8 +112,10 @@ generated artifact use the shared `0.1.0-SNAPSHOT` product version. The
 organization owner now supplies its contract and generated `OrganizationsApi`
 client, including nullable response references without nullable wrapper types.
 Both owner verticals compile their generated clients with the local test DSL.
-Contracts for team and platform administration will be added by their
-respective verticals. This ADR remains `Draft`.
+The team owner now supplies its lifecycle, responsibility and membership
+contract and generated `TeamsApi` client, compiled with the team-local test
+DSL. Platform administration will add its contract in its own vertical. This
+ADR remains `Draft`.
 
 ## References
 - [OpenAPI Generator Maven plugin](https://openapi-generator.tech/docs/plugins/)

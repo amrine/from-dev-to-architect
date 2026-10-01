@@ -15,6 +15,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -57,8 +58,16 @@ public class JpaTeamRepositoryAdapter implements TeamRepository {
     @Override
     public Optional<Team> findByReference(String organizationReference, String teamReference) {
         return jpaTeamRepository
-                .findByOrganizationReferenceAndReference(organizationReference, teamReference)
-                .map(teamPersistenceMapper::toDomain);
+            .findByOrganizationReferenceAndReference(organizationReference, teamReference)
+            .map(teamPersistenceMapper::toDomain);
+    }
+
+    @Override
+    public List<Team> findByResponsibleUser(String organizationReference, String userReference) {
+        return jpaTeamRepository.findByOrganizationReferenceAndResponsibleUser(organizationReference, userReference)
+            .stream()
+            .map(teamPersistenceMapper::toDomain)
+            .toList();
     }
 
     private RuntimeException translatePersistenceException(RuntimeException exception) {
