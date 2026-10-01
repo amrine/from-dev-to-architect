@@ -101,17 +101,19 @@ the plugin in its POM and stores its contract at
 `target/generated-test-sources/openapi`, attached only to test compilation, and
 uses the shared Maven product version. The generator targets Spring Boot 4 and
 Jackson 3 to match the checked-in baseline. Nullable wrappers are disabled in
-the shared configuration because the current contracts do not declare nullable
-schemas; this keeps generated clients compilable without an unused runtime
-support library.
+the shared configuration because nullable response references need ordinary
+Java null values, not a tri-state wrapper; this keeps generated clients
+compilable without an unused runtime support library.
 
 The identity owner now supplies an OpenAPI 3.0.3 contract for user creation,
 invitation and tenant-scoped listing. Its generated `UsersApi` and transport
 models compile with the module's test sources, and the contract metadata and
-generated artifact use the shared `0.1.0-SNAPSHOT` product version. The owning
-vertical's `verify` command passes. Contracts for organization, team and
-platform administration will be added by their respective verticals. This ADR
-remains `Draft`.
+generated artifact use the shared `0.1.0-SNAPSHOT` product version. The
+organization owner now supplies its contract and generated `OrganizationsApi`
+client, including nullable response references without nullable wrapper types.
+Both owner verticals compile their generated clients with the local test DSL.
+Contracts for team and platform administration will be added by their
+respective verticals. This ADR remains `Draft`.
 
 ## References
 - [OpenAPI Generator Maven plugin](https://openapi-generator.tech/docs/plugins/)

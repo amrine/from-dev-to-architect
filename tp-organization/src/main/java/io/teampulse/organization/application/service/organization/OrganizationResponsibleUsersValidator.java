@@ -149,9 +149,9 @@ public class OrganizationResponsibleUsersValidator {
 
     /**
      * Checks whether both responsible users are currently available without
-     * turning a non-available state into a business error. This probe is used
-     * only to decide whether an assignment may trigger activation or
-     * reactivation.
+     * turning a non-available state into a business error. This probe lets the
+     * application service reject an assignment that would complete a deferred
+     * activation or reactivation.
      *
      * @param organizationReference organization whose responsible users are checked
      * @param administratorReference administrator reference

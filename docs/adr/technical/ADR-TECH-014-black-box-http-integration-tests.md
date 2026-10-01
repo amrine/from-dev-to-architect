@@ -111,5 +111,16 @@ request-validation handling. `./mvnw --batch-mode --no-transfer-progress
 -pl tp-identity -am verify` passes. This ADR remains `Draft` until the complete
 T05 decision is validated.
 
+The organization vertical adds `OrganizationControllerHttpIntegrationTest`
+with its local generated-client DSL. The suite runs the real application on a
+random port with Flyway and PostgreSQL Testcontainers and verifies creation in
+`CREATING`, available and unavailable responsible-user assignments, deferred
+activation/reactivation refusals without persisted state changes, lifecycle
+operations, and local versus shared error mapping. Its standalone application
+stubs only the public `UserDirectory` contract. The existing
+`AbstractIntegrationTest` remains `WebEnvironment.NONE`.
+`./mvnw --batch-mode --no-transfer-progress -pl tp-organization -am verify`
+passes. This ADR remains `Draft` until the complete T05 decision is validated.
+
 ## References
 - [Spring Boot 4.1 testing applications](https://docs.spring.io/spring-boot/reference/testing/spring-boot-applications.html)

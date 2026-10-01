@@ -1,0 +1,303 @@
+openapi: 3.0.3
+info:
+  title: TeamPulse Organization API
+  version: 0.1.0-SNAPSHOT
+  description: Organization lifecycle and responsibility operations owned by tp-organization.
+servers:
+  - url: http://localhost
+tags:
+  - name: Organizations
+    description: Organization lifecycle and responsible users.
+paths:
+  /api/organizations:
+    post:
+      tags: [Organizations]
+      operationId: createOrganization
+      summary: Create an organization in CREATING status
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOrganizationInput'
+      responses:
+        '201':
+          description: Organization created in CREATING status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizationResponse'
+        '400':
+          $ref: '#/components/responses/RequestError'
+        '422':
+          $ref: '#/components/responses/DomainValidationError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /api/organizations/{organizationReference}/administrator:
+    parameters:
+      - $ref: '#/components/parameters/OrganizationReference'
+    post:
+      tags: [Organizations]
+      operationId: assignOrganizationAdministrator
+      summary: Assign an administrator candidate while creating an organization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResponsibleUserInput'
+      responses:
+        '200':
+          description: Administrator assigned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizationResponse'
+        '400':
+          $ref: '#/components/responses/RequestError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+        '422':
+          $ref: '#/components/responses/DomainValidationError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+        '503':
+          $ref: '#/components/responses/DependencyError'
+    put:
+      tags: [Organizations]
+      operationId: replaceOrganizationAdministrator
+      summary: Replace the administrator of an active or suspended organization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResponsibleUserInput'
+      responses:
+        '200':
+          description: Administrator replaced
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizationResponse'
+        '400':
+          $ref: '#/components/responses/RequestError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+        '422':
+          $ref: '#/components/responses/DomainValidationError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+        '503':
+          $ref: '#/components/responses/DependencyError'
+  /api/organizations/{organizationReference}/manager:
+    parameters:
+      - $ref: '#/components/parameters/OrganizationReference'
+    post:
+      tags: [Organizations]
+      operationId: assignOrganizationManager
+      summary: Assign a manager candidate while creating or completing a suspended organization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResponsibleUserInput'
+      responses:
+        '200':
+          description: Manager assigned without activating or reactivating the organization
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizationResponse'
+        '400':
+          $ref: '#/components/responses/RequestError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+        '422':
+          $ref: '#/components/responses/DomainValidationError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+        '503':
+          $ref: '#/components/responses/DependencyError'
+    put:
+      tags: [Organizations]
+      operationId: replaceOrganizationManager
+      summary: Replace the manager of an active or suspended organization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResponsibleUserInput'
+      responses:
+        '200':
+          description: Manager replaced
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizationResponse'
+        '400':
+          $ref: '#/components/responses/RequestError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+        '422':
+          $ref: '#/components/responses/DomainValidationError'
+        '503':
+          $ref: '#/components/responses/DependencyError'
+    delete:
+      tags: [Organizations]
+      operationId: removeOrganizationManager
+      summary: Remove the manager and suspend an active organization
+      responses:
+        '204':
+          description: Manager removed
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /api/organizations/{organizationReference}/suspension:
+    parameters:
+      - $ref: '#/components/parameters/OrganizationReference'
+    post:
+      tags: [Organizations]
+      operationId: suspendOrganization
+      summary: Suspend an active organization
+      responses:
+        '200':
+          description: Organization suspended
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizationResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /api/organizations/{organizationReference}/archive:
+    parameters:
+      - $ref: '#/components/parameters/OrganizationReference'
+    post:
+      tags: [Organizations]
+      operationId: archiveOrganization
+      summary: Archive an organization
+      responses:
+        '200':
+          description: Organization archived
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizationResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+components:
+  parameters:
+    OrganizationReference:
+      name: organizationReference
+      in: path
+      required: true
+      schema:
+        type: string
+        minLength: 1
+  schemas:
+    CreateOrganizationInput:
+      type: object
+      required: [name, timezone]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        timezone:
+          type: string
+          minLength: 1
+          maxLength: 100
+    ResponsibleUserInput:
+      type: object
+      required: [userReference]
+      properties:
+        userReference:
+          type: string
+          minLength: 1
+    OrganizationResponse:
+      type: object
+      required: [reference, name, timezone, status]
+      properties:
+        reference:
+          type: string
+        name:
+          type: string
+        timezone:
+          type: string
+        status:
+          type: string
+          enum: [CREATING, ACTIVE, SUSPENDED, ARCHIVED]
+        administratorReference:
+          type: string
+          nullable: true
+        managerReference:
+          type: string
+          nullable: true
+    ApiError:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+  responses:
+    RequestError:
+      description: Request structure or required fields are invalid
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    NotFoundError:
+      description: Organization or responsible user was not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    ConflictError:
+      description: The operation conflicts with organization state or responsibility availability
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    DomainValidationError:
+      description: Organization business data is invalid
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    DependencyError:
+      description: Responsible-user availability could not be checked
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    InternalError:
+      description: The request could not be completed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'

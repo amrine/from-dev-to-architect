@@ -9,6 +9,8 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 
 import java.time.Clock;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @TestConfiguration
 @SpringBootApplication
@@ -20,7 +22,38 @@ public class OrganizationTestApplication {
     }
 
     @Bean
-    UserDirectory userDirectory() {
-        return (_, _) -> UserAvailability.NOT_FOUND;
+    DeterministicUserDirectory userDirectory() {
+        return new DeterministicUserDirectory();
     }
+
+    public static class DeterministicUserDirectory implements UserDirectory {
+
+        private final Map<UserKey, UserAvailability> availabilities =
+            new ConcurrentHashMap<>();
+
+        @Override
+        public UserAvailability check(String organizationReference, String userReference) {
+            return availabilities.getOrDefault(
+                new UserKey(organizationReference, userReference),
+                UserAvailability.NOT_FOUND
+            );
+        }
+
+        public void setAvailability(
+            String organizationReference,
+            String userReference,
+            UserAvailability availability
+        ) {
+            availabilities.put(
+                new UserKey(organizationReference, userReference),
+                availability
+            );
+        }
+
+        public void reset() {
+            availabilities.clear();
+        }
+    }
+
+    private record UserKey(String organizationReference, String userReference) { }
 }
