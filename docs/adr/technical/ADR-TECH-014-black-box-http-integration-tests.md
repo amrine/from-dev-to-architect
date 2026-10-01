@@ -135,5 +135,16 @@ deduplication and exclusion of ordinary team membership. The existing
 `./mvnw --batch-mode --no-transfer-progress -pl tp-team -am verify` command
 passes; this ADR remains `Draft` until the complete T05 decision is validated.
 
+Administration adds a random-port HTTP base that assembles the real identity,
+organization and team modules against PostgreSQL Testcontainers/Flyway, with a
+module-local DSL over the generated clients. Its HTTP cases verify provisioning,
+invitation, sanitized validation errors, tenant-provider call count, lifecycle
+refusals and persisted statuses without substituting module contracts. The
+`tp-app` assembly also runs real HTTP checks for the persisted local demo tenant,
+the `CREATING` organization refusal, loopback binding and route absence without
+an allowed profile. Existing `AbstractIntegrationTest` bases remain
+`WebEnvironment.NONE`. The requested administration/app and full reactor
+`verify` commands pass; this ADR remains `Draft`.
+
 ## References
 - [Spring Boot 4.1 testing applications](https://docs.spring.io/spring-boot/reference/testing/spring-boot-applications.html)

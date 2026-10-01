@@ -115,3 +115,11 @@ team error responses in its OpenAPI contract. Real HTTP checks cover business
 refusals and sanitized shared validation errors; module-owned mappings keep
 precedence over the generic transport advice. The team `verify` command passes.
 This ADR remains `Draft` until the complete T05 decision is validated.
+
+The administration HTTP adapter adds its own higher-precedence mapping for
+`PlatformAdministrationException`; provisioning validation and lifecycle
+refusals are exercised over real HTTP, while the shared advice continues to
+handle framework/transport failures. Error bodies contain stable public codes
+and safe messages without submitted PII or technical causes. The
+administration/app and full reactor `verify` commands pass. This ADR remains
+`Draft`.

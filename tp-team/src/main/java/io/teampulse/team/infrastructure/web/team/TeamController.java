@@ -12,6 +12,7 @@ import io.teampulse.team.domain.team.model.Team;
 import io.teampulse.team.domain.team.model.TeamMember;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,6 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/teams")
+@Profile({"local", "development"})
 @AllArgsConstructor
 public class TeamController {
 

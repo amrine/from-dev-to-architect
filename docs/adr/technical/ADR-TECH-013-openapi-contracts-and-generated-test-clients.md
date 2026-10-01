@@ -114,8 +114,12 @@ client, including nullable response references without nullable wrapper types.
 Both owner verticals compile their generated clients with the local test DSL.
 The team owner now supplies its lifecycle, responsibility and membership
 contract and generated `TeamsApi` client, compiled with the team-local test
-DSL. Platform administration will add its contract in its own vertical. This
-ADR remains `Draft`.
+DSL. The administration owner now supplies an OpenAPI 3.0.3 contract for
+initial organization/user provisioning and tenant-scoped user
+suspension/deactivation. Its generated provisioning and lifecycle clients
+compile with the local test DSL; generation remains test-only under `target`,
+and the contract uses the parent product version. The administration/app
+verification and full reactor `verify` pass. This ADR remains `Draft`.
 
 ## References
 - [OpenAPI Generator Maven plugin](https://openapi-generator.tech/docs/plugins/)

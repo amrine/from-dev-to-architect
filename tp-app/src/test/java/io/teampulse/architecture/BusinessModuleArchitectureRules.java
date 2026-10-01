@@ -28,6 +28,10 @@ final class BusinessModuleArchitectureRules {
         "org.springframework.transaction.annotation.Transactional",
         "org.springframework.validation.annotation.Validated"
     );
+    private static final String USER_LIFECYCLE_SERVICE =
+        "io.teampulse.identity.application.service.user.UserLifecycleService";
+    private static final String APPLICATION_EVENT_PUBLISHER =
+        "org.springframework.context.ApplicationEventPublisher";
 
     static final JavaClasses PRODUCTION_CLASSES = new ClassFileImporter()
         .withImportOption(new ImportOption.DoNotIncludeTests())
@@ -204,7 +208,7 @@ final class BusinessModuleArchitectureRules {
                 .and().areAnnotatedWith("org.springframework.stereotype.Service")
                 .should().beAnnotatedWith("org.springframework.validation.annotation.Validated"))
             .as("R11 - les services applicatifs restent indépendants de la persistence et encadrent leur usage de Spring")
-            .because("les services Spring activent @Validated et n'utilisent que @Service, @Validated et @Transactional");
+            .because("les services Spring activent @Validated et limitent leurs dépendances Spring aux besoins applicatifs autorisés");
     }
 
     private static ModuleRule rule(ArchitectureModules.BusinessModule module, String id, ArchRule rule) {
@@ -272,7 +276,7 @@ final class BusinessModuleArchitectureRules {
                     .stream()
                     .map(dependency -> dependency.getTargetClass())
                     .filter(target -> target.getPackageName().startsWith("org.springframework."))
-                    .filter(target -> !ALLOWED_APPLICATION_SERVICE_SPRING_TYPES.contains(target.getName()))
+                    .filter(target -> !isAllowedApplicationServiceSpringType(item, target))
                     .distinct()
                     .forEach(target -> events.add(SimpleConditionEvent.violated(
                         item,
@@ -281,6 +285,15 @@ final class BusinessModuleArchitectureRules {
                     )));
             }
         };
+    }
+
+    private static boolean isAllowedApplicationServiceSpringType(
+        JavaClass source,
+        JavaClass target
+    ) {
+        return ALLOWED_APPLICATION_SERVICE_SPRING_TYPES.contains(target.getName())
+            || (source.getName().equals(USER_LIFECYCLE_SERVICE)
+                && target.getName().equals(APPLICATION_EVENT_PUBLISHER));
     }
 
     private static DescribedPredicate<JavaClass> resideInModule(ModulePackages packages) {

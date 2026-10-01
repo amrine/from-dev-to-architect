@@ -8,6 +8,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 
 import java.time.Clock;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @SpringBootApplication
 public class AdministrationTestApplication {
@@ -25,8 +26,33 @@ public class AdministrationTestApplication {
     }
 
     @Bean
-    TenantContextProvider tenantContextProvider() {
-        TenantContext tenantContext = new TenantContext(TEST_TENANT_REFERENCE);
-        return () -> tenantContext;
+    DeterministicTenantContextProvider tenantContextProvider() {
+        return new DeterministicTenantContextProvider(
+            new TenantContext(TEST_TENANT_REFERENCE)
+        );
+    }
+
+    public static class DeterministicTenantContextProvider implements TenantContextProvider {
+
+        private final TenantContext tenantContext;
+        private final AtomicInteger calls = new AtomicInteger();
+
+        public DeterministicTenantContextProvider(TenantContext tenantContext) {
+            this.tenantContext = tenantContext;
+        }
+
+        @Override
+        public TenantContext current() {
+            calls.incrementAndGet();
+            return tenantContext;
+        }
+
+        public int calls() {
+            return calls.get();
+        }
+
+        public void resetCalls() {
+            calls.set(0);
+        }
     }
 }

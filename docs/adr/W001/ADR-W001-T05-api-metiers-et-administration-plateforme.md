@@ -277,3 +277,19 @@ report des notifications évite d'ajouter leur persistance et leur exploitation
   reste `Draft`. `./mvnw --batch-mode --no-transfer-progress
   -pl tp-administration -am verify` passe, avec dix tests d'intégration du
   noyau d'administration sur PostgreSQL Testcontainers.
+- La verticale HTTP d'administration ajoute son propre contrat OpenAPI et des
+  clients de test générés pour le provisioning et le cycle de vie utilisateur.
+  Les routes créent une organisation toujours `CREATING` avec son premier
+  utilisateur, invitent le premier utilisateur, puis exposent suspension et
+  désactivation après résolution unique du tenant par
+  `TenantContextProvider.current()`. Les erreurs de plateforme ont un mapping
+  local et les détails techniques/PII restent masqués. Les quatre APIs sont
+  limitées aux profils `local` et `development`, le serveur est lié à
+  `127.0.0.1` par défaut ; les tests HTTP vérifient l'absence des routes sans
+  profil autorisé, le binding loopback, l'état PostgreSQL/Flyway et le refus
+  d'opérations d'équipe quand l'organisation locale est `CREATING`. Le profil
+  local crée cette organisation via le contrat public synchrone
+  `OrganizationProvisioning` et réutilise la référence persistée retournée.
+  `./mvnw --batch-mode --no-transfer-progress -pl tp-administration,tp-app
+  -am verify` et `./mvnw --batch-mode --no-transfer-progress verify` passent.
+  Cet ADR reste `Draft`.

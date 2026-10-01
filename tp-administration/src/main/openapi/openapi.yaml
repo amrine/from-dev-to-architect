@@ -1,0 +1,189 @@
+openapi: 3.0.3
+info:
+  title: TeamPulse Platform Administration API
+  version: 0.1.0-SNAPSHOT
+  description: Synchronous platform provisioning and user lifecycle orchestration owned by tp-administration.
+servers:
+  - url: http://localhost
+tags:
+  - name: Platform provisioning
+    description: Initial organization and user provisioning.
+  - name: Platform user lifecycle
+    description: Tenant-scoped user lifecycle operations with responsibility checks.
+paths:
+  /api/platform/organizations:
+    post:
+      tags: [Platform provisioning]
+      operationId: createOrganizationAndInitialUser
+      summary: Create an organization and its initial user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PlatformProvisioningInput'
+      responses:
+        '201':
+          description: Organization created in CREATING and initial user created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlatformProvisioningResult'
+        '400':
+          $ref: '#/components/responses/RequestError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+        '422':
+          $ref: '#/components/responses/DomainValidationError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /api/platform/organizations/invitations:
+    post:
+      tags: [Platform provisioning]
+      operationId: inviteInitialUser
+      summary: Create an organization and invite its initial user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PlatformProvisioningInput'
+      responses:
+        '201':
+          description: Organization created in CREATING and initial user invited
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlatformProvisioningResult'
+        '400':
+          $ref: '#/components/responses/RequestError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+        '422':
+          $ref: '#/components/responses/DomainValidationError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /api/platform/users/{userReference}/suspension:
+    parameters:
+      - $ref: '#/components/parameters/UserReference'
+    post:
+      tags: [Platform user lifecycle]
+      operationId: suspendUser
+      summary: Suspend the user in the current tenant after checking responsibilities
+      responses:
+        '204':
+          description: User suspended
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+        '503':
+          $ref: '#/components/responses/DependencyError'
+  /api/platform/users/{userReference}/deactivation:
+    parameters:
+      - $ref: '#/components/parameters/UserReference'
+    post:
+      tags: [Platform user lifecycle]
+      operationId: deactivateUser
+      summary: Deactivate the user in the current tenant after checking responsibilities
+      responses:
+        '204':
+          description: User deactivated
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+        '503':
+          $ref: '#/components/responses/DependencyError'
+components:
+  parameters:
+    UserReference:
+      name: userReference
+      in: path
+      required: true
+      schema:
+        type: string
+        minLength: 1
+  schemas:
+    PlatformProvisioningInput:
+      type: object
+      required: [organizationName, timezone, email, firstName, lastName]
+      properties:
+        organizationName:
+          type: string
+          minLength: 1
+          maxLength: 200
+        timezone:
+          type: string
+          minLength: 1
+          maxLength: 100
+        email:
+          type: string
+          minLength: 1
+          maxLength: 254
+          pattern: '^[^\s@]+@[^\s@]+$'
+        firstName:
+          type: string
+          minLength: 1
+          maxLength: 100
+        lastName:
+          type: string
+          minLength: 1
+          maxLength: 100
+    PlatformProvisioningResult:
+      type: object
+      required: [organizationReference, userReference]
+      properties:
+        organizationReference:
+          type: string
+        userReference:
+          type: string
+    ApiError:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+  responses:
+    RequestError:
+      description: Request structure or required fields are invalid
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    NotFoundError:
+      description: The requested user was not found in the current tenant
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    ConflictError:
+      description: The operation conflicts with the user's state or responsibilities
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    DomainValidationError:
+      description: Organization or user business data is invalid
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    DependencyError:
+      description: Cross-module responsibility data could not be read
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    InternalError:
+      description: The request could not be completed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'

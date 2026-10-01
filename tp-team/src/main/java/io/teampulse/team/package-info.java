@@ -3,6 +3,7 @@
         allowedDependencies = {
             "common::context",
             "common::mapping",
+            "common::error",
             "common::persistence",
             "common::reference",
             "identity::user",

@@ -16,6 +16,15 @@ import io.teampulse.identity.api.user.UserDirectoryException;
 import io.teampulse.organization.api.organization.OrganizationAvailability;
 import io.teampulse.organization.api.organization.OrganizationDirectory;
 import io.teampulse.organization.api.organization.OrganizationDirectoryException;
+import io.teampulse.organization.api.organization.OrganizationLifecycleState;
+import io.teampulse.organization.api.organization.OrganizationProvisioning;
+import io.teampulse.organization.api.organization.OrganizationProvisioningCommand;
+import io.teampulse.organization.api.organization.OrganizationProvisioningErrorCode;
+import io.teampulse.organization.api.organization.OrganizationProvisioningException;
+import io.teampulse.organization.api.organization.OrganizationProvisioningResult;
+import io.teampulse.organization.api.organization.OrganizationResponsibilityDirectory;
+import io.teampulse.organization.api.organization.OrganizationResponsibilityDirectoryException;
+import io.teampulse.organization.api.organization.OrganizationResponsibilitySnapshot;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -154,7 +163,16 @@ public class ModulithArchitectureTests {
             Set.of(
                 OrganizationDirectory.class.getName(),
                 OrganizationAvailability.class.getName(),
-                OrganizationDirectoryException.class.getName()
+                OrganizationDirectoryException.class.getName(),
+                OrganizationLifecycleState.class.getName(),
+                OrganizationProvisioning.class.getName(),
+                OrganizationProvisioningCommand.class.getName(),
+                OrganizationProvisioningErrorCode.class.getName(),
+                OrganizationProvisioningException.class.getName(),
+                OrganizationProvisioningResult.class.getName(),
+                OrganizationResponsibilityDirectory.class.getName(),
+                OrganizationResponsibilityDirectoryException.class.getName(),
+                OrganizationResponsibilitySnapshot.class.getName()
             ),
             exposedTypes
         );

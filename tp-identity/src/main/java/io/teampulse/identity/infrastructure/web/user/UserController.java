@@ -8,6 +8,7 @@ import io.teampulse.identity.application.port.in.user.UserLifecycleUseCase;
 import io.teampulse.identity.domain.user.model.User;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,6 +21,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/users")
+@Profile({"local", "development"})
 @AllArgsConstructor
 public class UserController {
 
