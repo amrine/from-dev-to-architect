@@ -384,6 +384,9 @@ report des notifications évite d'ajouter leur persistance et leur exploitation
   `409 USER_HAS_ACTIVE_RESPONSIBILITIES` sans mutation et le 404 inter-tenant
   sans mutation. `./mvnw --batch-mode --no-transfer-progress -pl
   tp-organization,tp-administration,tp-app -am verify` passe.
-  Ces validations locales ne remplacent pas encore une preuve CI de `verify`
-  sur tous les commits de la pile ; les PR restent non fusionnées et l'ADR
+  La [run GitHub Actions de la PR #62](https://github.com/amrine/from-dev-to-architect/actions/runs/37015033616)
+  passe également sur le commit `0bb59d4c`, à la tête de la pile : le job
+  backend `verify` couvre le reactor complet à neuf modules et le job Slidev
+  passe. Cette preuve porte sur l'état cumulé de la pile ; elle ne vaut pas
+  acceptation des décisions métier. Les PR restent non fusionnées et l'ADR
   reste `Draft`.
