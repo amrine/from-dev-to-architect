@@ -56,11 +56,16 @@ d'application et de persistence portant `organizationReference`, notamment
 responsabilites avant l'indisponibilite d'un utilisateur. Un contexte d'acteur
 distinct est reserve a l'audit et a l'orchestration, mais l'authentification,
 les roles et les permissions sont reportes a W008. Le bootstrap et le profil
-local creent une organisation persistée `CREATING` ; aucune activation ou
-réactivation n'est exposée en T05. L'affectation finale des responsables et la
-transition vers `ACTIVE` attendent W008. Les contrats OpenAPI et leurs clients de test sont
-propres a chaque proprietaire HTTP ; les notifications/email sont hors du
-perimetre T05 et font l'objet d'un besoin de travail distinct.
+local créent une organisation persistée `CREATING` ; aucune activation ou
+réactivation n'est exposée en T05. Une affectation qui ne déclenche pas de
+transition peut conserver un responsable `PENDING`, mais une commande qui
+activerait l'organisation est refusée sans écriture. Le bootstrap de plateforme
+crée l'organisation et son premier utilisateur tout-ou-rien. Le tenant local
+reste initialisé paresseusement et propre à chaque processus ; un redémarrage
+crée une nouvelle organisation de démonstration. L'affectation qui ferait
+passer l'organisation à `ACTIVE` attend W008. Les contrats OpenAPI et leurs
+clients de test sont propres à chaque propriétaire HTTP ; les
+notifications/email restent hors du périmètre T05.
 
 Le scenario fonctionnel de reference est decrit dans
 [`SCENARIO-METIER-TEAMPULSE.md`](../SCENARIO-METIER-TEAMPULSE.md).

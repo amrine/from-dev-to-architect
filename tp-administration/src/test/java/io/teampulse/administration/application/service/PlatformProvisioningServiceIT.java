@@ -1,6 +1,8 @@
 package io.teampulse.administration.application.service;
 
 import io.teampulse.administration.AbstractAdministrationIntegrationTest;
+import io.teampulse.administration.application.error.PlatformAdministrationErrorCode;
+import io.teampulse.administration.application.error.PlatformAdministrationException;
 import io.teampulse.administration.application.port.in.PlatformProvisioningCommand;
 import io.teampulse.administration.application.port.in.PlatformProvisioningResult;
 import io.teampulse.administration.application.port.in.PlatformProvisioningUseCase;
@@ -15,13 +17,17 @@ import io.teampulse.organization.api.organization.OrganizationResponsibilityDire
 import io.teampulse.organization.api.organization.OrganizationResponsibilitySnapshot;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.Test;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class PlatformProvisioningServiceIT extends AbstractAdministrationIntegrationTest {
+
+    private static final String INVALID_EMAIL = "invalid-email";
 
     @Inject
     private PlatformProvisioningUseCase platformProvisioning;
@@ -34,6 +40,9 @@ class PlatformProvisioningServiceIT extends AbstractAdministrationIntegrationTes
 
     @Inject
     private UserRepository userRepository;
+
+    @Inject
+    private JdbcTemplate jdbcTemplate;
 
     @Test
     void createsAnOrganizationInCreatingAndItsInitialUserWithoutAssigningResponsibilities() {
@@ -51,6 +60,51 @@ class PlatformProvisioningServiceIT extends AbstractAdministrationIntegrationTes
         );
 
         assertProvisionedState(result, UserStatus.INVITED);
+    }
+
+    @Test
+    void rollsBackOrganizationWhenInitialUserCreationFails() {
+        assertProvisioningRollback(
+            "TeamPulse failed create",
+            () -> platformProvisioning.createOrganizationAndInitialUser(
+                command("TeamPulse failed create", INVALID_EMAIL)
+            )
+        );
+    }
+
+    @Test
+    void rollsBackOrganizationWhenInitialInvitationFails() {
+        assertProvisioningRollback(
+            "TeamPulse failed invite",
+            () -> platformProvisioning.inviteInitialUser(
+                command("TeamPulse failed invite", INVALID_EMAIL)
+            )
+        );
+    }
+
+    private void assertProvisioningRollback(String organizationName, Runnable provisioning) {
+        PlatformAdministrationException exception = assertThrows(
+            PlatformAdministrationException.class,
+            provisioning::run
+        );
+
+        assertEquals(PlatformAdministrationErrorCode.USER_DATA_INVALID, exception.getErrorCode());
+        assertEquals(
+            0L,
+            jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM tp_organization.organizations WHERE name = ?",
+                Long.class,
+                organizationName
+            )
+        );
+        assertEquals(
+            0L,
+            jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM tp_identity.users WHERE email = ?",
+                Long.class,
+                INVALID_EMAIL
+            )
+        );
     }
 
     private void assertProvisionedState(

@@ -18,6 +18,7 @@ import io.teampulse.organization.api.organization.OrganizationProvisioningExcept
 import io.teampulse.organization.api.organization.OrganizationProvisioningResult;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
 import java.util.function.BiFunction;
@@ -31,6 +32,7 @@ public class PlatformProvisioningService implements PlatformProvisioningUseCase 
     private final UserLifecycle userLifecycle;
 
     @Override
+    @Transactional
     public PlatformProvisioningResult createOrganizationAndInitialUser(
         PlatformProvisioningCommand command
     ) {
@@ -38,6 +40,7 @@ public class PlatformProvisioningService implements PlatformProvisioningUseCase 
     }
 
     @Override
+    @Transactional
     public PlatformProvisioningResult inviteInitialUser(PlatformProvisioningCommand command) {
         return provision(command, userLifecycle::invite);
     }

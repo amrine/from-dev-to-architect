@@ -26,6 +26,8 @@ class LocalTenantContextProviderTest {
 
     private static final String ORGANIZATION_REFERENCE =
         "ORG-2026-0609-00000ZA7B900";
+    private static final String NEXT_PROCESS_ORGANIZATION_REFERENCE =
+        "ORG-2026-0609-00000ZA7B901";
 
     @Test
     void provisionsTheDemoOrganizationLazilyAndUsesItsPersistedReference() {
@@ -48,6 +50,25 @@ class LocalTenantContextProviderTest {
         assertEquals(1, provisioningCount.get());
         assertEquals("TeamPulse Local Demo", command.get().name());
         assertEquals("Europe/Paris", command.get().timezone());
+    }
+
+    @Test
+    void provisionsAnIndependentDemoOrganizationForEachProviderInstance() {
+        AtomicInteger provisioningCount = new AtomicInteger();
+        OrganizationProvisioning organizationProvisioning = _ -> {
+            String reference = provisioningCount.incrementAndGet() == 1
+                ? ORGANIZATION_REFERENCE
+                : NEXT_PROCESS_ORGANIZATION_REFERENCE;
+            return organization(reference, OrganizationLifecycleState.CREATING);
+        };
+        LocalTenantContextProvider firstProcess =
+            new LocalTenantContextProvider(organizationProvisioning);
+        LocalTenantContextProvider nextProcess =
+            new LocalTenantContextProvider(organizationProvisioning);
+
+        assertEquals(ORGANIZATION_REFERENCE, firstProcess.current().tenantReference());
+        assertEquals(NEXT_PROCESS_ORGANIZATION_REFERENCE, nextProcess.current().tenantReference());
+        assertEquals(2, provisioningCount.get());
     }
 
     @Test

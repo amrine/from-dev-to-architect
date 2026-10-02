@@ -60,15 +60,20 @@ de notification : `tp-notification` et sa livraison relèvent de T10.
 - La création initiale d'une organisation initialise son statut à `CREATING`.
   Le premier utilisateur peut être créé ou invité, mais `INVITED` et `CREATING`
   restent `PENDING` selon `UserDirectory`.
-- La règle d'éligibilité d'un candidat responsable reste en arbitrage : le
-  comportement T04 autorise `PENDING` dans certains parcours, tandis que le
-  besoin T05 Draft propose `AVAILABLE` uniquement. En attendant la décision,
-  T05 ne modifie pas le comportement accepté en T04. Le premier compte n'étant
-  pas rendu disponible en T05, le bootstrap s'arrête en `CREATING` avant
-  l'affectation finale. T05 n'expose
-  pas l'activation/réactivation et ne doit pas permettre qu'une affectation de
-  responsables la déclenche indirectement. W008 introduit l'activation du compte,
-  l'affectation finale et la transition de l'organisation vers `ACTIVE`.
+- La règle T04 est conservée : `PENDING` et `AVAILABLE` sont admis comme
+  candidats par les commandes d'affectation qui ne déclenchent pas de transition
+  de statut. Les opérations opérationnelles qui exigent
+  `AVAILABLE` gardent cette exigence. Le provisioning de plateforme s'arrête
+  avant l'affectation des responsables. T05 n'expose ni activation ni
+  réactivation et refuse ou diffère sans écriture toute affectation qui ferait
+  passer l'organisation à `ACTIVE`. W008 introduit l'activation du compte et
+  les opérations finales qui en dépendent.
+- Les opérations synchrones de création d'organisation et de création ou
+  d'invitation du premier utilisateur partagent une transaction locale. Les
+  contrats des deux modules rejoignent le transaction manager et la base
+  communs ; toute exception annule l'ensemble des écritures. Il n'existe pas de
+  résultat partiel ni de procédure de récupération. Cette garantie devra être
+  redéfinie avant une séparation des modules sur plusieurs bases ou processus.
 - `TenantContext` porte uniquement le périmètre des données. `ActorContext`
   identifie l'acteur technique enregistré pour l'audit, notamment `SYSTEM` en
   local ; il ne prouve pas une authentification et ne fournit aucun rôle ou
@@ -79,14 +84,14 @@ de notification : `tp-notification` et sa livraison relèvent de T10.
 ### 3. Lier le profil local à une organisation persistée
 
 Le `TenantContextProvider` du profil `local` initialise paresseusement une
-organisation de démonstration persistée en `CREATING` à son premier appel,
-puis mémorise sa référence pour la durée du processus. En cas d'échec, aucun
-contexte n'est mémorisé et un appel ultérieur retente l'initialisation,
-conformément au comportement accepté en T04. Il ne fabrique pas de référence
-tenant en mémoire. Le comportement actuel crée donc une nouvelle organisation
-de démonstration au premier appel de chaque processus ; la réutilisation d'une
-organisation persistante entre redémarrages reste à arbitrer. Les opérations
-exigeant une organisation `ACTIVE` attendent W008.
+organisation de démonstration persistée en `CREATING` au premier appel tenanté
+de chaque processus, puis mémorise la référence réellement renvoyée par le
+contrat public de provisioning pour la durée de ce processus. Si l'initialisation
+échoue, le contexte n'est pas mémorisé et l'appel suivant retente l'opération,
+conformément à T04 Accepted. Le processus suivant crée une nouvelle organisation
+de démonstration ; aucun tenant antérieur n'est retrouvé par son nom ou
+réutilisé après redémarrage. Les opérations exigeant une organisation
+`ACTIVE` attendent W008.
 Les API T05 non authentifiées restent réservées à l'environnement local/de
 développement jusqu'à W008 ; elles ne doivent pas être exposées à un réseau non
 fiable.
@@ -171,12 +176,16 @@ ne change pas le statut Draft de cet ADR.
   publié.
 - Sécurité locale : avant W008, les quatre APIs sont réservées aux profils
   locaux/de développement et écoutent sur loopback par défaut.
-- Choix métier en attente : la disponibilité `PENDING` d'un candidat
-  responsable, l'atomicité du provisioning organisation/utilisateur et la
-  réutilisation du tenant local après redémarrage restent soumis à arbitrage.
-  L'implémentation actuelle accepte certains candidats `PENDING`, effectue les
-  deux créations sans transaction englobante et crée un tenant de démonstration
-  par processus. Le lazy init avec retry reste aligné sur T04 Accepted.
+- Provisioning : les opérations de création et d'invitation initiales sont
+  transactionnelles dans `tp-administration`. Le contrat d'organisation et le
+  contrat d'identité utilisent le même transaction manager et PostgreSQL ; un
+  échec utilisateur annule l'organisation créée. Les tests d'intégration
+  vérifient ce rollback pour la création et l'invitation.
+- Décisions validées par le propriétaire le 2026-10-02 : `PENDING` reste
+  assignable dans les commandes T04 qui ne déclenchent pas de transition de
+  statut ; le provisioning est tout-ou-rien ; le tenant local reste lazy, avec
+  retry, et propre à chaque processus. Cette validation partielle ne vaut pas
+  acceptation de l'ensemble de l'ADR, qui demeure Draft.
 
 Les validations d'implémentation sont consignées dans les notes de cet ADR.
 Une réussite de build ou de CI ne vaut pas acceptation des décisions métier.
@@ -264,18 +273,33 @@ report des notifications évite d'ajouter leur persistance et leur exploitation
   livraison peut être au moins une fois ; il devra être idempotent et ses
   échecs rester séparés du résultat de la commande HTTP initiale.
 - L'absence d'envoi rétroactif avant T10 est une limite fonctionnelle assumée.
-- Le provider local initialise à la première requête tenantée et retente au
-  prochain appel si l'initialisation échoue ; une organisation distincte est
-  actuellement créée par processus. La réutilisation après redémarrage reste à
-  décider.
-- Le provisioning peut laisser une organisation `CREATING` persistée si la
-  création ou l'invitation de l'utilisateur échoue. Le résultat attendu
-  (atomicité ou résultat partiel récupérable) reste à arbitrer.
-- Le statut `PENDING` de certains candidats responsables est accepté par les
-  règles T04 actuelles alors que le besoin T05 Draft propose `AVAILABLE` ; la
-  règle cible reste à arbitrer et n'est pas traitée comme un défaut contre T04.
+- Le provider local crée une nouvelle organisation de démonstration au premier
+  appel tenanté de chaque processus. Les anciennes lignes `CREATING` restent
+  dans la base locale ; le README décrit cette portée et le redémarrage.
+- L'atomicité du provisioning dépend du transaction manager et de la base
+  partagés dans l'application actuelle. Une séparation en plusieurs bases ou
+  processus nécessite de redéfinir ce contrat.
 
 ## Notes
+- Le propriétaire a validé le 2026-10-02 l'affectabilité de candidats
+  `PENDING` par les commandes T04 qui ne déclenchent pas de transition de
+  statut, le provisioning tout-ou-rien et le tenant local paresseux avec retry
+  par processus. Le statut Draft de cet ADR est conservé, car la validation
+  porte sur ces arbitrages précis seulement.
+- L'implémentation applique la transaction englobante aux deux commandes de
+  `PlatformProvisioningService`. `PlatformProvisioningServiceIT` vérifie contre
+  PostgreSQL que les échecs de création et d'invitation ne laissent ni
+  organisation ni utilisateur. `OrganizationResponsibleUsersServiceIT` prouve
+  la persistance d'une affectation `PENDING` en `CREATING`, et
+  `LocalTenantContextProviderTest` confirme un provisioning distinct par
+  instance après les tests existants de lazy init et de retry.
+- `README.md` répertorie les propriétaires runtime et HTTP, lie les quatre
+  contrats OpenAPI, décrit les parcours utilisables en local, les limitations
+  jusqu'à W008, la portée du tenant local et un exemple d'appel de provisioning.
+- `./mvnw --batch-mode --no-transfer-progress -pl tp-administration,tp-app -am
+  verify` puis `./mvnw --batch-mode --no-transfer-progress verify` passent avec
+  les neuf modules du reactor. Ces validations n'acceptent pas l'ensemble de
+  l'ADR ; son statut reste Draft.
 - Les changements de décision intervenus pendant l'analyse sont conservés ici :
   notification/email déplacés de T05 vers T10 ; activation effective de
   l'organisation et publication de `OrganizationActivated` différées à W008.
