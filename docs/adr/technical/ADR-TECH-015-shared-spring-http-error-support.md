@@ -3,123 +3,84 @@
 ## Status
 Draft
 
-## Linked ticket
-Initial adoption: W001-T05. Reusable technical decision.
-
 ## Context
-HTTP error serialization and framework-level error handling are repeated across
-business modules, but each module owns its own business error codes and their
-meaning. Putting Spring MVC types or one global business-error catalog in
-`tp-common` would couple the shared Java contract to a framework or make
-unrelated modules coordinate their error evolution.
+HTTP error serialization and framework-level handling are repeated across
+business capabilities, but each capability owns the meaning of its business
+error codes. Putting framework response types in a neutral shared contract or
+centralizing business errors would couple unrelated concerns.
 
 ## Decision
-- Add a dedicated `tp-web-support` module for shared Spring Web error-adapter
-  behavior. It depends on the neutral response contract but not on business
-  modules.
-- Keep a small Java-only `ApiError` response DTO in `tp-common`. Its stable
-  response fields are `code` and `message`; it does not use Spring's
-  `ResponseEntity`, `ProblemDetail`, servlet types or annotations.
-- Use shared advice for transport/framework failures such as malformed input,
-  Jakarta validation failures and unexpected technical failures. Do not place
-  module-specific error codes, exception classes or business translations in
-  that shared module.
-- Keep each module's business-code-to-HTTP-status mapping in its own incoming
-  Web adapter. The module maps its vocabulary to `ApiError` and the shared
-  support renders the HTTP response consistently.
-- Preserve causes and diagnostic context in server-side logs, but never return
-  stack traces, internal exception messages, SQL details or personal data to
-  callers.
-- Preserve the existing technical decision that each business capability owns
-  its error vocabulary and translates known failures at its boundary
-  (ADR-TECH-012).
+- Keep the shared error response data transfer object free of Spring, servlet
+  and persistence types.
+- Put reusable Spring Web transport advice in a dedicated support component
+  that depends on the neutral error contract and not on business modules.
+- Limit shared advice to framework and transport failures such as malformed
+  input, request validation and unexpected technical failures. It does not
+  define business error codes or business translations.
+- Keep business-code-to-HTTP-status mapping in the incoming adapter owned by
+  the capability that understands the error. That adapter maps to the neutral
+  response data; shared support renders it consistently.
+- Preserve causes and diagnostics for server-side logging, but never return
+  stack traces, internal messages, SQL details or personal data to callers.
+- Preserve the boundary rule that each business capability owns its error
+  vocabulary and translates known failures (ADR-TECH-012).
 
 ## Alternatives considered
 - Duplicate a complete Spring exception handler in every business module.
-- Put `@RestControllerAdvice`, HTTP statuses and Spring response types in
-  `tp-common`.
-- Centralize every module's error code and mapping in `tp-web-support`.
-- Expose Spring `ProblemDetail` directly as the cross-module response DTO.
+- Put Spring advice, HTTP statuses and framework response types in a neutral
+  shared module.
+- Centralize business error codes and mappings in shared web support.
+- Expose a framework-specific response type as the cross-module error DTO.
 
 ## Justification
-The Spring-specific mechanism can be reused without leaking web framework
-types into neutral response data. Module ownership remains explicit, so error
-codes evolve with the capability that defines them while clients receive one
-stable shape.
+Spring-specific handling can be reused without coupling neutral response data
+to the Web framework. Business codes and status choices remain with the
+capability that owns their meaning while callers receive a stable shape.
 
 ## Positive consequences
-- Consistent HTTP error serialization across modules.
-- No Spring MVC dependency is introduced by the `ApiError` type itself.
-- Business codes and statuses remain owned by the module that understands them.
-- Internal causes and PII are not exposed in public responses.
+- HTTP error serialization is consistent across owners.
+- The neutral DTO does not gain a Web framework dependency.
+- Business codes and statuses evolve with their owning capabilities.
+- Internal causes and personal data stay out of public responses.
 
 ## Negative consequences / trade-offs
-- Every module must maintain an explicit mapping from its stable codes to
-  transport statuses.
-- Shared advice and local business mappings need coordinated tests to ensure
-  that precedence and serialization remain predictable.
-- The response DTO becomes a public compatibility contract and must evolve
+- Each owner maintains an explicit mapping from stable business codes to HTTP
+  statuses.
+- Shared and local handlers need coordinated tests for precedence and
+  serialization.
+- The shared response shape is a public compatibility contract and must evolve
   deliberately.
 
 ## Technical impact
-- New `tp-web-support` Maven module with Spring Web dependencies.
-- Java-only `ApiError` DTO in `tp-common`.
-- Module-owned Web error mappers and contract tests.
-- No module-specific error code catalog in either shared module.
+- A neutral error response contract.
+- A separate shared Spring Web transport adapter.
+- Owner-specific HTTP error mappers and transport tests.
+- No business error catalog in shared support.
 
 ## Validation
-- Verify `tp-web-support` depends on no business module.
-- Verify `ApiError` imports no Spring, servlet or persistence types.
-- Test common request-validation and technical-error responses through HTTP.
-- Test every module's business-code mapping through its real HTTP integration
-  tests.
+- Verify shared Web support depends on no business module.
+- Verify the neutral response DTO imports no Spring, servlet or persistence
+  types.
+- Exercise common transport failures and every owner's business mapping through
+  the test strategy recorded by that project.
 - Verify responses contain stable public codes and no internal diagnostics or
-  PII.
+  personal data.
 
 ## Risks
-- Overly broad shared handlers can capture exceptions before module-owned
-  mappings; exception ownership and handler precedence must be tested.
-- A response-contract change can affect every API client and therefore needs
-  compatibility review.
+- Broad shared handlers can capture exceptions before owner-specific mappings;
+  precedence must be explicit and tested.
+- Changes to the response shape can affect every client and need compatibility
+  review.
 
-## Implementation progress
+## Project adoption contract
+Each adopting project records its local decision in a project ADR, including:
+- the neutral error DTO and the support component that owns shared transport
+  behavior;
+- each owner's error vocabulary and HTTP mapper;
+- exception/advice precedence and the failure categories handled at each
+  boundary;
+- how technical causes are retained internally and sanitized externally;
+- HTTP tests that prove transport mappings and privacy requirements.
 
-The `W001-T05-shared-http-errors` branch adds the Java-only `ApiError` record
-with `code` and `message`, plus `tp-web-support` with Spring Boot
-auto-configuration for the shared advice. The advice returns stable generic
-codes and safe messages for malformed requests, validation failures and
-framework errors; unexpected failures are logged server-side and return a
-generic 500 response. The shared advice has lowest precedence so module-owned
-business mappings can take precedence.
-
-`./mvnw --batch-mode --no-transfer-progress -pl tp-common,tp-web-support -am verify`
-passes. The identity vertical adds a higher-precedence local advice for
-`UserException` and verifies over real HTTP that duplicate email maps to its
-module-owned `409 USER_EMAIL_ALREADY_USED` response while Jakarta request
-validation maps to the shared sanitized `400 VALIDATION_FAILED` response. The
-responses contain no submitted email or internal exception details, and
-`./mvnw --batch-mode --no-transfer-progress -pl tp-identity -am verify` passes.
-This ADR remains `Draft` until the complete T05 decision is validated.
-
-The organization vertical adds a higher-precedence local mapper for
-`OrganizationException`. It maps unavailable responsible users and deferred
-organization transitions to module-owned `409` responses, missing users to
-`404`, invalid domain values to `422`, and a failed `UserDirectory` check to a
-sanitized `503`. Real HTTP tests verify the deferred assignment code and safe
-message, the local timezone validation response, and the shared
-`400 VALIDATION_FAILED` response. The organization `verify` command passes.
-This ADR remains `Draft` until the complete T05 decision is validated.
-
-The team vertical adds a local mapper for `TeamException` and documents the
-team error responses in its OpenAPI contract. Real HTTP checks cover business
-refusals and sanitized shared validation errors; module-owned mappings keep
-precedence over the generic transport advice. The team `verify` command passes.
-This ADR remains `Draft` until the complete T05 decision is validated.
-
-The administration HTTP adapter adds its own higher-precedence mapping for
-`PlatformAdministrationException`; provisioning validation and lifecycle
-refusals are exercised over real HTTP, while the shared advice continues to
-handle framework/transport failures. Error bodies contain stable public codes
-and safe messages without submitted PII or technical causes. The
-administration/app and full reactor `verify` commands pass. This ADR remains
-`Draft`.
+The technical ADR remains reusable. Its status does not accept the local error
+model for another project.
