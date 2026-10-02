@@ -15,9 +15,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataAccessResourceFailureException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -53,15 +54,16 @@ class OrganizationProvisioningContractServiceTest {
     }
 
     @Test
-    void mapsInvalidTimezoneWithoutExposingInternalMessageOrCause() {
+    void mapsInvalidTimezoneWithoutExposingInternalMessageAndPreservesTheCause() {
         OrganizationProvisioningCommand publicCommand =
             new OrganizationProvisioningCommand("Acme", "private-invalid-zone");
-        when(organizationLifecycleUseCase.create(
-            new CreateOrganizationCommand("Acme", "private-invalid-zone")
-        )).thenThrow(new OrganizationException(
+        OrganizationException internalFailure = new OrganizationException(
             OrganizationErrorCode.INVALID_TIMEZONE,
             "Unknown timezone private-invalid-zone"
-        ));
+        );
+        when(organizationLifecycleUseCase.create(
+            new CreateOrganizationCommand("Acme", "private-invalid-zone")
+        )).thenThrow(internalFailure);
 
         OrganizationProvisioningException exception = assertThrows(
             OrganizationProvisioningException.class,
@@ -70,6 +72,56 @@ class OrganizationProvisioningContractServiceTest {
 
         assertEquals(OrganizationProvisioningErrorCode.INVALID_TIMEZONE, exception.getErrorCode());
         assertEquals("Organization timezone is invalid", exception.getMessage());
-        assertNull(exception.getCause());
+        assertSame(internalFailure, exception.getCause());
+    }
+
+    @Test
+    void mapsPersistenceFailuresToThePublicTechnicalCategoryAndPreservesTheCause() {
+        DataAccessResourceFailureException persistenceFailure =
+            new DataAccessResourceFailureException("Database is unavailable");
+        when(organizationLifecycleUseCase.create(
+            new CreateOrganizationCommand("Acme", "UTC")
+        )).thenThrow(persistenceFailure);
+
+        OrganizationProvisioningException exception = assertThrows(
+            OrganizationProvisioningException.class,
+            () -> service.createOrganization(
+                new OrganizationProvisioningCommand("Acme", "UTC")
+            )
+        );
+
+        assertEquals(
+            OrganizationProvisioningErrorCode.OPERATION_FAILED,
+            exception.getErrorCode()
+        );
+        assertEquals("Organization provisioning failed", exception.getMessage());
+        assertSame(persistenceFailure, exception.getCause());
+    }
+
+    @Test
+    void preservesTheCauseChainWhenMappingAnInternalFailure() {
+        IllegalStateException persistenceCause = new IllegalStateException("database conflict");
+        OrganizationException internalFailure = new OrganizationException(
+            OrganizationErrorCode.CONCURRENT_MODIFICATION,
+            "Organization was modified concurrently",
+            persistenceCause
+        );
+        when(organizationLifecycleUseCase.create(
+            new CreateOrganizationCommand("Acme", "UTC")
+        )).thenThrow(internalFailure);
+
+        OrganizationProvisioningException exception = assertThrows(
+            OrganizationProvisioningException.class,
+            () -> service.createOrganization(
+                new OrganizationProvisioningCommand("Acme", "UTC")
+            )
+        );
+
+        assertEquals(
+            OrganizationProvisioningErrorCode.CONCURRENT_MODIFICATION,
+            exception.getErrorCode()
+        );
+        assertSame(internalFailure, exception.getCause());
+        assertSame(persistenceCause, exception.getCause().getCause());
     }
 }

@@ -4,13 +4,13 @@ import io.teampulse.common.context.TenantContext;
 import io.teampulse.common.reference.ReferenceFactory;
 import io.teampulse.identity.application.port.in.user.CreateUserCommand;
 import io.teampulse.identity.application.port.in.user.UserLifecycleUseCase;
+import io.teampulse.identity.application.port.out.user.UserInvitationEventPublisher;
 import io.teampulse.identity.application.port.out.user.UserRepository;
 import io.teampulse.identity.domain.user.error.UserErrorCode;
 import io.teampulse.identity.domain.user.error.UserException;
 import io.teampulse.identity.domain.user.model.User;
 import io.teampulse.identity.events.UserInvited;
 import lombok.AllArgsConstructor;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
@@ -26,7 +26,7 @@ public class UserLifecycleService implements UserLifecycleUseCase {
 
     private final UserRepository userRepository;
     private final ReferenceFactory referenceFactory;
-    private final ApplicationEventPublisher eventPublisher;
+    private final UserInvitationEventPublisher invitationEventPublisher;
 
     @Override
     @Transactional
@@ -59,7 +59,7 @@ public class UserLifecycleService implements UserLifecycleUseCase {
             command.lastName()
         );
         User invitedUser = persistIfEmailAvailable(user);
-        eventPublisher.publishEvent(new UserInvited(
+        invitationEventPublisher.publish(new UserInvited(
             invitedUser.getOrganizationReference(),
             invitedUser.getReference()
         ));

@@ -11,7 +11,15 @@ public class OrganizationProvisioningException extends RuntimeException {
         OrganizationProvisioningErrorCode errorCode,
         String message
     ) {
-        super(Objects.requireNonNull(message, "message must not be null"));
+        this(errorCode, message, null);
+    }
+
+    public OrganizationProvisioningException(
+        OrganizationProvisioningErrorCode errorCode,
+        String message,
+        Throwable cause
+    ) {
+        super(Objects.requireNonNull(message, "message must not be null"), cause);
         this.errorCode = Objects.requireNonNull(errorCode, "errorCode must not be null");
     }
 
