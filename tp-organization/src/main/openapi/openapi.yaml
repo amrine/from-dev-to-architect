@@ -4,7 +4,8 @@ info:
   version: 0.1.0-SNAPSHOT
   description: Organization lifecycle and responsibility operations owned by tp-organization.
 servers:
-  - url: http://localhost
+  - url: http://localhost:8080
+    description: Default local and development server; configure the client base URL if the port changes.
 tags:
   - name: Organizations
     description: Organization lifecycle and responsible users.

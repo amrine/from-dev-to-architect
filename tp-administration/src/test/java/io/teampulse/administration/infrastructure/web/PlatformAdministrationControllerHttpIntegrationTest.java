@@ -7,10 +7,14 @@ import io.teampulse.common.error.ApiError;
 import io.teampulse.identity.api.lifecycle.UserLifecycle;
 import io.teampulse.identity.api.lifecycle.UserProvisioningCommand;
 import io.teampulse.identity.application.port.out.user.UserRepository;
+import io.teampulse.identity.domain.user.model.User;
 import io.teampulse.identity.domain.user.model.UserStatus;
+import io.teampulse.organization.application.port.out.organization.OrganizationRepository;
 import io.teampulse.organization.api.organization.OrganizationLifecycleState;
 import io.teampulse.organization.api.organization.OrganizationResponsibilityDirectory;
 import io.teampulse.organization.api.organization.OrganizationResponsibilitySnapshot;
+import io.teampulse.organization.domain.organization.model.Organization;
+import io.teampulse.organization.domain.organization.model.OrganizationStatus;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -39,6 +43,9 @@ class PlatformAdministrationControllerHttpIntegrationTest
 
     @Inject
     private UserRepository userRepository;
+
+    @Inject
+    private OrganizationRepository organizationRepository;
 
     @Inject
     private OrganizationResponsibilityDirectory organizationResponsibilities;
@@ -129,6 +136,76 @@ class PlatformAdministrationControllerHttpIntegrationTest
         assertEquals(204, deactivation.getStatusCode().value());
         assertEquals(1, tenantContextProvider.calls());
         assertPersistedUserStatus(TEST_TENANT_REFERENCE, user.userReference(), UserStatus.DEACTIVATED);
+    }
+
+    @Test
+    void refusesDeactivationWhenUserHasAnActiveOrganizationResponsibilityWithoutMutation() {
+        String userReference = "USR-2026-1001-00000ZA7B920";
+        userRepository.create(User.restore(
+            userReference,
+            TEST_TENANT_REFERENCE,
+            "responsible@example.test",
+            "Active",
+            "Admin",
+            UserStatus.ACTIVE
+        ));
+        organizationRepository.create(Organization.restore(
+            TEST_TENANT_REFERENCE,
+            "Active test organization",
+            "UTC",
+            userReference,
+            userReference,
+            OrganizationStatus.ACTIVE
+        ));
+
+        tenantContextProvider.resetCalls();
+        ApiError error = restTestClient.post()
+            .uri("/api/platform/users/{userReference}/deactivation", userReference)
+            .exchange()
+            .expectStatus().isEqualTo(409)
+            .expectBody(ApiError.class)
+            .returnResult()
+            .getResponseBody();
+
+        assertNotNull(error);
+        assertEquals("USER_HAS_ACTIVE_RESPONSIBILITIES", error.code());
+        assertEquals("User has active responsibilities", error.message());
+        assertEquals(1, tenantContextProvider.calls());
+        assertPersistedUserStatus(TEST_TENANT_REFERENCE, userReference, UserStatus.ACTIVE);
+    }
+
+    @Test
+    void returnsNotFoundForAUserInAnotherTenantWithoutMutatingIt() {
+        String otherTenantReference = "ORG-2026-1001-00000ZA7B902";
+        organizationRepository.create(Organization.create(
+            otherTenantReference,
+            "Other tenant",
+            "UTC"
+        ));
+        String userReference = "USR-2026-1001-00000ZA7B921";
+        userRepository.create(User.restore(
+            userReference,
+            otherTenantReference,
+            "other-tenant@example.test",
+            "Other",
+            "Tenant",
+            UserStatus.ACTIVE
+        ));
+
+        tenantContextProvider.resetCalls();
+        ApiError error = restTestClient.post()
+            .uri("/api/platform/users/{userReference}/deactivation", userReference)
+            .exchange()
+            .expectStatus().isNotFound()
+            .expectBody(ApiError.class)
+            .returnResult()
+            .getResponseBody();
+
+        assertNotNull(error);
+        assertEquals("USER_NOT_FOUND", error.code());
+        assertEquals("User was not found", error.message());
+        assertEquals(1, tenantContextProvider.calls());
+        assertPersistedUserStatus(otherTenantReference, userReference, UserStatus.ACTIVE);
     }
 
     private void assertProvisionedState(
