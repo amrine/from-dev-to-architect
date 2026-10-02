@@ -40,6 +40,16 @@ final class OrganizationHttpDsl {
         );
     }
 
+    ResponseEntity<OrganizationResponse> replaceAdministrator(
+        String organizationReference,
+        String userReference
+    ) {
+        return organizationsApi.replaceOrganizationAdministratorWithHttpInfo(
+            organizationReference,
+            responsibleUser(userReference)
+        );
+    }
+
     ResponseEntity<OrganizationResponse> assignManager(
         String organizationReference,
         String userReference
@@ -48,6 +58,20 @@ final class OrganizationHttpDsl {
             organizationReference,
             responsibleUser(userReference)
         );
+    }
+
+    ResponseEntity<OrganizationResponse> replaceManager(
+        String organizationReference,
+        String userReference
+    ) {
+        return organizationsApi.replaceOrganizationManagerWithHttpInfo(
+            organizationReference,
+            responsibleUser(userReference)
+        );
+    }
+
+    ResponseEntity<Void> removeManager(String organizationReference) {
+        return organizationsApi.removeOrganizationManagerWithHttpInfo(organizationReference);
     }
 
     ResponseEntity<OrganizationResponse> suspend(String organizationReference) {

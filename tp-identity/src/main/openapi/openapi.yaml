@@ -4,7 +4,8 @@ info:
   version: 0.1.0-SNAPSHOT
   description: Identity capabilities owned by tp-identity.
 servers:
-  - url: http://localhost
+  - url: http://localhost:8080
+    description: Default local and development server; configure the client base URL if the port changes.
 tags:
   - name: Users
     description: Tenant-scoped user operations.

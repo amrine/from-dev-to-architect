@@ -4,7 +4,8 @@ info:
   version: 0.1.0-SNAPSHOT
   description: Synchronous platform provisioning and user lifecycle orchestration owned by tp-administration.
 servers:
-  - url: http://localhost
+  - url: http://localhost:8080
+    description: Default local and development server; configure the client base URL if the port changes.
 tags:
   - name: Platform provisioning
     description: Initial organization and user provisioning.

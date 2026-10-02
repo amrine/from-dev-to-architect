@@ -25,6 +25,10 @@ class OrganizationControllerHttpIntegrationTest extends AbstractOrganizationHttp
         "USR-2026-1409-00000ZA7B930";
     private static final String MANAGER_REFERENCE =
         "USR-2026-1409-00000ZA7B931";
+    private static final String REPLACEMENT_ADMINISTRATOR_REFERENCE =
+        "USR-2026-1409-00000ZA7B932";
+    private static final String REPLACEMENT_MANAGER_REFERENCE =
+        "USR-2026-1409-00000ZA7B933";
 
     @Value("${local.server.port}")
     private int port;
@@ -246,6 +250,57 @@ class OrganizationControllerHttpIntegrationTest extends AbstractOrganizationHttp
         assertEquals(OrganizationStatus.ARCHIVED, persisted(creatingReference).getStatus());
     }
 
+    @Test
+    void replacesAdministratorAndManagerOverHttpWithoutChangingActiveStatus() {
+        String organizationReference = "ORG-2026-1409-00000ZA7B943";
+        persistActiveOrganization(organizationReference);
+        userDirectory.setAvailability(
+            organizationReference,
+            REPLACEMENT_ADMINISTRATOR_REFERENCE,
+            UserAvailability.AVAILABLE
+        );
+        userDirectory.setAvailability(
+            organizationReference,
+            REPLACEMENT_MANAGER_REFERENCE,
+            UserAvailability.AVAILABLE
+        );
+
+        var administratorReplacement = api().replaceAdministrator(
+            organizationReference,
+            REPLACEMENT_ADMINISTRATOR_REFERENCE
+        );
+        assertEquals(200, administratorReplacement.getStatusCode().value());
+        assertEquals(
+            REPLACEMENT_ADMINISTRATOR_REFERENCE,
+            persisted(organizationReference).getAdminReference()
+        );
+        assertEquals(OrganizationStatus.ACTIVE, persisted(organizationReference).getStatus());
+
+        var managerReplacement = api().replaceManager(
+            organizationReference,
+            REPLACEMENT_MANAGER_REFERENCE
+        );
+        assertEquals(200, managerReplacement.getStatusCode().value());
+        OrganizationEntity replaced = persisted(organizationReference);
+        assertEquals(REPLACEMENT_ADMINISTRATOR_REFERENCE, replaced.getAdminReference());
+        assertEquals(REPLACEMENT_MANAGER_REFERENCE, replaced.getManagerReference());
+        assertEquals(OrganizationStatus.ACTIVE, replaced.getStatus());
+    }
+
+    @Test
+    void removingAnActiveOrganizationsManagerOverHttpSuspendsItAtomically() {
+        String organizationReference = "ORG-2026-1409-00000ZA7B944";
+        persistActiveOrganization(organizationReference);
+
+        var response = api().removeManager(organizationReference);
+
+        assertEquals(204, response.getStatusCode().value());
+        OrganizationEntity persisted = persisted(organizationReference);
+        assertEquals(OrganizationStatus.SUSPENDED, persisted.getStatus());
+        assertEquals(ADMINISTRATOR_REFERENCE, persisted.getAdminReference());
+        assertNull(persisted.getManagerReference());
+    }
+
     private OrganizationHttpDsl api() {
         return OrganizationHttpDsl.runningAt(port);
     }
@@ -253,5 +308,16 @@ class OrganizationControllerHttpIntegrationTest extends AbstractOrganizationHttp
     private OrganizationEntity persisted(String organizationReference) {
         return jpaOrganizationRepository.findByReference(organizationReference)
             .orElseThrow();
+    }
+
+    private void persistActiveOrganization(String organizationReference) {
+        organizationRepository.create(Organization.restore(
+            organizationReference,
+            "Active organization",
+            "UTC",
+            ADMINISTRATOR_REFERENCE,
+            MANAGER_REFERENCE,
+            OrganizationStatus.ACTIVE
+        ));
     }
 }
