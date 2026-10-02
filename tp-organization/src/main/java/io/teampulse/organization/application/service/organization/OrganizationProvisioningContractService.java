@@ -48,7 +48,15 @@ public class OrganizationProvisioningContractService implements OrganizationProv
             }
             throw new OrganizationProvisioningException(
                 publicCode,
-                safeMessage(publicCode)
+                safeMessage(publicCode),
+                exception
+            );
+        } catch (RuntimeException exception) {
+            LOGGER.error("Organization provisioning failed", exception);
+            throw new OrganizationProvisioningException(
+                OrganizationProvisioningErrorCode.OPERATION_FAILED,
+                "Organization provisioning failed",
+                exception
             );
         }
     }

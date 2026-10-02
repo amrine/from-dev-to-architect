@@ -3,6 +3,7 @@ package io.teampulse.identity.application.service.user;
 import io.teampulse.common.context.TenantContext;
 import io.teampulse.common.reference.ReferenceFactory;
 import io.teampulse.identity.application.port.in.user.CreateUserCommand;
+import io.teampulse.identity.application.port.out.user.UserInvitationEventPublisher;
 import io.teampulse.identity.application.port.out.user.UserRepository;
 import io.teampulse.identity.domain.user.error.UserErrorCode;
 import io.teampulse.identity.domain.user.error.UserException;
@@ -20,7 +21,6 @@ import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.stream.Stream;
 
@@ -47,7 +47,7 @@ class UserLifecycleServiceTest {
     @Mock
     private ReferenceFactory referenceFactory;
     @Mock
-    private ApplicationEventPublisher eventPublisher;
+    private UserInvitationEventPublisher invitationEventPublisher;
     @InjectMocks
     private UserLifecycleService service;
 
@@ -226,14 +226,18 @@ class UserLifecycleServiceTest {
             User invitedUser = service.invite(validTenantContext(), validCommand());
 
             assertEquals(UserStatus.INVITED, invitedUser.getStatus());
-            InOrder orderedInteractions = inOrder(referenceFactory, userRepository, eventPublisher);
+            InOrder orderedInteractions = inOrder(
+                referenceFactory,
+                userRepository,
+                invitationEventPublisher
+            );
             orderedInteractions.verify(referenceFactory).generate("USR");
             orderedInteractions.verify(userRepository).existsByEmail(
                 ORGANIZATION_REFERENCE,
                 "alice.smith@example.com"
             );
             orderedInteractions.verify(userRepository).create(any(User.class));
-            orderedInteractions.verify(eventPublisher).publishEvent(
+            orderedInteractions.verify(invitationEventPublisher).publish(
                 new UserInvited(ORGANIZATION_REFERENCE, USER_REFERENCE)
             );
         }
@@ -252,7 +256,7 @@ class UserLifecycleServiceTest {
             );
 
             verify(userRepository, never()).create(any(User.class));
-            verifyNoInteractions(eventPublisher);
+            verifyNoInteractions(invitationEventPublisher);
         }
     }
 

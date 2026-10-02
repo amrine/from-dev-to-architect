@@ -79,6 +79,13 @@ public class UserLifecycleContractService implements UserLifecycle {
                 LOGGER.error("User lifecycle operation failed", exception);
             }
             throw publicFailure;
+        } catch (RuntimeException exception) {
+            LOGGER.error("User lifecycle operation failed", exception);
+            throw new UserLifecycleException(
+                UserLifecycleErrorCode.OPERATION_FAILED,
+                "User lifecycle operation failed",
+                exception
+            );
         }
     }
 
@@ -108,6 +115,6 @@ public class UserLifecycleContractService implements UserLifecycle {
             case CONCURRENT_MODIFICATION -> "User changed during the operation";
             case OPERATION_FAILED -> "User lifecycle operation failed";
         };
-        return new UserLifecycleException(publicCode, safeMessage);
+        return new UserLifecycleException(publicCode, safeMessage, exception);
     }
 }

@@ -15,9 +15,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataAccessResourceFailureException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -63,12 +64,13 @@ class UserLifecycleContractServiceTest {
     }
 
     @Test
-    void mapsNotFoundWithoutExposingTheInternalExceptionOrMessage() {
+    void mapsNotFoundWithoutExposingTheInternalMessageAndPreservesTheCause() {
+        UserException internalFailure = new UserException(
+            UserErrorCode.NOT_FOUND,
+            "User private@example.com was not found in organization"
+        );
         when(userLifecycleUseCase.suspend(TENANT, USER_REFERENCE)).thenThrow(
-            new UserException(
-                UserErrorCode.NOT_FOUND,
-                "User private@example.com was not found in organization"
-            )
+            internalFailure
         );
 
         UserLifecycleException exception = assertThrows(
@@ -78,23 +80,24 @@ class UserLifecycleContractServiceTest {
 
         assertEquals(UserLifecycleErrorCode.USER_NOT_FOUND, exception.getErrorCode());
         assertEquals("User was not found", exception.getMessage());
-        assertNull(exception.getCause());
+        assertSame(internalFailure, exception.getCause());
     }
 
     @Test
-    void mapsDuplicateEmailForTheAdministrationCaller() {
+    void mapsDuplicateEmailWithoutExposingTheInternalMessageAndPreservesTheCause() {
         UserProvisioningCommand command = new UserProvisioningCommand(
             "private@example.com",
             "Alice",
             "Smith"
         );
+        UserException internalFailure = new UserException(
+            UserErrorCode.EMAIL_ALREADY_USED,
+            "Email private@example.com is already used in this organization"
+        );
         when(userLifecycleUseCase.invite(
             TENANT,
             new CreateUserCommand("private@example.com", "Alice", "Smith")
-        )).thenThrow(new UserException(
-            UserErrorCode.EMAIL_ALREADY_USED,
-            "Email private@example.com is already used in this organization"
-        ));
+        )).thenThrow(internalFailure);
 
         UserLifecycleException exception = assertThrows(
             UserLifecycleException.class,
@@ -103,6 +106,52 @@ class UserLifecycleContractServiceTest {
 
         assertEquals(UserLifecycleErrorCode.EMAIL_ALREADY_USED, exception.getErrorCode());
         assertEquals("Email is already used in this organization", exception.getMessage());
-        assertNull(exception.getCause());
+        assertSame(internalFailure, exception.getCause());
+    }
+
+    @Test
+    void mapsPersistenceFailuresToThePublicTechnicalCategoryAndPreservesTheCause() {
+        DataAccessResourceFailureException persistenceFailure =
+            new DataAccessResourceFailureException("Database is unavailable");
+        when(userLifecycleUseCase.create(
+            TENANT,
+            new CreateUserCommand("alice@example.com", "Alice", "Smith")
+        )).thenThrow(persistenceFailure);
+
+        UserLifecycleException exception = assertThrows(
+            UserLifecycleException.class,
+            () -> service.create(
+                TENANT,
+                new UserProvisioningCommand("alice@example.com", "Alice", "Smith")
+            )
+        );
+
+        assertEquals(UserLifecycleErrorCode.OPERATION_FAILED, exception.getErrorCode());
+        assertEquals("User lifecycle operation failed", exception.getMessage());
+        assertSame(persistenceFailure, exception.getCause());
+    }
+
+    @Test
+    void preservesTheCauseChainWhenMappingAnInternalFailure() {
+        IllegalStateException persistenceCause = new IllegalStateException("database conflict");
+        UserException internalFailure = new UserException(
+            UserErrorCode.CONCURRENT_MODIFICATION,
+            "User was modified concurrently",
+            persistenceCause
+        );
+        when(userLifecycleUseCase.suspend(TENANT, USER_REFERENCE))
+            .thenThrow(internalFailure);
+
+        UserLifecycleException exception = assertThrows(
+            UserLifecycleException.class,
+            () -> service.suspend(TENANT, USER_REFERENCE)
+        );
+
+        assertEquals(
+            UserLifecycleErrorCode.CONCURRENT_MODIFICATION,
+            exception.getErrorCode()
+        );
+        assertSame(internalFailure, exception.getCause());
+        assertSame(persistenceCause, exception.getCause().getCause());
     }
 }
