@@ -80,6 +80,55 @@ SPRING_PROFILES_ACTIVE=local
 Au démarrage, chaque module initialise son propre schéma PostgreSQL et sa
 propre table `flyway_schema_history`.
 
+### Modules du backend
+
+`tp-identity`, `tp-organization` et `tp-team` détiennent leurs API métier.
+`tp-app` assemble les modules runtime et configure le démarrage. `tp-administration`
+orchestre les contrats Java publics pour le provisioning initial et les contrôles
+de responsabilités ; il ne possède pas les données des autres modules.
+`tp-common` porte les types Java partagés, `tp-web-support` fournit l'advice
+Spring des erreurs de transport, et `tp-test-support` reste réservé au scope
+Maven `test`.
+
+### Utiliser les API T05 en local
+
+Les routes HTTP sont activées seulement avec les profils Spring `local` ou
+`development`, sans authentification, sur `127.0.0.1:8080` par défaut. Ne les
+exposez pas à un réseau non fiable. Les contrats sont publiés par leurs
+propriétaires : [identité](tp-identity/src/main/openapi/openapi.yaml),
+[organisation](tp-organization/src/main/openapi/openapi.yaml),
+[équipe](tp-team/src/main/openapi/openapi.yaml) et
+[administration](tp-administration/src/main/openapi/openapi.yaml).
+
+| API | Parcours utilisables en local |
+| --- | --- |
+| Identité | `POST /api/users`, `POST /api/users/invitations` et `GET /api/users` utilisent le tenant local résolu par le serveur. Les comptes créés restent `CREATING` et les invitations `INVITED`. |
+| Organisation | `POST /api/organizations` crée une organisation `CREATING`. Les routes d'affectation suivent T04 : un candidat `PENDING` peut être affecté tant que l'opération ne déclenche pas de transition. |
+| Équipe | Les routes couvrent équipes, responsables et appartenances. Les commandes qui exigent une organisation `AVAILABLE`, dont la création d'équipe, restent refusées avec le tenant local `CREATING` jusqu'à W008. |
+| Administration | `POST /api/platform/organizations` crée une organisation et son premier utilisateur ; `/api/platform/organizations/invitations` crée l'organisation et invite son premier utilisateur. Suspension et désactivation vérifient d'abord les responsabilités actives. |
+
+Exemple de création initiale :
+
+```bash
+curl --fail-with-body -sS -X POST http://127.0.0.1:8080/api/platform/organizations \
+  -H 'Content-Type: application/json' \
+  -d '{"organizationName":"Demo API","timezone":"Europe/Paris","email":"admin@example.test","firstName":"Ada","lastName":"Lovelace"}'
+```
+
+Le provisioning initial est atomique : si la création ou l'invitation du premier
+utilisateur échoue, l'organisation n'est pas persistée non plus. Le provider
+`local` crée paresseusement une organisation de démonstration persistée en
+`CREATING` au premier appel tenanté de chaque processus et retente après un
+échec. Un redémarrage crée une nouvelle organisation ; les lignes des processus
+précédents restent dans PostgreSQL. Le client ne choisit jamais le tenant dans
+le body ou les headers.
+
+Ces parcours restent bloqués jusqu'à W008 : acceptation des invitations et
+activation des comptes, authentification/JWT et permissions, activation ou
+réactivation des organisations, ainsi que toute affectation qui ferait passer
+l'organisation à `ACTIVE`. Les équipes et appartenances qui exigent une
+organisation `AVAILABLE` ne peuvent pas être créées dans le tenant local T05.
+
 ### Arrêter l'environnement
 
 Les données sont conservées dans un volume Docker nommé :

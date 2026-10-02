@@ -52,13 +52,19 @@ compatible avec l'architecture modulaire.
   de façon synchrone pour obtenir un résultat final dans la réponse HTTP ; il
   ne possède ni leurs données, ni leurs repositories, ni leurs règles métier.
 - Permettre au bootstrap de créer une organisation en `CREATING` et de créer ou
-  inviter son premier utilisateur. Le compte créé ou invité reste indisponible
-  pour une responsabilité tant qu'il n'est pas `AVAILABLE` ; T05 ne fournit pas
-  le parcours qui le rend disponible. Le bootstrap s'arrête donc avant
-  l'affectation finale des responsables et l'organisation reste en `CREATING`.
-  L'activation et la réactivation d'une organisation, y compris toute transition
-  automatique vers `ACTIVE` déclenchée par l'affectation de responsables, sont
-  reportées à W008 après l'activation du compte par le parcours d'authentification.
+  inviter son premier utilisateur. Le compte reste `CREATING` ou `INVITED`, ce
+  qui correspond à la disponibilité `PENDING` de `UserDirectory`.
+  T04 permet d'affecter un candidat `PENDING` dans les opérations qui ne
+  déclenchent pas une transition de l'organisation ; les vérifications
+  opérationnelles qui l'exigent restent réservées aux utilisateurs `AVAILABLE`.
+  Le parcours de bootstrap s'arrête avant l'affectation finale des responsables.
+  Une affectation qui ferait passer l'organisation à `ACTIVE` est refusée ou
+  différée sans modification d'état. L'activation du compte et de l'organisation
+  relève de W008.
+- Rendre atomiques la création de l'organisation et celle ou l'invitation du
+  premier utilisateur : les deux contrats s'exécutent sous la transaction
+  partagée de l'application. Tout échec annule les deux écritures et ne produit
+  aucun résultat partiel.
 - Introduire un `ActorContext` distinct de `TenantContext`, réservé à l'audit et
   à l'orchestration. Les contrôleurs tenantés
   obtiennent le tenant depuis `TenantContextProvider.current()` une seule fois
@@ -67,9 +73,12 @@ compatible avec l'architecture modulaire.
   porte ni authentification, ni rôle, ni permission.
 - Remplacer, pour le profil `local`, le tenant aléatoire en mémoire par une
   organisation de démonstration persistée en `CREATING`. Le provider local doit
-  retourner la référence exacte de cette organisation, obtenue depuis une
-  frontière publique ou une configuration liée à son initialisation ; il ne
-  génère pas une référence tenant différente. Les opérations qui exigent une
+  retourner la référence exacte de cette organisation, obtenue depuis le
+  contrat public de provisioning ; il ne génère pas une référence tenant
+  différente. L'initialisation reste paresseuse avec retry : une organisation
+  de démonstration est persistée au premier appel tenanté de chaque processus
+  et sa référence est mise en cache pour ce processus. Un redémarrage crée une
+  nouvelle organisation de démonstration ; les opérations exigeant une
   organisation `ACTIVE` restent indisponibles jusqu'à W008.
 - Publier le fait métier `UserInvited` avec des références seulement, sans
   email ni autre PII. `OrganizationActivated` ne peut être publié qu'avec la
@@ -161,20 +170,21 @@ compatible avec l'architecture modulaire.
 - [ ] `tp-administration` orchestre les contrats Java publics synchrones et ne
   possède ni données métier ni CRUD des modules.
 - [ ] Le bootstrap crée une organisation `CREATING` et permet la création ou
-  l'invitation du premier utilisateur. La règle d'éligibilité d'un candidat
-  responsable reste à arbitrer entre le comportement T04 qui autorise
-  `PENDING` dans certains parcours et la proposition T05 Draft `AVAILABLE`
-  uniquement ; aucun parcours T05 ne fait passer
-  une organisation à `ACTIVE`, y compris indirectement par affectation de
-  responsables. L'activation du compte, l'affectation finale et les transitions
-  vers `ACTIVE` attendent W008.
+  l'invitation du premier utilisateur. Les affectations suivent T04 : les
+  candidats `PENDING` et `AVAILABLE` sont admis si elles ne déclenchent pas de
+  transition ; un candidat `UNAVAILABLE` ou absent est refusé.
+  Tout chemin qui ferait passer une organisation à `ACTIVE` est refusé ou
+  différé sans écriture. Aucun compte n'est activé par T05.
+- [ ] Si la création ou l'invitation de l'utilisateur échoue après la création
+  de l'organisation, PostgreSQL ne conserve ni l'organisation ni l'utilisateur.
 - [ ] Les contrôles T04 sur les responsabilités restent appliqués lors des
   opérations HTTP de suspension/désactivation d'un utilisateur.
 - [ ] Les requêtes tenantées utilisent le contexte local fourni et ne peuvent
   pas choisir leur tenant via un champ ou header contrôlé par l'appelant.
-- [ ] Le profil `local` utilise une organisation de démonstration persistée en
-  `CREATING` et le provider retourne sa référence réellement persistée ; aucune
-  opération exigeant `ACTIVE` ne réussit avant W008.
+- [ ] Le profil `local` crée paresseusement une organisation de démonstration
+  persistée en `CREATING` par processus, retourne sa référence persistée, retente
+  après échec d'initialisation et ne réutilise pas un tenant antérieur après
+  redémarrage. Aucune opération exigeant `ACTIVE` ne réussit avant W008.
 - [ ] `UserInvited` ne transporte aucune PII ; `OrganizationActivated` n'est
   pas émis en T05. T05 n'inclut ni consommateur de notification ni livraison
   email.
@@ -191,23 +201,19 @@ compatible avec l'architecture modulaire.
 - [ ] Les règles ArchUnit et Spring Modulith continuent de vérifier les
   frontières et `tp-test-support` reste limité au scope test.
 
-## Arbitrages restant ouverts
+## Décisions du propriétaire validées le 2026-10-02
 
-Ces points ne sont pas décidés par le statut Draft du besoin ou de l'ADR. Les
-changements qui en dépendent attendent une décision explicite.
+- `PENDING` reste assignable comme candidat responsable selon T04 tant que la
+  commande ne déclenche pas de transition de statut. Les
+  vérifications opérationnelles qui exigent `AVAILABLE` restent distinctes.
+- Le provisioning initial est tout-ou-rien : la création de l'organisation et
+  du premier utilisateur ou de son invitation partagent une transaction. Un
+  échec annule les écritures des deux modules.
+- Le tenant local est initialisé à la demande avec retry et reste propre à un
+  processus. Le processus suivant crée une nouvelle organisation de démonstration ;
+  aucune recherche par nom ni réutilisation entre redémarrages n'est prévue.
 
-- **Candidats responsables `PENDING`** : T04 Accepted autorise ce statut dans
-  certains parcours ; le besoin T05 Draft propose de limiter l'éligibilité à
-  `AVAILABLE`. Jusqu'à l'arbitrage, T05 ne modifie pas la règle acceptée en T04.
-- **Provisioning partiel** : le code crée actuellement l'organisation avant
-  l'utilisateur sans transaction englobante ; un échec utilisateur peut donc
-  laisser une organisation `CREATING` dont la référence n'est pas rendue au
-  demandeur. Décider entre tout-ou-rien et un résultat partiel récupérable avec
-  procédure et résultat observables.
-- **Tenant local entre redémarrages** : l'initialisation paresseuse avec retry
-  suit T04 Accepted. L'implémentation mémorise le contexte et crée une
-  organisation de démonstration par processus ; décider si ce tenant reste par
-  lancement ou s'il doit être retrouvé/réutilisé après redémarrage.
+Ces arbitrages ne changent pas le statut Draft de ce besoin ou de l'ADR T05.
 
 ## Validation attendue
 - Valider les contrats OpenAPI et exécuter leur génération de clients pendant
@@ -219,8 +225,11 @@ changements qui en dépendent attendent une décision explicite.
   production vers `tp-test-support` et l'absence d'accès inter-module aux
   packages internes.
 - Vérifier les réponses HTTP et l'état persistant après les commandes, y
-  compris le refus d'affectation quand un responsable n'est pas `AVAILABLE` et
+  compris l'acceptation d'un candidat `PENDING` dans une affectation
+  préparatoire, le refus d'une affectation qui activerait l'organisation, et
   l'absence de toute transition vers `ACTIVE` en T05.
+- Vérifier sur PostgreSQL que tout échec utilisateur annule aussi l'organisation
+  créée par le provisioning de plateforme.
 - Revoir manuellement le diff documentaire, les liens besoin/ADR et les
   changements de périmètre T04/T05/W008/T10.
 

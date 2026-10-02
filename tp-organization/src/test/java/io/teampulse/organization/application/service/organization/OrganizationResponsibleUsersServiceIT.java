@@ -137,6 +137,10 @@ class OrganizationResponsibleUsersServiceIT extends AbstractIntegrationTest {
             OrganizationStatus.CREATING,
             findStoredOrganization().getStatus()
         );
+        assertEquals(
+            MANAGER_REFERENCE,
+            findStoredOrganization().getManagerReference()
+        );
     }
 
     @Test
