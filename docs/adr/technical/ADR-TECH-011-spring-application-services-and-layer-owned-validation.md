@@ -79,6 +79,9 @@ tests the wrong layer.
 | Persistence adapter | Significant mapping and isolated technical-error translation when useful. | Real database behavior for mappings, queries, constraints, auditing, and optimistic locking. |
 | Incoming adapter | Pure transformation only when it contains meaningful logic. | Framework slice tests for serialization, input validation, context resolution, status mapping, and error responses. |
 
+- The incoming-adapter slice recommendation is a focused option for isolated
+  framework behavior, not a universal requirement or a substitute for the
+  black-box HTTP evidence selected by a project's own adoption decision.
 - Do not mock a framework repository merely to prove simple delegation or the
   framework's own behavior.
 - Do not test annotations by reflection when their observable framework effect

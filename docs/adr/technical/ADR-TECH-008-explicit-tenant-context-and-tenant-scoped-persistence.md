@@ -40,8 +40,12 @@ model, token format, or permission system.
   create or administer tenant roots.
 - Do not introduce an empty platform context merely to make all signatures
   uniform.
-- Keep tenant identity distinct from actor identity. Add an actor or security
-  context only when it carries authenticated information and permissions.
+- Keep tenant scope, audit actor and security identity distinct. `TenantContext`
+  identifies the data scope. An optional `ActorContext` identifies the actor
+  recorded for audit, which may be a system or local development actor and
+  does not prove authentication or grant permissions. A security context
+  carries authenticated identity and authorization data; introduce it when the
+  project's authentication and permission model requires it.
 - Extract `tenantReference` once in the application service and pass it to every
   tenant-scoped lookup, existence check, and listing operation.
 - Require tenant-scoped application repositories to include the tenant
