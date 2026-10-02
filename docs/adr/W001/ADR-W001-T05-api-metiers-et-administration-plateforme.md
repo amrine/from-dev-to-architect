@@ -9,7 +9,12 @@ W001-T05 — APIs métier et administration de plateforme
 ## Besoin associé
 [`docs/besoins/W001/W001-T05-api-metiers-et-administration-plateforme.md`](../../besoins/W001/W001-T05-api-metiers-et-administration-plateforme.md)
 
-## ADR techniques adoptés
+## ADR techniques de référence (Draft)
+
+Ces ADR décrivent des décisions techniques réutilisables. Leur statut Draft ne
+vaut pas adoption par TeamPulse ; le présent ADR consigne la proposition
+d'adoption locale et conserve lui-même son statut Draft.
+
 - [ADR-TECH-013 — OpenAPI contracts and generated test clients](../technical/ADR-TECH-013-openapi-contracts-and-generated-test-clients.md)
 - [ADR-TECH-014 — Black-box HTTP integration tests](../technical/ADR-TECH-014-black-box-http-integration-tests.md)
 - [ADR-TECH-015 — Shared Spring HTTP error support](../technical/ADR-TECH-015-shared-spring-http-error-support.md)
@@ -96,10 +101,9 @@ fiable.
 
 ### 5. Standardiser les frontières HTTP et leur preuve
 
-- Les détails sont délégués aux ADR-TECH-013 à 016 : contrats OpenAPI et
-  clients de test générés, vrais tests HTTP/PostgreSQL par module, support
-  Spring d'erreurs séparé du DTO Java pur et publications d'événements
-  récupérables.
+- Les ADR-TECH-013 à 016 fournissent les principes génériques. L'adoption
+  proposée pour TeamPulse, ses modules, ses versions et ses choix de test est
+  consignée dans le contrat local ci-dessous.
 - Les erreurs métier restent codées et traduites par leur module propriétaire.
 - Le test de contrôleur traverse un serveur réel sur port aléatoire et la vraie
   persistence PostgreSQL. Les tests `AbstractIntegrationTest` existants sans
@@ -107,6 +111,47 @@ fiable.
 - Tous les modules du reactor conservent la version commune du parent Maven,
   actuellement `0.1.0-SNAPSHOT`. Aucune version de produit indépendante par
   module ou version d'API d'URL n'est ajoutée par défaut.
+
+### Contrat d'adoption TeamPulse
+
+Cette adoption est proposée par T05 ; elle ne change pas le statut Draft de cet
+ADR ni celui des ADR techniques de référence.
+
+- Propriétaires HTTP proposés : `tp-identity`, `tp-organization`, `tp-team` et
+  `tp-administration`, chacun avec son contrat OpenAPI dans son module.
+- Génération OpenAPI proposée : OpenAPI Generator Maven `7.25.0`, à gérer
+  centralement dans le POM parent ; clients Java `restclient` et modèles à
+  générer dans `target/generated-test-sources/openapi`, attachés uniquement aux
+  sources de test. Les options `useSpringBoot4=true`, `useJackson3=true` et
+  `openApiNullable=false` ciblent le runtime Java 25 / Spring Boot 4.1.0. Les
+  contrats utiliseraient la version produit commune `0.1.0-SNAPSHOT`, sans
+  version d'URL ; le serveur local annoncerait `http://localhost:8080`.
+- Tests HTTP proposés : pour les contrats de controllers, utiliser un vrai
+  serveur sur port aléatoire, l'application et le chemin interne réels, Flyway
+  et PostgreSQL Testcontainers. `tp-test-support` fournirait le support HTTP
+  générique ; chaque module garderait sa DSL métier dans `src/test`. Les bases
+  `AbstractIntegrationTest` non-Web resteraient en `WebEnvironment.NONE`. Les
+  tests autonomes remplaceraient uniquement les contrats publics externes ;
+  les tests d'administration assembleraient les vrais modules concernés. Les
+  écritures du thread serveur seraient nettoyées ou isolées explicitement.
+- Erreurs HTTP proposées : conserver `ApiError` comme DTO Java pur dans
+  `tp-common` et placer le support Spring partagé dans `tp-web-support`, sans
+  dépendance aux modules métier. Chaque propriétaire garderait ses codes et
+  mappings d'erreurs métier ; les réponses HTTP ne divulgueraient ni PII ni
+  détail technique.
+- Événements proposés : les commandes synchrones passeraient par les contrats
+  Java publics. `UserInvited` serait un fait local contenant des références
+  seulement. T05 n'ajouterait aucun listener de notification, registry durable
+  ou rejeu historique ; `OrganizationActivated` attendrait W008.
+- Versions locales : le parent définit Java 25, Spring Boot 4.1.0, Spring
+  Modulith 2.0.6 et la version produit `0.1.0-SNAPSHOT`. La version concrète du
+  générateur OpenAPI et les options de génération sont des choix TeamPulse ;
+  elles ne sont pas des contraintes des ADR techniques réutilisables.
+- Les validations et preuves de livraison propres à TeamPulse seront
+  consignées dans cet ADR, notamment dans ses Notes. Les modules, références
+  W001, versions concrètes et événements métier ne figurent pas dans les ADR
+  techniques de référence ; ceux-ci ne portent pas l'historique
+  d'implémentation du projet.
 
 ## Alternatives envisagées
 - Exposer uniquement `POST/GET /api/users` : rejeté, car ce périmètre omet les
