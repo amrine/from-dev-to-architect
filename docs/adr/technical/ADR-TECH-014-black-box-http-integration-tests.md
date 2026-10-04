@@ -92,20 +92,5 @@ Each adopting project records its local strategy in a project ADR, including:
 The technical ADR remains reusable. Its status does not automatically impose
 the same test topology on another project.
 
-## Implementation progress
-
-The `W001-T05-http-test-support` branch adds a shared `RestTestClient` base and
-a PostgreSQL cleaner that truncates application tables before and after each
-HTTP test while preserving Flyway history. Identity, organization and team
-each have a separate `RANDOM_PORT` base built on their existing test
-application. Identity has a deterministic tenant provider; organization and
-team retain only their existing public-contract stubs. The pre-existing
-`AbstractIntegrationTest` classes remain `WebEnvironment.NONE`.
-
-`./mvnw --batch-mode --no-transfer-progress -pl tp-test-support,tp-identity,tp-organization,tp-team -am test-compile`
-compiles the support and module test sources. This foundation does not yet prove an HTTP request against a business
-endpoint; that proof belongs to the first API vertical. The ADR remains `Draft` until the complete T05 decision is
-validated.
-
 ## References
 - [Spring Boot — Testing Spring Boot applications](https://docs.spring.io/spring-boot/reference/testing/spring-boot-applications.html)

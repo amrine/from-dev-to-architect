@@ -94,7 +94,24 @@ Each adopting project records its local decision in a project ADR, including:
 The technical ADR remains reusable. Its status does not approve a project's
 local adoption or replace that project's own architectural decision.
 
+## Implementation progress
+
+The `W001-T05-openapi-test-clients` branch pins OpenAPI Generator Maven plugin
+`7.25.0` in the parent and manages a test-only Java `restclient` configuration.
+An owner activates the inherited `generate-test-sources` execution by declaring
+the plugin in its POM and stores its contract at
+`src/main/openapi/openapi.yaml`. Generated code is confined to
+`target/generated-test-sources/openapi`, attached only to test compilation, and
+uses the shared Maven product version. The generator targets Spring Boot 4 and
+Jackson 3 to match the checked-in baseline.
+
+No owner contracts exist yet on this branch, so generation and client
+compilation are validated incrementally as the owning API verticals add their
+specifications. The ADR remains `Draft` until those real contracts compile and
+are exercised through HTTP.
+
 ## References
 - [OpenAPI Specification](https://spec.openapis.org/oas/latest.html)
 - [OpenAPI Generator Maven plugin](https://openapi-generator.tech/docs/plugins/)
 - [OpenAPI Generator Java client options](https://openapi-generator.tech/docs/generators/java/)
+- [OpenAPI Generator 7.25.0 release](https://github.com/OpenAPITools/openapi-generator/releases/tag/v7.25.0)
