@@ -48,7 +48,7 @@ Delivered and validated in the current W001 increment:
 
 The next W001 sequence is:
 
-1. `W001-T05`: minimal users API and persistence vertical;
+1. `W001-T05`: multi-module business APIs and platform administration;
 2. `W001-T06`: production-oriented multi-stage container image;
 3. `W001-T07`: explicit local and LocalStack configuration profiles.
 
