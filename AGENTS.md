@@ -164,7 +164,12 @@ contraintes d'autorisation et d'orchestration compatibles.
   Le nom de chaque methode doit alors conserver l'intention metier. Separer les
   commandes des que leurs donnees ou contraintes divergent.
 - Les contrats publics inter-modules places dans `api` restent distincts des
-  ports applicatifs internes, meme lorsque leurs signatures sont proches.
+  ports applicatifs internes lorsqu'ils ont des consommateurs ou des evolutions
+  distincts. Si un contrat public sans types internes represente exactement le
+  port entrant d'une capacite et qu'un port interne separe n'apporte aucune
+  isolation utile, le service applicatif peut implementer directement ce
+  contrat comme unique port entrant. Cette exception ne permet pas d'exposer
+  les modeles ou erreurs internes dans `api`.
 
 Principe directeur : `un port = une capacite metier coherente`, et non
 `un port = une methode` ni `un port = tout le module`.

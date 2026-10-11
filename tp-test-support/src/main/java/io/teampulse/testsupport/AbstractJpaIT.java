@@ -10,7 +10,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 /**
  * Shared database isolation for integration tests backed by JPA.
  */
-public abstract class AbstractJpaIntegrationTest {
+public abstract class AbstractJpaIT {
 
     @Autowired
     private PostgreSQLDatabaseCleaner databaseCleaner;

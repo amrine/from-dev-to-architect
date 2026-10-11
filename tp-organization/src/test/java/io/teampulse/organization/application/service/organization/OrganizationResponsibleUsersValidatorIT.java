@@ -3,7 +3,7 @@ package io.teampulse.organization.application.service.organization;
 import io.teampulse.identity.api.user.UserAvailability;
 import io.teampulse.identity.api.user.UserDirectory;
 import io.teampulse.identity.api.user.UserDirectoryException;
-import io.teampulse.organization.AbstractIntegrationTest;
+import io.teampulse.organization.AbstractIT;
 import io.teampulse.organization.domain.organization.error.OrganizationErrorCode;
 import io.teampulse.organization.domain.organization.error.OrganizationException;
 import jakarta.inject.Inject;
@@ -18,7 +18,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-class OrganizationResponsibleUsersValidatorIT extends AbstractIntegrationTest {
+class OrganizationResponsibleUsersValidatorIT extends AbstractIT {
 
     private static final String ORGANIZATION_REFERENCE =
         "ORG-2026-1409-00000ZA7B920";

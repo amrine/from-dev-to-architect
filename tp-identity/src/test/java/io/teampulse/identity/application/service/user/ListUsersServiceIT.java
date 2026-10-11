@@ -1,7 +1,7 @@
 package io.teampulse.identity.application.service.user;
 
 import io.teampulse.common.context.TenantContext;
-import io.teampulse.identity.AbstractIntegrationTest;
+import io.teampulse.identity.AbstractIT;
 import io.teampulse.identity.application.port.in.user.ListUsersUseCase;
 import io.teampulse.identity.domain.user.model.User;
 import io.teampulse.identity.domain.user.model.UserStatus;
@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class ListUsersServiceIT extends AbstractIntegrationTest {
+class ListUsersServiceIT extends AbstractIT {
 
     private static final String ORGANIZATION_A =
         "ORG-2026-3108-00000ZA7B910";

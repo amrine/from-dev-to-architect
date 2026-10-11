@@ -5,7 +5,7 @@ import io.teampulse.identity.api.user.UserAvailability;
 import io.teampulse.identity.api.user.UserDirectory;
 import io.teampulse.organization.api.organization.OrganizationAvailability;
 import io.teampulse.organization.api.organization.OrganizationDirectory;
-import io.teampulse.team.AbstractIntegrationTest;
+import io.teampulse.team.AbstractIT;
 import io.teampulse.team.application.port.in.team.TeamMemberCommand;
 import io.teampulse.team.application.port.in.team.TeamMembershipUseCase;
 import io.teampulse.team.application.port.out.team.TeamRepository;
@@ -37,7 +37,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-class TeamMembershipServiceIT extends AbstractIntegrationTest {
+class TeamMembershipServiceIT extends AbstractIT {
 
     private static final String ORGANIZATION_A = "ORG-2026-0916-00000ZA7B900";
     private static final String ORGANIZATION_B = "ORG-2026-0916-00000ZA7B901";

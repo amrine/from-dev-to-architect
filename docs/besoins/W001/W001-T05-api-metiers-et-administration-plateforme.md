@@ -18,8 +18,8 @@ W001-T05 — APIs métier et administration de plateforme
 W001-T04 a livré les modèles métier, cas d'usage, contrats inter-modules et
 persistance des utilisateurs, organisations, équipes et appartenances. Ces
 capacités restent la propriété de leurs modules. T05 ajoute les frontières
-HTTP et les preuves d'intégration de bout en bout ; il ne recrée pas les
-modèles, repositories ou migrations déjà livrés.
+HTTP et les preuves d'intégration du chemin applicatif et de la persistance ;
+il ne recrée pas les modèles, repositories ou migrations déjà livrés.
 
 Le parcours d'administration initial traverse plusieurs propriétaires. Le
 module `tp-administration` représente l'administration de la plateforme, tandis
@@ -29,7 +29,9 @@ que les API métier restent dans les modules qui possèdent les données.
 Les capacités T04 ne sont pas encore utilisables via HTTP. Il faut exposer des
 contrats cohérents, exécuter le bootstrap de plateforme sans déplacer la
 propriété métier, garantir les contrôles tenantés et prouver les comportements
-des contrôleurs avec de vrais échanges HTTP et PostgreSQL.
+des contrôleurs avec l'application réelle et PostgreSQL. Le besoin de preuve
+réseau est explicite seulement pour les propriétaires qui adoptent un serveur
+sur port aléatoire.
 
 ## Objectif
 Exposer les API HTTP des trois modules métier et de l'administration de
@@ -78,18 +80,32 @@ compatible avec l'architecture modulaire.
   consommateur est traitée par la stratégie Spring Modulith décrite dans
   ADR-TECH-016.
 - Définir un contrat OpenAPI par propriétaire HTTP : identité, organisation,
-  équipe et administration de plateforme. Générer les clients HTTP de test
-  depuis ces contrats, puis conserver une DSL lisible propre à chaque module
-  dans son `src/test`. Le support HTTP générique reste dans `tp-test-support` ;
-  aucun module autonome `tp-test-clients` n'est créé.
+  équipe et administration de plateforme. Générer les clients depuis ces
+  contrats comme sources de production du module afin qu'ils soient disponibles
+  pour ses consommateurs et réutilisables par les tests, sans générer deux
+  copies. Le code de production du propriétaire ne dépend pas de son propre
+  client généré pour appeler ses endpoints ; il utilise ses ports et types
+  serveur. Identité utilise `MockMvc` avec l'application complète ; ses tests
+  n'exercent donc ni le réseau ni le client généré. Les autres tests utilisent
+  le niveau de transport explicité dans l'adoption locale. Toute DSL métier
+  éventuelle reste locale au `src/test` du module. Le support HTTP générique
+  reste dans `tp-test-support` ;
+  aucun module autonome `tp-test-clients` n'est créé. Générer chaque contrat
+  depuis les contrôleurs, DTO et contraintes de validation du propriétaire avec
+  SpringDoc dans `target/openapi.yaml`, puis compiler les clients générés avant
+  la compilation des tests pendant un même build.
 - Ajouter `tp-web-support` pour le support Spring partagé des erreurs HTTP. Le
   DTO de réponse reste un type Java pur dans `tp-common` ; chaque module traduit
   ses propres erreurs métier et codes HTTP.
-- Écrire les tests de contrôleurs exclusivement comme de vrais tests
-  d'intégration par module : requête HTTP vers un serveur démarré sur port
-  aléatoire, application Spring réelle, Flyway et PostgreSQL Testcontainers. Les
-  tests traversent le contrôleur, les cas d'usage, la persistance et le mapping.
-- Réutiliser le support et les fixtures de `AbstractIntegrationTest` sans
+- Couvrir les contrôleurs avec l'application Spring et les cas d'usage réels,
+  Flyway et PostgreSQL Testcontainers. Pour identité, utiliser `MockMvc` avec
+  `@SpringBootTest` et `WebEnvironment.MOCK`, sans `@WebMvcTest` ni mock de cas
+  d'usage ; cette suite vérifie le dispatch MVC, le mapping, le chemin applicatif
+  et la persistance sans démarrer de serveur réseau ni utiliser le client
+  généré. Les autres propriétaires conservent leurs tests sur serveur réel à
+  port aléatoire. Vérifier les réponses, erreurs, l'isolation tenant et les
+  effets persistés pertinents.
+- Réutiliser le support et les fixtures de `AbstractIT` sans
   transformer ses tests existants `WebEnvironment.NONE` en tests avec serveur ;
   ajouter une base d'intégration Web dédiée par application de test.
 - Remplacer uniquement les contrats d'autres modules aux frontières des tests :
@@ -172,14 +188,25 @@ compatible avec l'architecture modulaire.
 - [ ] `UserInvited` ne transporte aucune PII ; `OrganizationActivated` n'est
   pas émis en T05. T05 n'inclut ni consommateur de notification ni livraison
   email.
-- [ ] Chaque contrôleur est couvert par des tests d'intégration HTTP réels, sans
-  tests unitaires de contrôleur ni slice `@WebMvcTest`/`MockMvc`. Les tests
-  utilisent PostgreSQL réel via Testcontainers et vérifient les réponses, les
-  erreurs, l'isolation tenant et les effets persistés pertinents.
+- [ ] Les contrôleurs sont couverts avec l'application Spring et les cas
+  d'usage réels, Flyway et PostgreSQL Testcontainers. Pour identité, utiliser
+  `MockMvc` avec `@SpringBootTest` et `WebEnvironment.MOCK`, sans `@WebMvcTest`
+  ni mock de cas d'usage ; cette suite vérifie le chemin MVC et la persistance
+  sans démarrer de serveur réseau ni utiliser le client généré. Les autres
+  propriétaires conservent leurs tests sur serveur réel à port aléatoire.
+  Vérifier les réponses, erreurs,
+  l'isolation tenant et les effets persistés pertinents.
 - [ ] Les stubs sont limités aux contrats inter-modules hors du propriétaire du
   test ; les composants internes du module testé ne sont pas remplacés.
-- [ ] Les clients HTTP générés compilent à partir des contrats OpenAPI et sont
-  enveloppés par une DSL métier locale à chaque `src/test`.
+- [ ] Les clients HTTP générés compilent comme sources de production à partir
+  des contrats OpenAPI et peuvent être réutilisés par les tests ; le code de
+  production de chaque propriétaire ne dépend pas de son propre package
+  `.generated`. Toute DSL métier éventuelle reste locale à chaque `src/test`.
+- [ ] Chaque spec OpenAPI est générée depuis le code de son propriétaire par
+  une requête HTTP vers l'application réelle et écrite sous
+  `target/openapi.yaml` avant la génération des clients dans
+  `target/generated-sources/openapi`, leur compilation comme sources de
+  production et la compilation des tests.
 - [ ] Le support partagé d'erreur HTTP ne centralise aucun code métier et
   n'expose ni cause technique, ni message interne, ni donnée personnelle.
 - [ ] Les règles ArchUnit et Spring Modulith continuent de vérifier les
@@ -202,7 +229,9 @@ compatible avec l'architecture modulaire.
 
 ## Artefacts attendus
 - Contrats OpenAPI des quatre propriétaires HTTP.
-- Clients générés pour les tests et DSL métier dans chaque module concerné.
+- Clients générés comme sources de production, avec leur usage par les tests
+  documenté selon le niveau de transport retenu, et DSL métier dans chaque
+  module concerné.
 - Support générique HTTP dans `tp-test-support` et support Spring d'erreurs dans
   `tp-web-support`.
 - Tests d'intégration Web/PostgreSQL par module et tests du bootstrap plateforme.
@@ -211,7 +240,8 @@ compatible avec l'architecture modulaire.
 ## Notes pédagogiques
 Ce ticket distingue l'ownership HTTP et métier, l'orchestration synchrone d'une
 commande des effets secondaires asynchrones, le contexte de tenant du contexte
-d'acteur, et un vrai test HTTP/PostgreSQL d'une simulation de contrôleur.
+d'acteur, ainsi que le test d'intégration MVC complet d'un échange réseau
+réel ; le niveau de preuve réseau doit correspondre au contrat du propriétaire.
 
 ## Liens avec les autres tickets
 - Dépend de : W001-T01 à W001-T04 pour le monolithe modulaire, PostgreSQL,

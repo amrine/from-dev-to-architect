@@ -1,13 +1,18 @@
 package io.teampulse.identity;
 
 import io.teampulse.config.ReferenceConfiguration;
+import io.teampulse.context.DeterministicTenantContextTestConfiguration;
 import io.teampulse.testsupport.persistence.PostgreSQLTestConfiguration;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.annotation.Import;
 import org.springframework.modulith.test.ApplicationModuleTest;
 
 @ApplicationModuleTest
-@Import({PostgreSQLTestConfiguration.class, ReferenceConfiguration.class})
+@Import({
+    PostgreSQLTestConfiguration.class,
+    ReferenceConfiguration.class,
+    DeterministicTenantContextTestConfiguration.class
+})
 public class IdentityModuleTests {
 
     @Test

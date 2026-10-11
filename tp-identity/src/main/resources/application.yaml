@@ -1,3 +1,7 @@
 spring:
   application:
     name: tp-identity
+
+springdoc:
+  api-docs:
+    enabled: false
