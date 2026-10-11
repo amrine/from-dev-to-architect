@@ -346,5 +346,17 @@ report des notifications évite d'ajouter leur persistance et leur exploitation
   L'administration reste responsable des vérifications de responsabilités T04
   avant les deux transitions de fermeture. Aucun endpoint HTTP identité ne
   contourne cette orchestration. Le mapping métier identité prévaut sur l'advice
-  partagé ; les erreurs de transport restent génériques et masquées. Cet ADR
-  reste `Draft`.
+  partagé ; les erreurs de transport restent génériques et masquées. 
+- La verticale organisation expose la création en `CREATING`, la suspension,
+  l'archivage et la gestion T04 des responsables ; aucune route d'activation ou
+  de réactivation n'est publiée. `OrganizationResponsibleUsersService` refuse
+  avant mutation toute affectation disponible qui aurait activé ou réactivé
+  l'organisation, y compris lorsque l'application l'appelle directement. Le
+  code métier `LIFECYCLE_TRANSITION_DEFERRED` est traduit localement en
+  `409 ORGANIZATION_LIFECYCLE_DEFERRED` et documenté dans OpenAPI. Les contrats
+  Java `organization::organization` exposent le provisioning synchrone et une
+  lecture des responsabilités/statut sans modèle domaine ni entité. Les tests
+  vérifient les refus, l'absence d'écriture `ACTIVE`, les réponses métier et
+  transport sur HTTP réel avec Flyway/PostgreSQL ;
+  `./mvnw --batch-mode --no-transfer-progress -pl tp-organization -am verify`
+  passe. Cet ADR reste `Draft`.
