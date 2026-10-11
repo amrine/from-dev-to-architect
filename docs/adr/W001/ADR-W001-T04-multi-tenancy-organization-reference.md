@@ -551,7 +551,7 @@ T04 concrétise l'option de support partagé prévue par ADR-TECH-003 :
 - `PersistenceIntegrationTestConfiguration` compose PostgreSQL et l'audit pour
   les tests de persistence ;
 - chaque module métier garde son application de test et son
-  `AbstractIntegrationTest`, car son package et sa configuration Flyway lui
+  `AbstractIT`, car son package et sa configuration Flyway lui
   appartiennent ;
 - `tp-test-support` est consommé uniquement avec le scope Maven `test` ;
 - il ne porte pas `@ApplicationModule`, reste exclu du modèle Spring Modulith et

@@ -2,12 +2,14 @@ package io.teampulse.identity.application.service.user;
 
 import io.teampulse.common.context.TenantContext;
 import io.teampulse.common.reference.ReferenceFactory;
-import io.teampulse.identity.application.port.in.user.CreateUserCommand;
+import io.teampulse.identity.api.lifecycle.UserLifecycleErrorCode;
+import io.teampulse.identity.api.lifecycle.UserLifecycleException;
+import io.teampulse.identity.api.lifecycle.UserLifecycleResult;
+import io.teampulse.identity.api.lifecycle.UserProvisioningCommand;
+import io.teampulse.identity.application.port.out.user.IdentityEventPublisher;
 import io.teampulse.identity.application.port.out.user.UserRepository;
-import io.teampulse.identity.domain.user.error.UserErrorCode;
-import io.teampulse.identity.domain.user.error.UserException;
 import io.teampulse.identity.domain.user.model.User;
-import org.junit.jupiter.api.BeforeEach;
+import io.teampulse.identity.events.UserInvited;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,7 +20,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockMakers;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.stream.Stream;
@@ -28,11 +29,9 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.inOrder;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.withSettings;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -47,6 +46,8 @@ class UserLifecycleServiceTest {
     private UserRepository userRepository;
     @Mock
     private ReferenceFactory referenceFactory;
+    @Mock
+    private IdentityEventPublisher invitationEventPublisher;
     @InjectMocks
     private UserLifecycleService service;
 
@@ -92,7 +93,7 @@ class UserLifecycleServiceTest {
 
             service.create(
                 validTenantContext(),
-                new CreateUserCommand(
+                new UserProvisioningCommand(
                     " Alice.Smith@Example.COM ",
                     "Alice",
                     "Smith"
@@ -106,7 +107,7 @@ class UserLifecycleServiceTest {
         }
 
         @Test
-        void persistsAndReturnsCreatedUser() {
+        void persistsAndReturnsPublicLifecycleResult() {
             when(referenceFactory.generate("USR")).thenReturn(USER_REFERENCE);
             when(userRepository.existsByEmail(
                 ORGANIZATION_REFERENCE,
@@ -121,13 +122,17 @@ class UserLifecycleServiceTest {
             );
             when(userRepository.create(any(User.class))).thenReturn(persistedUser);
 
-            User result = service.create(validTenantContext(), validCommand());
+            UserLifecycleResult result = service.create(validTenantContext(), validCommand());
 
             ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
             verify(userRepository).create(userCaptor.capture());
             assertEquals(USER_REFERENCE, userCaptor.getValue().getReference());
             assertEquals("alice.smith@example.com", userCaptor.getValue().getEmail());
-            assertSame(persistedUser, result);
+            assertEquals(USER_REFERENCE, result.userReference());
+            assertEquals("persisted@example.com", result.email());
+            assertEquals("Persisted", result.firstName());
+            assertEquals("User", result.lastName());
+            assertEquals("CREATING", result.status());
         }
     }
 
@@ -142,25 +147,25 @@ class UserLifecycleServiceTest {
                 "alice.smith@example.com"
             )).thenReturn(true);
 
-            UserException exception = assertThrows(
-                UserException.class,
+            UserLifecycleException exception = assertThrows(
+                UserLifecycleException.class,
                 () -> service.create(validTenantContext(), validCommand())
             );
 
-            assertEquals(UserErrorCode.EMAIL_ALREADY_USED, exception.getErrorCode());
+            assertEquals(UserLifecycleErrorCode.EMAIL_ALREADY_USED, exception.getErrorCode());
             verify(userRepository, never()).create(any(User.class));
         }
 
         @ParameterizedTest
         @MethodSource("invalidCommands")
         void propagatesUserCreationValidationErrors(
-            CreateUserCommand command,
-            UserErrorCode expectedErrorCode
+            UserProvisioningCommand command,
+            UserLifecycleErrorCode expectedErrorCode
         ) {
             when(referenceFactory.generate("USR")).thenReturn(USER_REFERENCE);
 
-            UserException exception = assertThrows(
-                UserException.class,
+            UserLifecycleException exception = assertThrows(
+                UserLifecycleException.class,
                 () -> service.create(validTenantContext(), command)
             );
 
@@ -171,24 +176,24 @@ class UserLifecycleServiceTest {
         static Stream<Arguments> invalidCommands() {
             return Stream.of(
                 Arguments.of(
-                    new CreateUserCommand("invalid-email", "Alice", "Smith"),
-                    UserErrorCode.INVALID_EMAIL
+                    new UserProvisioningCommand("invalid-email", "Alice", "Smith"),
+                    UserLifecycleErrorCode.INVALID_USER_DATA
                 ),
                 Arguments.of(
-                    new CreateUserCommand(
+                    new UserProvisioningCommand(
                         "alice.smith@example.com",
                         "A".repeat(101),
                         "Smith"
                     ),
-                    UserErrorCode.INVALID_FIRST_NAME
+                    UserLifecycleErrorCode.INVALID_USER_DATA
                 ),
                 Arguments.of(
-                    new CreateUserCommand(
+                    new UserProvisioningCommand(
                         "alice.smith@example.com",
                         "Alice",
                         "S".repeat(101)
                     ),
-                    UserErrorCode.INVALID_LAST_NAME
+                    UserLifecycleErrorCode.INVALID_USER_DATA
                 )
             );
         }
@@ -199,13 +204,84 @@ class UserLifecycleServiceTest {
                 new IllegalStateException("Reference generation failed");
             when(referenceFactory.generate("USR")).thenThrow(generationFailure);
 
-            IllegalStateException exception = assertThrows(
-                IllegalStateException.class,
+            UserLifecycleException exception = assertThrows(
+                UserLifecycleException.class,
                 () -> service.create(validTenantContext(), validCommand())
             );
 
-            assertSame(generationFailure, exception);
+            assertEquals(UserLifecycleErrorCode.OPERATION_FAILED, exception.getErrorCode());
+            assertSame(generationFailure, exception.getCause());
             verifyNoInteractions(userRepository);
+        }
+
+        @Test
+        void mapsTechnicalRepositoryFailuresAndPreservesTheirCause() {
+            IllegalStateException persistenceFailure =
+                new IllegalStateException("Database unavailable");
+            when(referenceFactory.generate("USR")).thenReturn(USER_REFERENCE);
+            when(userRepository.existsByEmail(
+                ORGANIZATION_REFERENCE,
+                "alice.smith@example.com"
+            )).thenThrow(persistenceFailure);
+
+            UserLifecycleException exception = assertThrows(
+                UserLifecycleException.class,
+                () -> service.create(validTenantContext(), validCommand())
+            );
+
+            assertEquals(UserLifecycleErrorCode.OPERATION_FAILED, exception.getErrorCode());
+            assertSame(persistenceFailure, exception.getCause());
+            verify(userRepository, never()).create(any(User.class));
+        }
+    }
+
+    @Nested
+    class InvitationTests {
+
+        @Test
+        void persistsAnInvitedUserAndPublishesOnlyReferencesAfterPersistence() {
+            when(referenceFactory.generate("USR")).thenReturn(USER_REFERENCE);
+            when(userRepository.existsByEmail(
+                ORGANIZATION_REFERENCE,
+                "alice.smith@example.com"
+            )).thenReturn(false);
+            when(userRepository.create(any(User.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+            UserLifecycleResult invitedUser = service.invite(validTenantContext(), validCommand());
+
+            assertEquals("INVITED", invitedUser.status());
+            InOrder orderedInteractions = inOrder(
+                referenceFactory,
+                userRepository,
+                invitationEventPublisher
+            );
+            orderedInteractions.verify(referenceFactory).generate("USR");
+            orderedInteractions.verify(userRepository).existsByEmail(
+                ORGANIZATION_REFERENCE,
+                "alice.smith@example.com"
+            );
+            orderedInteractions.verify(userRepository).create(any(User.class));
+            orderedInteractions.verify(invitationEventPublisher).publish(
+                new UserInvited(ORGANIZATION_REFERENCE, USER_REFERENCE)
+            );
+        }
+
+        @Test
+        void doesNotPublishAnInvitationWhenTheEmailIsAlreadyUsed() {
+            when(referenceFactory.generate("USR")).thenReturn(USER_REFERENCE);
+            when(userRepository.existsByEmail(
+                ORGANIZATION_REFERENCE,
+                "alice.smith@example.com"
+            )).thenReturn(true);
+
+            assertThrows(
+                UserLifecycleException.class,
+                () -> service.invite(validTenantContext(), validCommand())
+            );
+
+            verify(userRepository, never()).create(any(User.class));
+            verifyNoInteractions(invitationEventPublisher);
         }
     }
 
@@ -223,8 +299,8 @@ class UserLifecycleServiceTest {
         return new TenantContext(ORGANIZATION_REFERENCE);
     }
 
-    private static CreateUserCommand validCommand() {
-        return new CreateUserCommand(
+    private static UserProvisioningCommand validCommand() {
+        return new UserProvisioningCommand(
             "alice.smith@example.com",
             "Alice",
             "Smith"

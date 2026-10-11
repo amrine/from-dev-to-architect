@@ -2,11 +2,13 @@ package io.teampulse.identity.application.service.user;
 
 import io.teampulse.common.context.TenantContext;
 import io.teampulse.common.reference.ReferenceFormat;
-import io.teampulse.identity.AbstractIntegrationTest;
-import io.teampulse.identity.application.port.in.user.CreateUserCommand;
-import io.teampulse.identity.application.port.in.user.UserLifecycleUseCase;
-import io.teampulse.identity.domain.user.error.UserErrorCode;
-import io.teampulse.identity.domain.user.error.UserException;
+import io.teampulse.identity.AbstractIT;
+import io.teampulse.identity.api.lifecycle.UserLifecycle;
+import io.teampulse.identity.api.lifecycle.UserLifecycleErrorCode;
+import io.teampulse.identity.api.lifecycle.UserLifecycleException;
+import io.teampulse.identity.api.lifecycle.UserLifecycleResult;
+import io.teampulse.identity.api.lifecycle.UserProvisioningCommand;
+import io.teampulse.identity.application.port.out.user.UserRepository;
 import io.teampulse.identity.domain.user.model.User;
 import io.teampulse.identity.domain.user.model.UserStatus;
 import io.teampulse.identity.infrastructure.persistence.entity.UserEntity;
@@ -27,7 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class UserLifecycleServiceIT extends AbstractIntegrationTest {
+class UserLifecycleServiceIT extends AbstractIT {
 
     private static final String ORGANIZATION_A =
         "ORG-2026-3108-00000ZA7B900";
@@ -35,10 +37,13 @@ class UserLifecycleServiceIT extends AbstractIntegrationTest {
         "ORG-2026-3108-00000ZA7B901";
 
     @Inject
-    private UserLifecycleUseCase userLifecycleUseCase;
+    private UserLifecycle userLifecycle;
 
     @Inject
     private JpaUserRepository jpaUserRepository;
+
+    @Inject
+    private UserRepository userRepository;
 
     @BeforeEach
     void cleanDatabase() {
@@ -49,7 +54,7 @@ class UserLifecycleServiceIT extends AbstractIntegrationTest {
     void rejectsNullTenantContextBeforePersisting() {
         assertThrows(
             ConstraintViolationException.class,
-            () -> userLifecycleUseCase.create(null, validCommand())
+            () -> userLifecycle.create(null, validCommand())
         );
 
         assertEquals(0L, jpaUserRepository.count());
@@ -59,7 +64,7 @@ class UserLifecycleServiceIT extends AbstractIntegrationTest {
     void rejectsNullCommandBeforePersisting() {
         assertThrows(
             ConstraintViolationException.class,
-            () -> userLifecycleUseCase.create(tenant(ORGANIZATION_A), null)
+            () -> userLifecycle.create(tenant(ORGANIZATION_A), null)
         );
 
         assertEquals(0L, jpaUserRepository.count());
@@ -67,38 +72,37 @@ class UserLifecycleServiceIT extends AbstractIntegrationTest {
 
     @ParameterizedTest
     @MethodSource("commandsWithBlankRequiredField")
-    void rejectsBlankCommandFieldsBeforePersisting(CreateUserCommand command) {
+    void rejectsBlankCommandFieldsBeforePersisting(UserProvisioningCommand command) {
         assertThrows(
             ConstraintViolationException.class,
-            () -> userLifecycleUseCase.create(tenant(ORGANIZATION_A), command)
+            () -> userLifecycle.create(tenant(ORGANIZATION_A), command)
         );
 
         assertEquals(0L, jpaUserRepository.count());
     }
 
     @Test
-    void createsAndReturnsThePersistedUser() {
-        User createdUser = userLifecycleUseCase.create(
+    void createsAndReturnsThePersistedUserLifecycleResult() {
+        UserLifecycleResult createdUser = userLifecycle.create(
             tenant(ORGANIZATION_A),
-            new CreateUserCommand(
+            new UserProvisioningCommand(
                 " Alice.Smith@Example.COM ",
                 " Alice ",
                 " Smith "
             )
         );
 
-        assertTrue(ReferenceFormat.matches(createdUser.getReference(), "USR"));
-        assertEquals(ORGANIZATION_A, createdUser.getOrganizationReference());
-        assertEquals("alice.smith@example.com", createdUser.getEmail());
-        assertEquals("Alice", createdUser.getFirstName());
-        assertEquals("Smith", createdUser.getLastName());
-        assertEquals(UserStatus.CREATING, createdUser.getStatus());
+        assertTrue(ReferenceFormat.matches(createdUser.userReference(), "USR"));
+        assertEquals("alice.smith@example.com", createdUser.email());
+        assertEquals("Alice", createdUser.firstName());
+        assertEquals("Smith", createdUser.lastName());
+        assertEquals("CREATING", createdUser.status());
 
         UserEntity storedUser = findStoredUser(
             ORGANIZATION_A,
-            createdUser.getReference()
+            createdUser.userReference()
         );
-        assertEquals(createdUser.getReference(), storedUser.getReference());
+        assertEquals(createdUser.userReference(), storedUser.getReference());
         assertEquals(ORGANIZATION_A, storedUser.getOrganizationReference());
         assertEquals("alice.smith@example.com", storedUser.getEmail());
         assertEquals("Alice", storedUser.getFirstName());
@@ -108,7 +112,7 @@ class UserLifecycleServiceIT extends AbstractIntegrationTest {
 
     @Test
     void createsUserInsideAnActiveReadWriteTransaction() {
-        userLifecycleUseCase.create(
+        userLifecycle.create(
             tenant(ORGANIZATION_A),
             validCommand()
         );
@@ -125,16 +129,16 @@ class UserLifecycleServiceIT extends AbstractIntegrationTest {
 
     @Test
     void rejectsCanonicalEmailAlreadyUsedInTheSameOrganization() {
-        userLifecycleUseCase.create(
+        userLifecycle.create(
             tenant(ORGANIZATION_A),
             validCommand()
         );
 
-        UserException exception = assertThrows(
-            UserException.class,
-            () -> userLifecycleUseCase.create(
+        UserLifecycleException exception = assertThrows(
+            UserLifecycleException.class,
+            () -> userLifecycle.create(
                 tenant(ORGANIZATION_A),
-                new CreateUserCommand(
+                new UserProvisioningCommand(
                     " ALICE.SMITH@EXAMPLE.COM ",
                     "Another",
                     "User"
@@ -142,29 +146,104 @@ class UserLifecycleServiceIT extends AbstractIntegrationTest {
             )
         );
 
-        assertEquals(UserErrorCode.EMAIL_ALREADY_USED, exception.getErrorCode());
+        assertEquals(UserLifecycleErrorCode.EMAIL_ALREADY_USED, exception.getErrorCode());
         assertEquals(1L, jpaUserRepository.count());
     }
 
     @Test
-    void allowsTheSameCanonicalEmailInDifferentOrganizations() {
-        User userInOrganizationA = userLifecycleUseCase.create(
+    void invitesAndPersistsAUserInInvitedStatus() {
+        UserLifecycleResult invitedUser = userLifecycle.invite(
             tenant(ORGANIZATION_A),
             validCommand()
         );
-        User userInOrganizationB = userLifecycleUseCase.create(
+
+        assertEquals("INVITED", invitedUser.status());
+        assertEquals(
+            UserStatus.INVITED,
+            findStoredUser(ORGANIZATION_A, invitedUser.userReference()).getStatus()
+        );
+    }
+
+    @Test
+    void suspendsAnActiveUserWithinTheProvidedTenant() {
+        User activeUser = userRepository.create(User.restore(
+            "USR-2026-3108-00000ZA7B902",
+            ORGANIZATION_A,
+            "active@example.com",
+            "Active",
+            "User",
+            UserStatus.ACTIVE
+        ));
+
+        userLifecycle.suspend(
+            tenant(ORGANIZATION_A),
+            activeUser.getReference()
+        );
+
+        assertEquals(
+            UserStatus.SUSPENDED,
+            findStoredUser(ORGANIZATION_A, activeUser.getReference()).getStatus()
+        );
+    }
+
+    @Test
+    void deactivatesAUserWithinTheProvidedTenant() {
+        UserLifecycleResult createdUser = userLifecycle.create(
+            tenant(ORGANIZATION_A),
+            validCommand()
+        );
+
+        userLifecycle.deactivate(
+            tenant(ORGANIZATION_A),
+            createdUser.userReference()
+        );
+
+        assertEquals(
+            UserStatus.DEACTIVATED,
+            findStoredUser(ORGANIZATION_A, createdUser.userReference()).getStatus()
+        );
+    }
+
+    @Test
+    void refusesToTransitionAUserOutsideTheProvidedTenant() {
+        User activeUser = userRepository.create(User.restore(
+            "USR-2026-3108-00000ZA7B903",
+            ORGANIZATION_A,
+            "active@example.com",
+            "Active",
+            "User",
+            UserStatus.ACTIVE
+        ));
+
+        UserLifecycleException exception = assertThrows(
+            UserLifecycleException.class,
+            () -> userLifecycle.suspend(tenant(ORGANIZATION_B), activeUser.getReference())
+        );
+
+        assertEquals(UserLifecycleErrorCode.USER_NOT_FOUND, exception.getErrorCode());
+        assertEquals(
+            UserStatus.ACTIVE,
+            findStoredUser(ORGANIZATION_A, activeUser.getReference()).getStatus()
+        );
+    }
+
+    @Test
+    void allowsTheSameCanonicalEmailInDifferentOrganizations() {
+        UserLifecycleResult userInOrganizationA = userLifecycle.create(
+            tenant(ORGANIZATION_A),
+            validCommand()
+        );
+        UserLifecycleResult userInOrganizationB = userLifecycle.create(
             tenant(ORGANIZATION_B),
-            new CreateUserCommand(
+            new UserProvisioningCommand(
                 " ALICE.SMITH@EXAMPLE.COM ",
                 "Alice",
                 "Smith"
             )
         );
 
-        assertEquals(ORGANIZATION_A, userInOrganizationA.getOrganizationReference());
-        assertEquals(ORGANIZATION_B, userInOrganizationB.getOrganizationReference());
-        assertEquals("alice.smith@example.com", userInOrganizationA.getEmail());
-        assertEquals("alice.smith@example.com", userInOrganizationB.getEmail());
+        assertEquals("alice.smith@example.com", userInOrganizationA.email());
+        assertEquals("alice.smith@example.com", userInOrganizationB.email());
         assertEquals(2L, jpaUserRepository.count());
         assertEquals(
             List.of(ORGANIZATION_A, ORGANIZATION_B),
@@ -186,11 +265,11 @@ class UserLifecycleServiceIT extends AbstractIntegrationTest {
         ).orElseThrow();
     }
 
-    private static Stream<CreateUserCommand> commandsWithBlankRequiredField() {
+    private static Stream<UserProvisioningCommand> commandsWithBlankRequiredField() {
         return Stream.of(
-            new CreateUserCommand(" ", "Alice", "Smith"),
-            new CreateUserCommand("alice.smith@example.com", " ", "Smith"),
-            new CreateUserCommand("alice.smith@example.com", "Alice", " ")
+            new UserProvisioningCommand(" ", "Alice", "Smith"),
+            new UserProvisioningCommand("alice.smith@example.com", " ", "Smith"),
+            new UserProvisioningCommand("alice.smith@example.com", "Alice", " ")
         );
     }
 
@@ -198,11 +277,7 @@ class UserLifecycleServiceIT extends AbstractIntegrationTest {
         return new TenantContext(organizationReference);
     }
 
-    private static CreateUserCommand validCommand() {
-        return new CreateUserCommand(
-            "alice.smith@example.com",
-            "Alice",
-            "Smith"
-        );
+    private static UserProvisioningCommand validCommand() {
+        return new UserProvisioningCommand("alice.smith@example.com", "Alice", "Smith");
     }
 }

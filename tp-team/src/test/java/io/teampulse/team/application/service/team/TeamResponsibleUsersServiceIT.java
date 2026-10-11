@@ -3,7 +3,7 @@ package io.teampulse.team.application.service.team;
 import io.teampulse.common.context.TenantContext;
 import io.teampulse.identity.api.user.UserAvailability;
 import io.teampulse.identity.api.user.UserDirectory;
-import io.teampulse.team.AbstractIntegrationTest;
+import io.teampulse.team.AbstractIT;
 import io.teampulse.team.application.port.in.team.TeamResponsibleCommand;
 import io.teampulse.team.application.port.in.team.TeamResponsibleUsersUseCase;
 import io.teampulse.team.application.port.out.team.TeamRepository;
@@ -29,7 +29,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-class TeamResponsibleUsersServiceIT extends AbstractIntegrationTest {
+class TeamResponsibleUsersServiceIT extends AbstractIT {
 
     private static final String ORGANIZATION_REFERENCE = "ORG-2026-0916-00000ZA7B900";
     private static final String TEAM_REFERENCE = "TEM-2026-0916-00000ZA7B900";

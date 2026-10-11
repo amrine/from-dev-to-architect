@@ -15,8 +15,8 @@ Ces ADR décrivent des décisions techniques réutilisables. Leur statut Draft n
 vaut pas adoption par TeamPulse ; le présent ADR consigne la proposition
 d'adoption locale et conserve lui-même son statut Draft.
 
-- [ADR-TECH-013 — OpenAPI contracts and generated test clients](../technical/ADR-TECH-013-openapi-contracts-and-generated-test-clients.md)
-- [ADR-TECH-014 — Black-box HTTP integration tests](../technical/ADR-TECH-014-black-box-http-integration-tests.md)
+- [ADR-TECH-013 — OpenAPI contracts and generated clients](../technical/ADR-TECH-013-openapi-contracts-and-generated-test-clients.md)
+- [ADR-TECH-014 — HTTP boundary integration tests](../technical/ADR-TECH-014-http-boundary-integration-tests.md)
 - [ADR-TECH-015 — Shared Spring HTTP error support](../technical/ADR-TECH-015-shared-spring-http-error-support.md)
 - [ADR-TECH-016 — Durable in-process events with Spring Modulith](../technical/ADR-TECH-016-durable-in-process-events-with-spring-modulith.md)
 
@@ -48,8 +48,13 @@ de notification : `tp-notification` et sa livraison relèvent de T10.
   d'administration de la plateforme. Il ne devient pas l'API générique de
   gestion des organisations, utilisateurs ou équipes.
 - Les API sont documentées dans un contrat OpenAPI par propriétaire HTTP. Les
-  appels générés servent aux tests ; le code serveur reste écrit selon les
-  ports d'entrée existants et l'architecture hexagonale.
+  clients générés sont compilés dans les sources de production du module afin
+  d'être disponibles comme clients Java pour ses consommateurs. Le code de
+  production du propriétaire ne les utilise pas pour appeler ses propres
+  endpoints ; les tests qui doivent exercer le transport réseau peuvent les
+  utiliser. La suite identité utilise `MockMvc` et n'exerce donc pas ce client.
+  Le code serveur reste écrit selon les ports d'entrée existants et
+  l'architecture hexagonale.
 
 ### 2. Orchestrer les commandes de plateforme par contrats Java synchrones
 
@@ -105,9 +110,12 @@ fiable.
   proposée pour TeamPulse, ses modules, ses versions et ses choix de test est
   consignée dans le contrat local ci-dessous.
 - Les erreurs métier restent codées et traduites par leur module propriétaire.
-- Le test de contrôleur traverse un serveur réel sur port aléatoire et la vraie
-  persistence PostgreSQL. Les tests `AbstractIntegrationTest` existants sans
-  serveur restent inchangés ; une base Web dédiée réutilise leur support.
+- Les tests de contrôleur gardent l'application et la vraie persistance
+  PostgreSQL. Identité utilise le contexte complet avec `MockMvc` ; organisation
+  et équipe utilisent un serveur réel sur port aléatoire. Le test HTTP
+  d'administration, à ajouter avec son module, utilisera également un serveur
+  réel conformément à l'acceptation T05. Les tests `AbstractIT` existants sans
+  serveur restent inchangés ; les bases Web dédiées réutilisent leur support.
 - Tous les modules du reactor conservent la version commune du parent Maven,
   actuellement `0.1.0-SNAPSHOT`. Aucune version de produit indépendante par
   module ou version d'API d'URL n'est ajoutée par défaut.
@@ -118,22 +126,44 @@ Cette adoption est proposée par T05 ; elle ne change pas le statut Draft de cet
 ADR ni celui des ADR techniques de référence.
 
 - Propriétaires HTTP proposés : `tp-identity`, `tp-organization`, `tp-team` et
-  `tp-administration`, chacun avec son contrat OpenAPI dans son module.
-- Génération OpenAPI proposée : OpenAPI Generator Maven `7.25.0`, à gérer
-  centralement dans le POM parent ; clients Java `restclient` et modèles à
-  générer dans `target/generated-test-sources/openapi`, attachés uniquement aux
-  sources de test. Les options `useSpringBoot4=true`, `useJackson3=true` et
-  `openApiNullable=false` ciblent le runtime Java 25 / Spring Boot 4.1.0. Les
-  contrats utiliseraient la version produit commune `0.1.0-SNAPSHOT`, sans
-  version d'URL ; le serveur local annoncerait `http://localhost:8080`.
-- Tests HTTP proposés : pour les contrats de controllers, utiliser un vrai
-  serveur sur port aléatoire, l'application et le chemin interne réels, Flyway
-  et PostgreSQL Testcontainers. `tp-test-support` fournirait le support HTTP
-  générique ; chaque module garderait sa DSL métier dans `src/test`. Les bases
-  `AbstractIntegrationTest` non-Web resteraient en `WebEnvironment.NONE`. Les
-  tests autonomes remplaceraient uniquement les contrats publics externes ;
-  les tests d'administration assembleraient les vrais modules concernés. Les
-  écritures du thread serveur seraient nettoyées ou isolées explicitement.
+  `tp-administration`, chacun exposant la spec générée depuis ses contrôleurs,
+  DTO et contraintes de validation avec SpringDoc `3.1.1`, version gérée dans le
+  POM parent. Le build crée la spec sous
+  `target/openapi.yaml` depuis l'application HTTP réelle avec Flyway et
+  PostgreSQL Testcontainers, puis génère les clients sous
+  `target/generated-sources/openapi`. Pour identité, la spec est servie par SpringDoc sur
+  `/v3/api-docs.yaml`, sans classe de configuration OpenAPI dédiée.
+  Les endpoints OpenAPI sont désactivés par défaut, activés uniquement dans les
+  tests et le profil local.
+- Les clients Java `restclient` et modèles sont générés par OpenAPI Generator
+  Maven `7.25.0`, configuré dans le POM parent, à partir du YAML généré pendant
+  `generate-test-sources`. Ils sont placés dans
+  `target/generated-sources/openapi` et attachés aux sources de production. Le
+  build recompile les sources de production pendant `process-test-sources`,
+  après la génération, avant la compilation des tests. Les tests réutilisent
+  donc les mêmes classes sans seconde copie. L'implémentation de chaque
+  propriétaire ne dépend pas de son package `.generated` ; les appels
+  synchrones inter-modules de T05 utilisent les contrats Java publics. Les
+  consommateurs futurs peuvent utiliser le client généré selon leur propre
+  adoption. Les options
+  `useSpringBoot4=true`, `useJackson3=true` et
+  `openApiNullable=false` ciblent le runtime Java 25 / Spring Boot 4.1.0. La
+  version de l'artefact client vient du parent Maven ; le serveur utilise l'URL
+  relative `/` pour ne pas figer hôte ou port.
+- Les changements du générateur qui modifient ces classes doivent être relus
+  comme des changements de l'API Java publiée par le module.
+- Tests MVC retenus pour identité : `@SpringBootTest` avec
+  `WebEnvironment.MOCK` et `@AutoConfigureMockMvc`, l'application complète,
+  Flyway et PostgreSQL Testcontainers. Aucun cas d'usage interne n'est mocké et
+  aucun `@WebMvcTest` n'est utilisé. Cette adoption vérifie le dispatch Spring
+  MVC, le mapping, le chemin applicatif et les effets persistés ; elle ne prouve
+  ni le démarrage du serveur embarqué, ni le transport réseau, ni le client
+  généré. Organisation et équipe utilisent un serveur réel à port aléatoire ;
+  l'API d'administration à venir suivra la même stratégie. Les bases
+  `AbstractIT` non-Web restent en
+  `WebEnvironment.NONE`. Les tests autonomes remplacent uniquement les contrats
+  publics externes ; les tests d'administration assemblent les vrais modules
+  concernés.
 - Erreurs HTTP proposées : conserver `ApiError` comme DTO Java pur dans
   `tp-common` et placer le support Spring partagé dans `tp-web-support`, sans
   dépendance aux modules métier. Chaque propriétaire garderait ses codes et
@@ -183,8 +213,9 @@ report des notifications évite d'ajouter leur persistance et leur exploitation
 - Les frontières HTTP reflètent les propriétaires de données et d'invariants.
 - Le bootstrap garde un résultat synchrone sans couplage à un broker.
 - Les responsabilités métier et l'autorisation sont explicitement séparées.
-- Les tests prouvent les comportements réels du serveur, des modules et de
-  PostgreSQL.
+- Les tests prouvent le comportement MVC et applicatif avec les modules et
+  PostgreSQL réels ; les tests à port aléatoire prouvent aussi le démarrage du
+  serveur et le transport réseau.
 - `tp-notification` pourra évoluer dans le besoin envisagé en T10 sans faire
   connaître ses mécanismes aux modèles métier ni à `tp-administration`.
 
@@ -196,6 +227,10 @@ report des notifications évite d'ajouter leur persistance et leur exploitation
   prévue pour cette période.
 - Les contrôleurs réels avec PostgreSQL sont plus lents que des tests de slice
   ou des tests utilisant des mocks.
+- Le client généré entre dans l'artefact de production et son contrat Java peut
+  évoluer lors d'un changement de schéma ou de version du générateur. La
+  génération après le démarrage de l'application impose aussi une compilation
+  de production supplémentaire après OpenAPI Generator.
 - Les APIs sans authentification constituent un risque si le profil local est
   utilisé ou exposé hors d'un environnement maîtrisé.
 
@@ -206,8 +241,11 @@ report des notifications évite d'ajouter leur persistance et leur exploitation
 - Contrats : HTTP/OpenAPI par propriétaire ; contrats Java synchrones pour
   l'orchestration de plateforme ; fait `UserInvited` en T05 et
   `OrganizationActivated` à partir de W008, avec références seulement.
-- Tests : clients générés, DSL de test locale à chaque module, tests de serveur
-  réel sur port aléatoire et PostgreSQL Testcontainers.
+- Tests : PostgreSQL Testcontainers pour les propriétaires HTTP ; identité
+  utilise `MockMvc` avec l'application complète, organisation et équipe
+  utilisent un serveur réel sur port aléatoire. L'API d'administration à venir
+  suivra le même contrat à port aléatoire. Les DSL métier éventuelles restent
+  locales à chaque module.
 - Sécurité : profil local/de développement uniquement jusqu'à W008 ; aucun
   rôle, permission ou JWT introduit par cette décision.
 - Hors impact T05 : module de notification, persistance/livraison email, SMS et
@@ -215,8 +253,10 @@ report des notifications évite d'ajouter leur persistance et leur exploitation
 
 ## Validation
 - Vérifier les contrats OpenAPI et le code généré par le build Maven.
-- Exécuter les tests HTTP/PostgreSQL des quatre propriétaires concernés, les
-  tests des contrôles T04, puis `./mvnw --batch-mode --no-transfer-progress verify`.
+- Exécuter les tests d'intégration/PostgreSQL de chaque propriétaire au niveau
+  de transport adopté, les tests des contrôles T04, puis
+  `./mvnw --batch-mode --no-transfer-progress verify`. La preuve de démarrage et
+  de transport réseau est attendue uniquement des suites à port aléatoire.
 - Vérifier qu'aucun parcours T05 ne fait passer l'organisation à `ACTIVE`, y
   compris par affectation de responsables, et qu'aucun contexte tenant n'est
   fourni par le client HTTP.
@@ -244,21 +284,67 @@ report des notifications évite d'ajouter leur persistance et leur exploitation
   notification/email déplacés de T05 vers T10 ; activation effective de
   l'organisation et publication de `OrganizationActivated` différées à W008.
 - Les documents Draft T08-T14 de `ztmp` ne sont pas officialisés par cet ADR.
-- L'implémentation de `W001-T05-http-test-support` prépare le support
-  `RestTestClient`, le nettoyage des écritures PostgreSQL et les bases de test
-  avec serveur réel dédiées à identité, organisation et équipe. Les bases
-  `AbstractIntegrationTest` existantes en `NONE` restent inchangées. La
-  compilation des sources de test passe ; le parcours HTTP réel
-  sera prouvé par la première verticale API. Le statut de cet ADR reste `Draft`.
+- L'implémentation de `W001-T05-http-test-support` centralise les bases JPA et
+  MVC dans `tp-test-support`, avec `MockMvc`, Jackson et le nettoyage des
+  écritures PostgreSQL. Organisation et équipe gardent leurs bases de test avec
+  serveur réel sur port aléatoire ; identité utilise `MockMvc` en contexte
+  Spring complet. Le module d'administration n'est pas encore présent dans
+  cette branche ; sa future suite suivra le contrat à port aléatoire. Cette
+  adoption ne prétend pas prouver l'écoute réseau pour identité. Les bases
+  `AbstractIT` existantes en `NONE` restent inchangées.
+  Le statut de cet ADR reste `Draft`.
 - L'implémentation de `W001-T05-shared-http-errors` ajoute `ApiError` avec les
   champs `code` et `message`, ainsi que l'advice Spring partagé auto-configuré
   dans `tp-web-support`. Les détails techniques et les données personnelles ne
   sont pas renvoyés dans les réponses ; les mappings métier restent locaux et
-  prioritaires. `tp-common` et `tp-web-support` passent `verify`. La preuve
-  HTTP réelle sera apportée par les verticales propriétaires ; le statut de cet
-  ADR reste `Draft`.
+  prioritaires. `tp-common` et `tp-web-support` passent `verify`. Les preuves
+  des verticales propriétaires suivent leur niveau de transport adopté ; le
+  statut de cet ADR reste `Draft`.
 - L'implémentation de `W001-T05-openapi-test-clients` fixe la version du
-  générateur dans le POM parent et configure la génération de clients Java
-  uniquement pour les sources de test, sous `target/generated-test-sources`.
-  Les contrats et la preuve de compilation arrivent avec les verticales
-  propriétaires ; le statut de cet ADR reste `Draft`.
+  générateur dans le POM parent. La configuration actuelle attache les clients
+  générés comme sources de production sous `target/generated-sources/openapi` ;
+  un passage de compilation après la génération les inclut dans l'artefact avant
+  la compilation des tests. La verticale identité génère d'abord le YAML sous
+  `target/openapi.yaml` depuis l'application démarrée pour SpringDoc sur le port
+  technique `18081`. `IdentityOpenApiConfiguration` remplace l'adresse de ce
+  serveur temporaire par `/` et transmet la version Maven du parent dans
+  `info.version` ; OpenAPI Generator utilise ces métadonnées, pas l'adresse du
+  serveur de génération. Le client Java généré n'embarque donc pas `18081` ;
+  OpenAPI Generator utilise `http://localhost` comme base par défaut pour une
+  URL relative, et chaque consommateur configure `ApiClient.setBasePath()` pour
+  son environnement. La règle d'architecture R12 empêche le code de production
+  d'un propriétaire de dépendre de son propre package `.generated` ; une suite
+  qui doit prouver le transport réseau peut utiliser le client généré. Les autres
+  propriétaires configurent le même ordre dans leurs verticales. Le statut de
+  cet ADR reste `Draft`.
+- L'implémentation de `W001-T05-identity-api` expose `POST /api/users`,
+  `POST /api/users/invitations` et `GET /api/users`. Chaque route tenantée
+  résout une fois le `TenantContext` et les écritures utilisent le tenant du
+  provider même si le corps contient une référence d'organisation inconnue du
+  contrat. L'invitation persiste `INVITED` et publie `UserInvited` avec les
+  références utilisateur/organisation seulement, via le port sortant
+  `IdentityEventPublisher` et son adapter Spring dans
+  `infrastructure.messaging`. La couverture du contrôleur
+  utilise maintenant `UserControllerIT`, `MockMvc` et le contexte Spring
+  complet avec PostgreSQL Testcontainers ; elle ne vérifie pas l'écoute réseau.
+  Aucun build ni test n'a été exécuté sur le SHA relu ; les artefacts présents
+  dans `target` ne prouvent pas sa validation. La commande ciblée à relancer est
+  `./mvnw --batch-mode --no-transfer-progress -pl tp-identity -am
+  -Dtest=UserControllerIT -Dsurefire.failIfNoSpecifiedTests=false test`.
+- Le contrat Java public `identity::lifecycle` fournit à `tp-administration`
+  les commandes synchrones de création, invitation, suspension et
+  désactivation avec des types de contrat sans modèle domaine identité. Le
+  contrat `UserLifecycle` constitue l'unique port entrant pour ces commandes et
+  est implémenté directement par `UserLifecycleService`, utilisé par le
+  contrôleur HTTP et l'orchestration d'administration. `UserProvisioningCommand`
+  et `UserResponse` gardent l'API Java indépendante des commandes et
+  modèles internes ; la lecture reste portée séparément par
+  `ListUsersUseCase`. L'adaptateur `UserLifecycleContractService` et le port
+  interne `UserLifecycleUseCase` sont supprimés pour éviter de répéter la même
+  capacité et son mapping.
+
+  L'administration reste responsable des vérifications de responsabilités T04
+  avant les deux transitions de fermeture. Aucun endpoint HTTP identité ne
+  contourne cette orchestration. Le mapping métier identité prévaut sur l'advice
+  partagé ; les erreurs de transport restent génériques et masquées. Cet ADR
+  reste `Draft`.

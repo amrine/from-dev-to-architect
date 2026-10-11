@@ -1,6 +1,6 @@
 package io.teampulse.organization.application.service.organization;
 
-import io.teampulse.organization.AbstractIntegrationTest;
+import io.teampulse.organization.AbstractIT;
 import io.teampulse.organization.api.organization.OrganizationAvailability;
 import io.teampulse.organization.api.organization.OrganizationDirectory;
 import io.teampulse.organization.api.organization.OrganizationDirectoryException;
@@ -24,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class OrganizationDirectoryServiceIT extends AbstractIntegrationTest {
+class OrganizationDirectoryServiceIT extends AbstractIT {
 
     private static final String ORGANIZATION_REFERENCE =
         "ORG-2026-1409-00000ZA7B910";

@@ -1,6 +1,6 @@
 package io.teampulse.identity.infrastructure.persistence.repository;
 
-import io.teampulse.identity.AbstractIntegrationTest;
+import io.teampulse.identity.AbstractIT;
 import io.teampulse.identity.domain.user.error.UserErrorCode;
 import io.teampulse.identity.domain.user.error.UserException;
 import io.teampulse.identity.domain.user.model.User;
@@ -29,7 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class JpaUserRepositoryAdapterIT extends AbstractIntegrationTest {
+class JpaUserRepositoryAdapterIT extends AbstractIT {
 
     private static final String ORGANIZATION_A =
         "ORG-2026-2808-00000ZA7B900";

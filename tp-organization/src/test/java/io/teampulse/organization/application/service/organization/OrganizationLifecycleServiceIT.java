@@ -1,7 +1,7 @@
 package io.teampulse.organization.application.service.organization;
 
 import io.teampulse.common.reference.ReferenceFormat;
-import io.teampulse.organization.AbstractIntegrationTest;
+import io.teampulse.organization.AbstractIT;
 import io.teampulse.organization.application.port.in.organization.CreateOrganizationCommand;
 import io.teampulse.organization.application.port.in.organization.OrganizationLifecycleUseCase;
 import io.teampulse.organization.domain.organization.model.Organization;
@@ -26,7 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class OrganizationLifecycleServiceIT extends AbstractIntegrationTest {
+class OrganizationLifecycleServiceIT extends AbstractIT {
 
     private static final Instant CURRENT_INSTANT =
         Instant.parse("2026-09-14T08:00:00Z");

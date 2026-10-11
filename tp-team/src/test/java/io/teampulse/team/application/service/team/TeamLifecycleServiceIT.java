@@ -6,7 +6,7 @@ import io.teampulse.identity.api.user.UserAvailability;
 import io.teampulse.identity.api.user.UserDirectory;
 import io.teampulse.organization.api.organization.OrganizationAvailability;
 import io.teampulse.organization.api.organization.OrganizationDirectory;
-import io.teampulse.team.AbstractIntegrationTest;
+import io.teampulse.team.AbstractIT;
 import io.teampulse.team.application.port.in.team.CreateTeamCommand;
 import io.teampulse.team.application.port.in.team.TeamLifecycleUseCase;
 import io.teampulse.team.domain.team.error.TeamErrorCode;
@@ -37,7 +37,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-class TeamLifecycleServiceIT extends AbstractIntegrationTest {
+class TeamLifecycleServiceIT extends AbstractIT {
 
     private static final String ORGANIZATION_REFERENCE = "ORG-2026-0916-00000ZA7B900";
     private static final String ADMIN_REFERENCE = "USR-2026-0916-00000ZA7B900";

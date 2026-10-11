@@ -14,3 +14,7 @@ spring:
     open-in-view: false
     hibernate:
       ddl-auto: validate
+
+springdoc:
+  api-docs:
+    enabled: false

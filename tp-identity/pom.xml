@@ -12,10 +12,19 @@
     <name>tp-identity</name>
     <description>tp-identity</description>
 
+    <properties>
+        <teampulse.openapi.base-package>io.teampulse.identity</teampulse.openapi.base-package>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-api</artifactId>
         </dependency>
 
         <dependency>
@@ -54,6 +63,11 @@
         </dependency>
 
         <dependency>
+            <groupId>io.teampulse</groupId>
+            <artifactId>tp-web-support</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <optional>true</optional>
@@ -83,5 +97,107 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <classesDirectory>${project.build.testOutputDirectory}</classesDirectory>
+                    <additionalClasspathElements>
+                        <additionalClasspathElement>${project.build.outputDirectory}</additionalClasspathElement>
+                    </additionalClasspathElements>
+                    <mainClass>io.teampulse.identity.IdentityTestApplication</mainClass>
+                    <useTestClasspath>true</useTestClasspath>
+                    <profiles>
+                        <profile>test</profile>
+                    </profiles>
+                    <jvmArguments>-Dspring.application.admin.enabled=true</jvmArguments>
+                    <arguments>
+                        <argument>--server.port=18081</argument>
+                        <argument>--springdoc.api-docs.enabled=true</argument>
+                    </arguments>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>repackage</id>
+                        <configuration>
+                            <skip>true</skip>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>start-identity-for-openapi</id>
+                        <phase>generate-test-sources</phase>
+                        <goals>
+                            <goal>start</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>stop-identity-after-openapi</id>
+                        <phase>process-test-sources</phase>
+                        <goals>
+                            <goal>stop</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- Compile only the test application entry point before Maven starts it. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>compile-openapi-test-bootstrap</id>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>testCompile</goal>
+                        </goals>
+                        <configuration>
+                            <testIncludes combine.self="override">
+                                <testInclude>**/IdentityTestApplication.java</testInclude>
+                            </testIncludes>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>compile-openapi-generated-client</id>
+                        <phase>process-test-sources</phase>
+                        <goals>
+                            <goal>compile</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.springdoc</groupId>
+                <artifactId>springdoc-openapi-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>generate-identity-openapi-yaml</id>
+                        <phase>generate-test-sources</phase>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <apiDocsUrl>http://localhost:18081/v3/api-docs.yaml</apiDocsUrl>
+                            <outputDir>${project.build.directory}</outputDir>
+                            <outputFileName>openapi.yaml</outputFileName>
+                            <failOnError>true</failOnError>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.openapitools</groupId>
+                <artifactId>openapi-generator-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>generate-openapi-client</id>
+                        <phase>generate-test-sources</phase>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>

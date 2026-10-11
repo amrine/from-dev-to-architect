@@ -77,7 +77,7 @@ tests the wrong layer.
 | Domain | Invariants, normalization, and transitions without Spring. | None unless a framework contract is intentionally part of the domain, which this ADR forbids. |
 | Application service | Orchestration with substituted ports, tenant propagation, error mapping, and absence of writes after refusal. | Proxied bean behavior for method validation, transactions, read-only semantics, and selected real repository interactions. |
 | Persistence adapter | Significant mapping and isolated technical-error translation when useful. | Real database behavior for mappings, queries, constraints, auditing, and optimistic locking. |
-| Incoming adapter | Pure transformation only when it contains meaningful logic. | Framework slice tests for serialization, input validation, context resolution, status mapping, and error responses. |
+| Incoming adapter | Pure transformation only when it contains meaningful logic. | Focused framework slice; full-context `MockMvc` for MVC wiring; random-port HTTP when embedded-server or client behavior is in scope. |
 
 - Do not mock a framework repository merely to prove simple delegation or the
   framework's own behavior.
@@ -85,6 +85,8 @@ tests the wrong layer.
   can be tested through the proxied component.
 - Use the lowest layer that can observe the behavior without reimplementing the
   responsible framework in a mock.
+- A full-context `MockMvc` test exercises Spring MVC dispatch and application
+  wiring, but it does not prove embedded-server or network-client behavior.
 - Keep a small number of full vertical tests for critical paths instead of
   repeating every domain and application scenario through transport.
 

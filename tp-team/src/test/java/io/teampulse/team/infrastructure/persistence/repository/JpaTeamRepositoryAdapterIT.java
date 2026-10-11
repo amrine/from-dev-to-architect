@@ -1,6 +1,6 @@
 package io.teampulse.team.infrastructure.persistence.repository;
 
-import io.teampulse.team.AbstractIntegrationTest;
+import io.teampulse.team.AbstractIT;
 import io.teampulse.team.domain.team.error.TeamErrorCode;
 import io.teampulse.team.domain.team.error.TeamException;
 import io.teampulse.team.domain.team.model.Team;
@@ -22,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class JpaTeamRepositoryAdapterIT extends AbstractIntegrationTest {
+class JpaTeamRepositoryAdapterIT extends AbstractIT {
 
     private static final String ORGANIZATION_A = "ORG-2026-0916-00000ZA7B900";
     private static final String ORGANIZATION_B = "ORG-2026-0916-00000ZA7B901";

@@ -1,11 +1,11 @@
-package io.teampulse.team;
+package io.teampulse.organization;
 
-import io.teampulse.testsupport.AbstractJpaIntegrationTest;
+import io.teampulse.testsupport.AbstractJpaIT;
 import io.teampulse.testsupport.persistence.PersistenceIntegrationTestConfiguration;
 import io.teampulse.testsupport.transaction.JpaTransactionManagerProbeConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 
-@SpringBootTest(classes = TeamTestApplication.class, webEnvironment = SpringBootTest.WebEnvironment.NONE)
+@SpringBootTest(classes = OrganizationTestApplication.class, webEnvironment = SpringBootTest.WebEnvironment.NONE)
 @Import({PersistenceIntegrationTestConfiguration.class, JpaTransactionManagerProbeConfiguration.class})
-public abstract class AbstractIntegrationTest extends AbstractJpaIntegrationTest {}
+public abstract class AbstractIT extends AbstractJpaIT {}

@@ -54,10 +54,11 @@ class InternalArchitectureTests {
                 "R07",
                 "R08",
                 "R09",
-                "R11"
+                "R11",
+                "R12"
             ),
             ruleIdsByModule.getFirst(),
-            "R10 - le catalogue doit contenir les règles R01 à R09 et R11"
+            "R10 - le catalogue doit contenir les règles R01 à R09, R11 et R12"
         );
     }
 

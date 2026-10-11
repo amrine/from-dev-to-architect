@@ -48,7 +48,8 @@ final class BusinessModuleArchitectureRules {
             rule(module, "R07", r07(packages)),
             rule(module, "R08", r08(packages)),
             rule(module, "R09", r09(packages)),
-            rule(module, "R11", r11(packages))
+            rule(module, "R11", r11(packages)),
+            rule(module, "R12", r12(packages))
         );
     }
 
@@ -207,6 +208,14 @@ final class BusinessModuleArchitectureRules {
             .because("les services Spring activent @Validated et n'utilisent que @Service, @Validated et @Transactional");
     }
 
+    private static ArchRule r12(ModulePackages packages) {
+        return noClasses()
+            .that(resideInModule(packages).and(resideOutsideGeneratedPackage(packages)))
+            .should().dependOnClassesThat().resideInAPackage(packages.generated())
+            .as("R12 - le code de production ne dépend pas du client HTTP généré par son propre module")
+            .because("l'implémentation du propriétaire utilise ses ports et types serveur ; le client généré sert aux consommateurs et aux tests HTTP");
+    }
+
     private static ModuleRule rule(ArchitectureModules.BusinessModule module, String id, ArchRule rule) {
         return new ModuleRule(module.name(), id, rule.allowEmptyShould(true));
     }
@@ -294,6 +303,15 @@ final class BusinessModuleArchitectureRules {
         };
     }
 
+    private static DescribedPredicate<JavaClass> resideOutsideGeneratedPackage(ModulePackages packages) {
+        return new DescribedPredicate<>("réside hors du package généré " + packages.generated()) {
+            @Override
+            public boolean test(JavaClass javaClass) {
+                return !matchesPackage(packages.generated(), javaClass.getPackageName());
+            }
+        };
+    }
+
     private static DescribedPredicate<JavaClass> annotatedWithAny(String... annotationNames) {
         Set<String> annotations = Set.of(annotationNames);
 
@@ -332,6 +350,10 @@ final class BusinessModuleArchitectureRules {
 
         String applicationService() {
             return base + ".application.service..";
+        }
+
+        String generated() {
+            return base + ".generated..";
         }
 
         static ModulePackages from(ArchitectureModules.BusinessModule module) {

@@ -2,7 +2,7 @@ package io.teampulse.organization.application.service.organization;
 
 import io.teampulse.identity.api.user.UserAvailability;
 import io.teampulse.identity.api.user.UserDirectory;
-import io.teampulse.organization.AbstractIntegrationTest;
+import io.teampulse.organization.AbstractIT;
 import io.teampulse.organization.application.port.in.organization.OrganizationResponsibleCommand;
 import io.teampulse.organization.application.port.in.organization.OrganizationResponsibleUsersUseCase;
 import io.teampulse.organization.application.port.out.organization.OrganizationRepository;
@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
-class OrganizationResponsibleUsersServiceIT extends AbstractIntegrationTest {
+class OrganizationResponsibleUsersServiceIT extends AbstractIT {
 
     private static final String ORGANIZATION_REFERENCE =
         "ORG-2026-1409-00000ZA7B930";

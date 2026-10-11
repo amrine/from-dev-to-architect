@@ -2,7 +2,6 @@ package io.teampulse.websupport.error;
 
 import io.teampulse.common.error.ApiError;
 import jakarta.validation.ConstraintViolationException;
-import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;

@@ -1,6 +1,6 @@
 package io.teampulse.identity.application.service.user;
 
-import io.teampulse.identity.AbstractIntegrationTest;
+import io.teampulse.identity.AbstractIT;
 import io.teampulse.identity.api.user.UserAvailability;
 import io.teampulse.identity.api.user.UserDirectory;
 import io.teampulse.identity.api.user.UserDirectoryException;
@@ -23,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class UserDirectoryServiceIT extends AbstractIntegrationTest {
+class UserDirectoryServiceIT extends AbstractIT {
 
     private static final String ORGANIZATION_A =
         "ORG-2026-0209-00000ZA7B930";
