@@ -6,6 +6,8 @@ import io.teampulse.identity.api.user.UserAvailability;
 import io.teampulse.identity.api.user.UserDirectory;
 import io.teampulse.organization.api.organization.OrganizationAvailability;
 import io.teampulse.organization.api.organization.OrganizationDirectory;
+import io.teampulse.organization.api.organization.OrganizationResponsibilities;
+
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -13,6 +15,7 @@ import org.springframework.context.annotation.Bean;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
+import java.util.Optional;
 
 @TestConfiguration
 @SpringBootApplication
@@ -32,7 +35,17 @@ public class TeamTestApplication {
 
     @Bean
     OrganizationDirectory organizationDirectory() {
-        return _ -> OrganizationAvailability.AVAILABLE;
+        return new OrganizationDirectory() {
+            @Override
+            public OrganizationAvailability check(String organizationReference) {
+                return OrganizationAvailability.AVAILABLE;
+            }
+
+            @Override
+            public Optional<OrganizationResponsibilities> findByOrganizationReference(String organizationReference) {
+                return Optional.empty();
+            }
+        };
     }
 
     @Bean

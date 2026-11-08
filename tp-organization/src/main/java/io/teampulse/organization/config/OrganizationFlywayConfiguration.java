@@ -10,6 +10,13 @@ import javax.sql.DataSource;
 @Configuration
 public class OrganizationFlywayConfiguration {
 
+    /**
+     * Creates the module's migration initializer for the {@code tp_organization} schema.
+     * Its Flyway history and migration location are isolated from the other modules.
+     *
+     * @param dataSource application database connection source
+     * @return the initializer that runs this module's migrations at startup
+     */
     @Bean
     FlywayMigrationInitializer organizationFlywayInitializer(DataSource dataSource) {
         Flyway flyway = Flyway.configure()

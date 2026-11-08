@@ -117,7 +117,10 @@ class OrganizationResponsibleUsersValidatorTest {
         static Stream<Arguments> administratorAssignableMappings() {
             return Stream.of(
                 Arguments.of(UserAvailability.AVAILABLE, null),
-                Arguments.of(UserAvailability.PENDING, null),
+                Arguments.of(
+                    UserAvailability.PENDING,
+                    OrganizationErrorCode.ADMINISTRATOR_NOT_AVAILABLE
+                ),
                 Arguments.of(
                     UserAvailability.UNAVAILABLE,
                     OrganizationErrorCode.ADMINISTRATOR_NOT_AVAILABLE
@@ -132,7 +135,10 @@ class OrganizationResponsibleUsersValidatorTest {
         static Stream<Arguments> managerAssignableMappings() {
             return Stream.of(
                 Arguments.of(UserAvailability.AVAILABLE, null),
-                Arguments.of(UserAvailability.PENDING, null),
+                Arguments.of(
+                    UserAvailability.PENDING,
+                    OrganizationErrorCode.MANAGER_NOT_AVAILABLE
+                ),
                 Arguments.of(
                     UserAvailability.UNAVAILABLE,
                     OrganizationErrorCode.MANAGER_NOT_AVAILABLE
@@ -420,6 +426,23 @@ class OrganizationResponsibleUsersValidatorTest {
             exception.getErrorCode()
         );
         assertSame(directoryFailure, exception.getCause());
+    }
+
+    @Test
+    void acceptsTwoDistinctOperationalResponsibleUsers() {
+        when(userDirectory.check(ORGANIZATION_REFERENCE, ADMINISTRATOR_REFERENCE)).thenReturn(UserAvailability.AVAILABLE);
+        when(userDirectory.check(ORGANIZATION_REFERENCE, MANAGER_REFERENCE)).thenReturn(UserAvailability.AVAILABLE);
+        validator.validateOperationalResponsibleUsers(ORGANIZATION_REFERENCE, ADMINISTRATOR_REFERENCE, MANAGER_REFERENCE);
+        verify(userDirectory).check(ORGANIZATION_REFERENCE, ADMINISTRATOR_REFERENCE);
+        verify(userDirectory).check(ORGANIZATION_REFERENCE, MANAGER_REFERENCE);
+    }
+
+    @Test
+    void stopsAvailabilityProbeWhenAdministratorIsUnavailable() {
+        when(userDirectory.check(ORGANIZATION_REFERENCE, ADMINISTRATOR_REFERENCE)).thenReturn(UserAvailability.UNAVAILABLE);
+        assertFalse(validator.areResponsibleUsersAvailable(ORGANIZATION_REFERENCE, ADMINISTRATOR_REFERENCE, MANAGER_REFERENCE));
+        verify(userDirectory).check(ORGANIZATION_REFERENCE, ADMINISTRATOR_REFERENCE);
+        org.mockito.Mockito.verifyNoMoreInteractions(userDirectory);
     }
 
     private static void assertErrorCode(

@@ -27,14 +27,14 @@ public class OrganizationResponsibleUsersValidator {
 
     /**
      * Validates that a user can be assigned as an administrator candidate.
-     * {@code AVAILABLE} and {@code PENDING} users are accepted; the returned
-     * availability lets the application service decide whether activation can
-     * be attempted.
+     * Only {@code AVAILABLE} users are accepted; the returned
+     * availability lets the application service refuse an assignment that would
+     * complete an activation deferred until W008.
      *
      * @param organizationReference organization whose responsible user is checked
      * @param administratorReference candidate administrator reference
-     * @return the current user availability
-     * @throws OrganizationException when the user is not found, unavailable, or
+     * @return {@code AVAILABLE} when the candidate can be assigned
+     * @throws OrganizationException when the user is not found, pending, unavailable, or
      *         the identity directory cannot be reached
      */
     public UserAvailability validateAssignableAdministrator(
@@ -50,14 +50,14 @@ public class OrganizationResponsibleUsersValidator {
 
     /**
      * Validates that a user can be assigned as a manager candidate.
-     * {@code AVAILABLE} and {@code PENDING} users are accepted; the returned
-     * availability lets the application service decide whether activation or
-     * reactivation can be attempted.
+     * Only {@code AVAILABLE} users are accepted; the returned
+     * availability lets the application service refuse an assignment that would
+     * complete activation or reactivation deferred until W008.
      *
      * @param organizationReference organization whose responsible user is checked
      * @param managerReference candidate manager reference
-     * @return the current user availability
-     * @throws OrganizationException when the user is not found, unavailable, or
+     * @return {@code AVAILABLE} when the candidate can be assigned
+     * @throws OrganizationException when the user is not found, pending, unavailable, or
      *         the identity directory cannot be reached
      */
     public UserAvailability validateAssignableManager(
@@ -149,9 +149,9 @@ public class OrganizationResponsibleUsersValidator {
 
     /**
      * Checks whether both responsible users are currently available without
-     * turning a non-available state into a business error. This probe is used
-     * only to decide whether an assignment may trigger activation or
-     * reactivation.
+     * turning a non-available state into a business error. This probe lets the
+     * application service reject an assignment that would complete a deferred
+     * activation or reactivation.
      *
      * @param organizationReference organization whose responsible users are checked
      * @param administratorReference administrator reference
@@ -182,6 +182,16 @@ public class OrganizationResponsibleUsersValidator {
         return managerAvailability == UserAvailability.AVAILABLE;
     }
 
+    /**
+     * Checks a candidate and maps refusals to the requested responsible role.
+     * T05 requires an available candidate; pending and unavailable users are refused.
+     *
+     * @param organizationReference organization owning the candidate
+     * @param userReference candidate's functional reference
+     * @param role role whose error codes are used for a refusal
+     * @return {@code AVAILABLE} when the candidate can be assigned
+     * @throws OrganizationException if the user is absent, pending, unavailable, or cannot be checked
+     */
     private UserAvailability validateAssignable(
         String organizationReference,
         String userReference,
@@ -193,12 +203,20 @@ public class OrganizationResponsibleUsersValidator {
         );
 
         return switch (availability) {
-            case AVAILABLE, PENDING -> availability;
-            case UNAVAILABLE -> throw role.notAvailable();
+            case AVAILABLE -> availability;
+            case PENDING, UNAVAILABLE -> throw role.notAvailable();
             case NOT_FOUND -> throw role.notFound();
         };
     }
 
+    /**
+     * Requires a currently available user for an operational responsibility.
+     * Pending and unavailable users are refused with the role's availability error.
+     *
+     * @param availability directory result to inspect
+     * @param role role whose error codes are used for a refusal
+     * @throws OrganizationException if the user is absent or not available
+     */
     private void validateOperational(
         UserAvailability availability,
         ResponsibleRole role
@@ -248,6 +266,11 @@ public class OrganizationResponsibleUsersValidator {
         private final OrganizationErrorCode notAvailableErrorCode;
         private final String label;
 
+        /**
+         * Builds the missing-user error for this responsible role.
+         *
+         * @return an organization error using this role's code and label
+         */
         private OrganizationException notFound() {
             return new OrganizationException(
                 notFoundErrorCode,
@@ -255,6 +278,11 @@ public class OrganizationResponsibleUsersValidator {
             );
         }
 
+        /**
+         * Builds the unavailable-user error for this responsible role.
+         *
+         * @return an organization error using this role's code and label
+         */
         private OrganizationException notAvailable() {
             return new OrganizationException(
                 notAvailableErrorCode,

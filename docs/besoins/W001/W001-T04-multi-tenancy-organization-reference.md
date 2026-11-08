@@ -843,15 +843,15 @@ Les commandes suivantes ont été exécutées avec succès le 16 septembre 2026 
 - [x] Les tests contrôlent plusieurs références générées dans une même milliseconde ainsi qu'un recul de l'horloge.
   - Preuve : `MonotonicReferenceFactoryTest.LogicalStateTests`.
 - [x] Chaque référence persistée possède une contrainte d'unicité en base.
-  - Preuve : migrations `V0.1.0__create_users.sql`, `V0.1.0__create_organizations.sql`, `V0.1.0__create_teams.sql` et ITs `JpaUserRepositoryAdapterIT`, `JpaOrganizationRepositoryAdapterIT`, `JpaTeamRepositoryAdapterIT`.
+  - Preuve : migrations `V0.1.0__create_users.sql`, `V0.1.0__create_organizations.sql`, `V0.1.0__create_teams.sql` et ITs `JpaUserRepositoryAdapterIdentityJpaIT`, `JpaOrganizationRepositoryAdapterIT`, `JpaTeamRepositoryAdapterIT`.
 - [x] Une collision détectée lors de la persistance ne remplace jamais une donnée existante, ne déclenche aucune boucle de retry et produit `REFERENCE_GENERATION_FAILED` dans le module concerné.
   - Preuve : `JpaUserRepositoryAdapterTest`, `JpaOrganizationRepositoryAdapterTest`, `JpaTeamRepositoryAdapterTest` et leurs ITs PostgreSQL.
 - [x] Les modules identité et équipe ne stockent ni n'exposent l'identifiant technique de l'organisation.
   - Preuve : `ModulithArchitectureTests`, `JpaUserRepositoryQueryArchitectureTest` et `JpaTeamRepositoryQueryArchitectureTest`.
 - [x] Une donnée tenantée ne peut pas être persistée sans `organization_reference`.
-  - Preuve : migrations identité et équipe ; `JpaUserRepositoryAdapterIT.TenantIsolationTests`.
+  - Preuve : migrations identité et équipe ; `JpaUserRepositoryAdapterIdentityJpaIT.TenantIsolationTests`.
 - [x] Une recherche effectuée avec la référence de l'organisation A ne retourne aucune donnée de l'organisation B.
-  - Preuve : `JpaUserRepositoryAdapterIT.TenantIsolationTests`, `ListUsersServiceIT` et `TeamMembershipServiceIT.isolatesMembershipOperationsFromAnotherTenant()` sur PostgreSQL/Testcontainers.
+  - Preuve : `JpaUserRepositoryAdapterIdentityJpaIT.TenantIsolationTests`, `ListUsersServiceIdentityJpaIT` et `TeamMembershipServiceIT.isolatesMembershipOperationsFromAnotherTenant()` sur PostgreSQL/Testcontainers.
 - [x] Tout port applicatif tenanté exige un `TenantContext` non nul dont la `tenantReference` est non nulle, non vide et non blanche, sans normalisation implicite.
   - Preuve : `TenantContextTest`, `TenantedInputPortsArchitectureTest` identité/équipe et ITs de services tenantés.
 - [x] En W001, la `tenantReference` reçue par un cas d'usage tenanté correspond à `Organization.reference`, puis est transmise aux ports sortants sous le nom métier `organizationReference`.
@@ -888,11 +888,11 @@ Les commandes suivantes ont été exécutées avec succès le 16 septembre 2026 
 - [x] Suspendre une organisation ou une équipe ne modifie pas en cascade les statuts de leurs entités enfants.
   - Preuve : `OrganizationLifecycleServiceTest` et `TeamLifecycleServiceTest`.
 - [x] L'API publique `UserDirectory` permet aux modules organisation et équipe de contrôler un utilisateur sans dépendre du domaine ou de la persistance du module identité.
-  - Preuve : `UserDirectory`, `UserDirectoryServiceIT` et `ModulithArchitectureTests`.
+  - Preuve : `UserDirectory`, `UserDirectoryServiceIdentityJpaIT` et `ModulithArchitectureTests`.
 - [x] `UserDirectory`, `UserAvailability` et `UserDirectoryException` sont exposés par `io.teampulse.identity.api.user` via l'interface nommée `identity::user`.
   - Preuve : `identity/api/user/package-info.java` et `ModulithArchitectureTests`.
 - [x] `UserDirectory` refuse toute référence d'organisation ou d'utilisateur nulle, vide ou blanche avant l'appel au repository, sans retourner `NOT_FOUND` ni lever `UserDirectoryException`.
-  - Preuve : `UserDirectoryServiceIT.rejectsInvalidReferencesAsContractViolations()`.
+  - Preuve : `UserDirectoryServiceIdentityJpaIT.rejectsInvalidReferencesAsContractViolations()`.
 - [x] L'API publique `OrganizationDirectory` permet au module équipe de vérifier une organisation sans dépendre du domaine ou de la persistance du module organisation.
   - Preuve : `OrganizationDirectory`, `OrganizationDirectoryServiceIT` et `ModulithArchitectureTests`.
 - [x] `OrganizationDirectory`, `OrganizationAvailability` et `OrganizationDirectoryException` sont exposés par `io.teampulse.organization.api.organization` via l'interface nommée `organization::organization`.
@@ -922,11 +922,11 @@ Les commandes suivantes ont été exécutées avec succès le 16 septembre 2026 
 - [x] Chaque module possède une seule exception métier interne portant un code obligatoire, un message de diagnostic et une cause facultative.
   - Preuve : `OrganizationExceptionTest`, `UserLifecycleServiceTest` et `TeamExceptionTest`.
 - [x] Les résultats métier attendus des APIs `Directory` sont retournés par les enums d'availability ; une panne technique est exposée par l'exception publique du contrat puis traduite par le module consommateur.
-  - Preuve : `UserDirectoryServiceTest`, `UserDirectoryServiceIT`, `OrganizationDirectoryServiceTest` et `OrganizationDirectoryServiceIT`.
+  - Preuve : `UserDirectoryServiceTest`, `UserDirectoryServiceIdentityJpaIT`, `OrganizationDirectoryServiceTest` et `OrganizationDirectoryServiceIT`.
 - [x] Aucune exception JPA, Spring ou issue du package `domain.<domaine>.error` d'un autre module ne traverse une dépendance inter-module.
   - Preuve : `ModulithArchitectureTests` et tests des services `Directory`.
 - [x] Un utilisateur d'une autre organisation est retourné `NOT_FOUND`.
-  - Preuve : `UserDirectoryServiceTest` et `UserDirectoryServiceIT`.
+  - Preuve : `UserDirectoryServiceTest` et `UserDirectoryServiceIdentityJpaIT`.
 - [x] Le passage ou retour d'une organisation vers `ACTIVE` et le remplacement direct de l'un de ses responsables exigent ponctuellement `AVAILABLE` ; la création d'une équipe exige également des responsables `AVAILABLE`.
   - Preuve : `OrganizationResponsibleUsersValidatorTest`, `OrganizationResponsibleUsersValidatorIT`, `TeamResponsibleUsersValidatorTest` et `TeamLifecycleServiceIT`.
 - [x] La suspension ou désactivation ultérieure d'un responsable ne suspend pas automatiquement l'organisation dans T04.
@@ -950,15 +950,15 @@ Les commandes suivantes ont été exécutées avec succès le 16 septembre 2026 
 - [x] `startedAt` reste nul pendant `INVITED`, est renseigné à l'entrée en `ACTIVE` et n'est pas modifié par une suspension ; `endedAt` reste nul jusqu'au passage à `REMOVED` et ne précède jamais `startedAt` lorsque celle-ci existe.
   - Preuve : `TeamMemberTest` et migration `V0.1.1__create_team_members.sql`.
 - [x] Les entités JPA persistées possèdent une version et les quatre champs d'audit ; ces données techniques ne sont pas exposées par le modèle de domaine `Organization` ou `User`.
-  - Preuve : migrations Flyway, `JpaUserRepositoryAdapterIT.AuditTests`, `JpaOrganizationRepositoryAdapterIT.UpdateTests` et `JpaTeamMemberRepositoryAdapterIT`.
+  - Preuve : migrations Flyway, `JpaUserRepositoryAdapterIdentityJpaIT.AuditTests`, `JpaOrganizationRepositoryAdapterIT.UpdateTests` et `JpaTeamMemberRepositoryAdapterIT`.
 - [x] L'email de `User` est canonisé en minuscules sans espaces périphériques, limité à 254 caractères et unique par organisation sous cette forme.
-  - Preuve : `UserTest.ValidationTests`, migration `V0.1.0__create_users.sql` et `JpaUserRepositoryAdapterIT.UniquenessTests`.
+  - Preuve : `UserTest.ValidationTests`, migration `V0.1.0__create_users.sql` et `JpaUserRepositoryAdapterIdentityJpaIT.UniquenessTests`.
 - [x] Les prénom et nom de `User` sont non blancs après suppression des espaces périphériques et limités chacun à 100 caractères.
   - Preuve : `UserTest.ValidationTests` et migration `V0.1.0__create_users.sql`.
 - [x] Les longueurs et formats des références sont refusés côté Java lorsqu'ils sont invalides, même si les colonnes PostgreSQL utilisent `TEXT`.
-  - Preuve : `ReferenceFormatTest`, `TenantContextTest`, `UserDirectoryServiceIT` et `OrganizationDirectoryServiceIT`.
+  - Preuve : `ReferenceFormatTest`, `TenantContextTest`, `UserDirectoryServiceIdentityJpaIT` et `OrganizationDirectoryServiceIT`.
 - [x] Les contraintes Jakarta des ports entrants sont exécutées par les services `@Validated` au travers du bean Spring proxifié ; les tests unitaires par instanciation directe ne supposent pas cette interception.
-  - Preuve : `UserLifecycleServiceIT`, `ListUsersServiceIT`, `OrganizationLifecycleServiceIT`, `TeamLifecycleServiceIT` et `TeamMembershipServiceIT`.
+  - Preuve : `UserLifecycleServiceIdentityJpaIT`, `ListUsersServiceIdentityJpaIT`, `OrganizationLifecycleServiceIT`, `TeamLifecycleServiceIT` et `TeamMembershipServiceIT`.
 - [x] R11 impose `@Validated` à toute classe de `application.service` déclarée avec `@Service`.
   - Preuve : `BusinessModuleArchitectureRules` et `InternalArchitectureTests`.
 - [x] Les modèles du domaine restent sans annotation Jakarta et refusent toute construction, restauration ou transition produisant un état invalide.
@@ -1113,7 +1113,7 @@ Les commandes suivantes ont été exécutées avec succès le 16 septembre 2026 
     `team/V0.1.0` et `team/V0.1.1` ; ITs JPA associées sur Testcontainers.
 - [x] L'isolation A/B, les collisions sans retry, l'audit `SYSTEM` et les
   conflits optimistes sont démontrés contre PostgreSQL réel.
-  - Preuve : `JpaUserRepositoryAdapterIT`, `JpaOrganizationRepositoryAdapterIT`,
+  - Preuve : `JpaUserRepositoryAdapterIdentityJpaIT`, `JpaOrganizationRepositoryAdapterIT`,
     `JpaTeamRepositoryAdapterIT` et `JpaTeamMemberRepositoryAdapterIT`.
 - [x] Le gate de clôture est vert sur les trois modules puis sur le reactor
   complet.

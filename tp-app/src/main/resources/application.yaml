@@ -18,3 +18,7 @@ spring:
 springdoc:
   api-docs:
     enabled: false
+
+teampulse:
+  openapi:
+    info-version: '@project.version@'

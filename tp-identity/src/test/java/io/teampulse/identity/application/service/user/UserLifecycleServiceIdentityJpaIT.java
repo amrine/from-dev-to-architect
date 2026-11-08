@@ -2,7 +2,7 @@ package io.teampulse.identity.application.service.user;
 
 import io.teampulse.common.context.TenantContext;
 import io.teampulse.common.reference.ReferenceFormat;
-import io.teampulse.identity.AbstractIT;
+import io.teampulse.identity.AbstractIdentityJpaIT;
 import io.teampulse.identity.api.lifecycle.UserLifecycle;
 import io.teampulse.identity.api.lifecycle.UserLifecycleErrorCode;
 import io.teampulse.identity.api.lifecycle.UserLifecycleException;
@@ -29,7 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class UserLifecycleServiceIT extends AbstractIT {
+class UserLifecycleServiceIdentityJpaIT extends AbstractIdentityJpaIT {
 
     private static final String ORGANIZATION_A =
         "ORG-2026-3108-00000ZA7B900";

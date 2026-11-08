@@ -61,6 +61,12 @@ compatible avec l'architecture modulaire.
   L'activation et la réactivation d'une organisation, y compris toute transition
   automatique vers `ACTIVE` déclenchée par l'affectation de responsables, sont
   reportées à W008 après l'activation du compte par le parcours d'authentification.
+- Réserver toute nouvelle affectation de responsable d'organisation à un candidat
+  `AVAILABLE`. Cette spécialisation T05 du comportement historique T04 refuse
+  `PENDING` et `UNAVAILABLE` avant mutation avec HTTP `409` et le code de
+  disponibilité propre au rôle ; une référence absente conserve HTTP `404`.
+  La règle est garantie dans le chemin applicatif et ne réévalue pas
+  rétroactivement les affectations déjà persistées.
 - Introduire un `ActorContext` distinct de `TenantContext`, réservé à l'audit et
   à l'orchestration. Les contrôleurs tenantés
   obtiennent le tenant depuis `TenantContextProvider.current()` une seule fois
@@ -85,7 +91,8 @@ compatible avec l'architecture modulaire.
   pour ses consommateurs et réutilisables par les tests, sans générer deux
   copies. Le code de production du propriétaire ne dépend pas de son propre
   client généré pour appeler ses endpoints ; il utilise ses ports et types
-  serveur. Identité utilise `MockMvc` avec l'application complète ; ses tests
+  serveur. Identité et organisation utilisent `MockMvc` avec l'application
+  complète ; leurs tests
   n'exercent donc ni le réseau ni le client généré. Les autres tests utilisent
   le niveau de transport explicité dans l'adoption locale. Toute DSL métier
   éventuelle reste locale au `src/test` du module. Le support HTTP générique
@@ -98,14 +105,15 @@ compatible avec l'architecture modulaire.
   DTO de réponse reste un type Java pur dans `tp-common` ; chaque module traduit
   ses propres erreurs métier et codes HTTP.
 - Couvrir les contrôleurs avec l'application Spring et les cas d'usage réels,
-  Flyway et PostgreSQL Testcontainers. Pour identité, utiliser `MockMvc` avec
+  Flyway et PostgreSQL Testcontainers. Pour identité et organisation, utiliser
+  `MockMvc` avec
   `@SpringBootTest` et `WebEnvironment.MOCK`, sans `@WebMvcTest` ni mock de cas
   d'usage ; cette suite vérifie le dispatch MVC, le mapping, le chemin applicatif
   et la persistance sans démarrer de serveur réseau ni utiliser le client
-  généré. Les autres propriétaires conservent leurs tests sur serveur réel à
+  généré. Équipe et administration conservent leurs tests sur serveur réel à
   port aléatoire. Vérifier les réponses, erreurs, l'isolation tenant et les
   effets persistés pertinents.
-- Réutiliser le support et les fixtures de `AbstractIT` sans
+- Réutiliser le support et les fixtures de `AbstractIdentityJpaIT` sans
   transformer ses tests existants `WebEnvironment.NONE` en tests avec serveur ;
   ajouter une base d'intégration Web dédiée par application de test.
 - Remplacer uniquement les contrats d'autres modules aux frontières des tests :
@@ -135,8 +143,8 @@ compatible avec l'architecture modulaire.
   bootstrap d'une nouvelle organisation reste en `CREATING` jusqu'à W008.
 - Authentifier les requêtes, émettre ou valider des JWT, décider des rôles,
   permissions ou autorisations. W008 fournit l'identité authentifiée et les
-  contrôles d'accès. Avant W008, les API T05 sont limitées à l'environnement
-  local/de développement et ne doivent pas être exposées à un réseau non fiable.
+  contrôles d'accès. Les API exposées en T05 ne vérifient donc pas l'identité
+  des appelants ni leurs autorisations.
 - Extraire les modules en microservices ou introduire un broker externe.
 - Recréer les domaines, tables, repositories et migrations déjà livrés en T04,
   ou faire porter les règles métier par les contrôleurs ou `tp-administration`.
@@ -189,11 +197,12 @@ compatible avec l'architecture modulaire.
   pas émis en T05. T05 n'inclut ni consommateur de notification ni livraison
   email.
 - [ ] Les contrôleurs sont couverts avec l'application Spring et les cas
-  d'usage réels, Flyway et PostgreSQL Testcontainers. Pour identité, utiliser
+  d'usage réels, Flyway et PostgreSQL Testcontainers. Pour identité et
+  organisation, utiliser
   `MockMvc` avec `@SpringBootTest` et `WebEnvironment.MOCK`, sans `@WebMvcTest`
   ni mock de cas d'usage ; cette suite vérifie le chemin MVC et la persistance
-  sans démarrer de serveur réseau ni utiliser le client généré. Les autres
-  propriétaires conservent leurs tests sur serveur réel à port aléatoire.
+  sans démarrer de serveur réseau ni utiliser le client généré. Équipe et
+  administration conservent leurs tests sur serveur réel à port aléatoire.
   Vérifier les réponses, erreurs,
   l'isolation tenant et les effets persistés pertinents.
 - [ ] Les stubs sont limités aux contrats inter-modules hors du propriétaire du

@@ -52,7 +52,8 @@ de notification : `tp-notification` et sa livraison relèvent de T10.
   d'être disponibles comme clients Java pour ses consommateurs. Le code de
   production du propriétaire ne les utilise pas pour appeler ses propres
   endpoints ; les tests qui doivent exercer le transport réseau peuvent les
-  utiliser. La suite identité utilise `MockMvc` et n'exerce donc pas ce client.
+  utiliser. Les suites identité et organisation utilisent `MockMvc` et
+  n'exercent donc pas ce client.
   Le code serveur reste écrit selon les ports d'entrée existants et
   l'architecture hexagonale.
 
@@ -65,8 +66,14 @@ de notification : `tp-notification` et sa livraison relèvent de T10.
 - La création initiale d'une organisation initialise son statut à `CREATING`.
   Le premier utilisateur peut être créé ou invité, mais `INVITED` et `CREATING`
   restent `PENDING` selon `UserDirectory`.
-- L'affectation d'un responsable respecte les invariants T04 : le responsable
-  doit être `AVAILABLE`. T05 ne rend pas le premier compte disponible ; le
+- T05 spécialise le comportement historique T04 pour les nouvelles affectations
+  de responsables : le candidat doit être `AVAILABLE`. Les candidats `PENDING`
+  et `UNAVAILABLE` sont refusés avant toute mutation, avec HTTP `409` et le code
+  `ORGANIZATION_ADMINISTRATOR_NOT_AVAILABLE` ou `ORGANIZATION_MANAGER_NOT_AVAILABLE`.
+  Une référence absente conserve le refus HTTP `404` propre au rôle.
+  Cette politique s'applique dans le service applicatif, y compris hors HTTP ;
+  elle ne déclenche aucune migration ni réévaluation rétroactive des affectations
+  déjà persistées. T05 ne rend pas le premier compte disponible ; le
   bootstrap s'arrête donc en `CREATING` avant l'affectation finale. T05 n'expose
   pas l'activation/réactivation et ne doit pas permettre qu'une affectation de
   responsables la déclenche indirectement. W008 introduit l'activation du compte,
@@ -82,10 +89,8 @@ Le profil `local` initialise une organisation de démonstration persistée et
 en `CREATING`, puis fournit sa référence exacte au `TenantContextProvider`. Le
 provider ne génère pas une référence en mémoire qui ne correspondrait pas à un
 agrégat existant. Les opérations exigeant une organisation `ACTIVE` attendent
-W008.
-Les API T05 non authentifiées restent réservées à l'environnement local/de
-développement jusqu'à W008 ; elles ne doivent pas être exposées à un réseau non
-fiable.
+W008. T05 n'ajoute pas de restriction d'accès par profil aux API exposées. Les
+contrôles d'identité et d'autorisation restent reportés à W008.
 
 ### 4. Publier des faits sans inclure les notifications
 
@@ -111,10 +116,10 @@ fiable.
   consignée dans le contrat local ci-dessous.
 - Les erreurs métier restent codées et traduites par leur module propriétaire.
 - Les tests de contrôleur gardent l'application et la vraie persistance
-  PostgreSQL. Identité utilise le contexte complet avec `MockMvc` ; organisation
-  et équipe utilisent un serveur réel sur port aléatoire. Le test HTTP
+  PostgreSQL. Identité et organisation utilisent le contexte complet avec `MockMvc` ;
+  équipe utilise un serveur réel sur port aléatoire. Le test HTTP
   d'administration, à ajouter avec son module, utilisera également un serveur
-  réel conformément à l'acceptation T05. Les tests `AbstractIT` existants sans
+  réel conformément à l'acceptation T05. Les tests `AbstractIdentityJpaIT` existants sans
   serveur restent inchangés ; les bases Web dédiées réutilisent leur support.
 - Tous les modules du reactor conservent la version commune du parent Maven,
   actuellement `0.1.0-SNAPSHOT`. Aucune version de produit indépendante par
@@ -131,10 +136,19 @@ ADR ni celui des ADR techniques de référence.
   POM parent. Le build crée la spec sous
   `target/openapi.yaml` depuis l'application HTTP réelle avec Flyway et
   PostgreSQL Testcontainers, puis génère les clients sous
-  `target/generated-sources/openapi`. Pour identité, la spec est servie par SpringDoc sur
-  `/v3/api-docs.yaml`, sans classe de configuration OpenAPI dédiée.
+  `target/generated-sources/openapi`. Pour identité et organisation, la spec est
+  servie par SpringDoc sur `/v3/api-docs.yaml` ; une configuration locale fixe
+  les métadonnées de chaque propriétaire.
   Les endpoints OpenAPI sont désactivés par défaut, activés uniquement dans les
   tests et le profil local.
+- Pour identité et organisation, le POM parent transmet `${project.version}`
+  comme propriété système `teampulse.openapi.info-version` au processus
+  `spring-boot:start` utilisé pour l'export OpenAPI, ainsi qu'à Surefire.
+  Les configurations OpenAPI exigent cette propriété sans repli `v0`.
+  `tp-app` la fournit également via sa configuration filtrée par Maven.
+  Les tests comparent la version exposée par MVC et celle du YAML exporté sous
+  `target` à une version attendue injectée séparément par Maven ; ils vérifient
+  aussi que l'URL serveur reste `/`.
 - Les clients Java `restclient` et modèles sont générés par OpenAPI Generator
   Maven `7.25.0`, configuré dans le POM parent, à partir du YAML généré pendant
   `generate-test-sources`. Ils sont placés dans
@@ -152,15 +166,15 @@ ADR ni celui des ADR techniques de référence.
   relative `/` pour ne pas figer hôte ou port.
 - Les changements du générateur qui modifient ces classes doivent être relus
   comme des changements de l'API Java publiée par le module.
-- Tests MVC retenus pour identité : `@SpringBootTest` avec
+- Tests MVC retenus pour identité et organisation : `@SpringBootTest` avec
   `WebEnvironment.MOCK` et `@AutoConfigureMockMvc`, l'application complète,
   Flyway et PostgreSQL Testcontainers. Aucun cas d'usage interne n'est mocké et
   aucun `@WebMvcTest` n'est utilisé. Cette adoption vérifie le dispatch Spring
   MVC, le mapping, le chemin applicatif et les effets persistés ; elle ne prouve
   ni le démarrage du serveur embarqué, ni le transport réseau, ni le client
-  généré. Organisation et équipe utilisent un serveur réel à port aléatoire ;
+  généré. Équipe utilise un serveur réel à port aléatoire ;
   l'API d'administration à venir suivra la même stratégie. Les bases
-  `AbstractIT` non-Web restent en
+  `AbstractIdentityJpaIT` et `AbstractOrganizationJpaIT` non-Web restent en
   `WebEnvironment.NONE`. Les tests autonomes remplacent uniquement les contrats
   publics externes ; les tests d'administration assemblent les vrais modules
   concernés.
@@ -231,8 +245,9 @@ report des notifications évite d'ajouter leur persistance et leur exploitation
   évoluer lors d'un changement de schéma ou de version du générateur. La
   génération après le démarrage de l'application impose aussi une compilation
   de production supplémentaire après OpenAPI Generator.
-- Les APIs sans authentification constituent un risque si le profil local est
-  utilisé ou exposé hors d'un environnement maîtrisé.
+- Les endpoints T05 n'authentifient pas leurs appelants et ne vérifient pas
+  leurs autorisations ; tout client pouvant atteindre le service peut tenter
+  les opérations exposées jusqu'à l'introduction des contrôles W008.
 
 ## Impact technique
 - Modules : `tp-identity`, `tp-organization`, `tp-team`, nouveau
@@ -242,12 +257,13 @@ report des notifications évite d'ajouter leur persistance et leur exploitation
   l'orchestration de plateforme ; fait `UserInvited` en T05 et
   `OrganizationActivated` à partir de W008, avec références seulement.
 - Tests : PostgreSQL Testcontainers pour les propriétaires HTTP ; identité
-  utilise `MockMvc` avec l'application complète, organisation et équipe
-  utilisent un serveur réel sur port aléatoire. L'API d'administration à venir
+  et organisation utilisent `MockMvc` avec l'application complète ; équipe
+  utilise un serveur réel sur port aléatoire. L'API d'administration à venir
   suivra le même contrat à port aléatoire. Les DSL métier éventuelles restent
   locales à chaque module.
-- Sécurité : profil local/de développement uniquement jusqu'à W008 ; aucun
-  rôle, permission ou JWT introduit par cette décision.
+- Sécurité : T05 ne restreint pas les API à un profil particulier et
+  n'introduit aucun rôle, permission, mécanisme d'authentification ou JWT ; ces
+  contrôles relèvent de W008.
 - Hors impact T05 : module de notification, persistance/livraison email, SMS et
   endpoints de lecture d'inbox.
 
@@ -286,12 +302,13 @@ report des notifications évite d'ajouter leur persistance et leur exploitation
 - Les documents Draft T08-T14 de `ztmp` ne sont pas officialisés par cet ADR.
 - L'implémentation de `W001-T05-http-test-support` centralise les bases JPA et
   MVC dans `tp-test-support`, avec `MockMvc`, Jackson et le nettoyage des
-  écritures PostgreSQL. Organisation et équipe gardent leurs bases de test avec
-  serveur réel sur port aléatoire ; identité utilise `MockMvc` en contexte
-  Spring complet. Le module d'administration n'est pas encore présent dans
+  écritures PostgreSQL. Équipe garde sa base avec serveur réel sur port
+  aléatoire ; identité et organisation utilisent `MockMvc` en contexte Spring
+  complet. Le module d'administration n'est pas encore présent dans
   cette branche ; sa future suite suivra le contrat à port aléatoire. Cette
-  adoption ne prétend pas prouver l'écoute réseau pour identité. Les bases
-  `AbstractIT` existantes en `NONE` restent inchangées.
+  adoption ne prétend pas prouver l'écoute réseau pour identité et organisation.
+  Les bases
+  `AbstractIdentityJpaIT` existantes en `NONE` restent inchangées.
   Le statut de cet ADR reste `Draft`.
 - L'implémentation de `W001-T05-shared-http-errors` ajoute `ApiError` avec les
   champs `code` et `message`, ainsi que l'advice Spring partagé auto-configuré
@@ -346,5 +363,81 @@ report des notifications évite d'ajouter leur persistance et leur exploitation
   L'administration reste responsable des vérifications de responsabilités T04
   avant les deux transitions de fermeture. Aucun endpoint HTTP identité ne
   contourne cette orchestration. Le mapping métier identité prévaut sur l'advice
-  partagé ; les erreurs de transport restent génériques et masquées. Cet ADR
-  reste `Draft`.
+  partagé ; les erreurs de transport restent génériques et masquées.
+- La verticale organisation expose la création en `CREATING`, la suspension,
+  l'archivage et la gestion T04 des responsables ; aucune route d'activation ou
+  de réactivation n'est publiée. `OrganizationResponsibleUsersService` refuse
+  avant mutation toute affectation disponible qui aurait activé ou réactivé
+  l'organisation, y compris lorsque l'application l'appelle directement. Le
+  code métier `LIFECYCLE_TRANSITION_DEFERRED` est traduit localement en
+  `409 ORGANIZATION_LIFECYCLE_DEFERRED`. Le contrat
+  Java `organization::lifecycle` expose les commandes synchrones de création,
+  suspension et archivage. `OrganizationLifecycleService` l'implémente
+  directement comme unique port entrant de cette capacité, à l'image
+  d'identité. Le port interne `OrganizationLifecycleUseCase` et sa commande
+  de création redondante sont supprimés ; `OrganizationProvisioningCommand`
+  appartient au contrat public et sert directement de corps à `POST /api/organizations`,
+  comme la commande de création d'identité. Le DTO `CreateOrganizationRequest`
+  et son mapping identique sont supprimés. Le JSON (`name`, `timezone`), les
+  contraintes et le statut HTTP `201` sont conservés ; le schéma OpenAPI et le
+  modèle du client généré portent désormais le nom `OrganizationProvisioningCommand`
+  au lieu de `CreateOrganizationInput`. Aucune méthode applicative d'activation ou
+  réactivation n'est exposée en T05 ; les transitions restent modélisées dans
+  le domaine pour W008.
+
+  Le Directory `organization::organization` reste réservé aux lectures de
+  disponibilité et de responsabilités/statut. Il ne délègue plus de création
+  à un autre service. Les résultats publics et le contrat de responsabilités utilisent un
+  statut textuel et n'importent aucun modèle domaine. La gestion des
+  responsables conserve son port interne `OrganizationResponsibleUsersUseCase`
+  et ses contrôles par `UserDirectory`.
+
+  `GET /api/organizations/{organizationReference}/responsibilities` adapte
+  la lecture du Directory en retournant directement le DTO public
+  `OrganizationResponsibilities`, partagé entre les contrats Java et HTTP,
+  sans dépendance à Spring ou à la persistence : `organizationReference`, statut
+  et références des responsables (nulles si non affectés). Cette route plateforme renvoie
+  `200` si l'organisation existe, sinon `404 ORGANIZATION_NOT_FOUND`, sans mutation.
+
+  Le contrôleur adapte les requêtes et résultats avec `OrganizationMapper`
+  (MapStruct). Les erreurs de cycle de vie sont traduites dans le service vers
+  un vocabulaire public avec message sûr et cause préservée ; les erreurs des
+  responsables restent locales au module. `OrganizationHttpErrorAdvice`
+  possède les deux mappings HTTP. `OrganizationOpenApiConfiguration` fixe
+  le titre, l'URL relative `/` et la version produit injectée depuis Maven,
+  sans repli si la propriété est absente, comme celle d'identité.
+  Cette configuration se limite aux métadonnées, comme celle d'identité ;
+  elle n'ajoute pas de catalogue d'erreurs au document généré. Les mappings
+  d'erreurs HTTP restent dans l'advice local et sont vérifiés par les tests HTTP.
+  Le contrat et les clients restent générés sous `target`. Les tests
+  vérifient les refus, l'absence d'écriture `ACTIVE`, les réponses métier et
+  contrat MVC avec `MockMvc`, application complète et Flyway/PostgreSQL ;
+  `./mvnw --batch-mode --no-transfer-progress -pl tp-organization -am verify`
+  passe. Cet ADR reste `Draft`.
+
+### Harmonisation des tests de la verticale organisation
+
+- `AbstractOrganizationJpaIT` conserve `WebEnvironment.NONE` et le socle
+  `AbstractJpaIT`. Les suites organisation conservent leurs noms avec le suffixe
+  `IT` ; la base indique le contexte JPA utilisé.
+- `AbstractOrganizationMvcIT` utilise `WebEnvironment.MOCK` et `AbstractMvcIT`.
+  `OrganizationControllerIT` teste les routes avec MockMvc, les vrais services,
+  Flyway et PostgreSQL Testcontainers. Aucun cas d'usage interne n'est mocké.
+  Seul le contrat externe `UserDirectory` est remplacé dans l'application de test.
+- Les doubles configurables restent locaux aux modules dans leur package de test
+  `fixture` : `DeterministicTenantContextProvider` pour identité et
+  `DeterministicUserDirectory` pour organisation. Les applications de test
+  déclarent leurs beans sans contenir leur implémentation. Les lambdas constantes
+  des autres configurations restent locales ; aucun JAR de fixtures ni nouvelle
+  dépendance n'est introduit. La compilation anticipée du bootstrap OpenAPI inclut
+  les sources `fixture` nécessaires à chaque application de test.
+- La base HTTP et la DSL locale précédentes sont supprimées. Cette suite ne prouve
+  plus le transport réseau ni l'utilisation du client généré ; sa génération
+  OpenAPI et sa compilation restent dans le cycle Maven.
+- Les tests du Directory sont regroupés dans une suite avec deux groupes
+  `@Nested` : disponibilité et responsabilités.
+- Les tests couvrent aussi les remplacements de responsables et leurs refus,
+  la suppression du manager avec passage `ACTIVE` vers `SUSPENDED`, les lectures
+  sans mutation, les causes techniques préservées et les mappings d'erreurs.
+- Cette adoption est validée par le propriétaire pour organisation. Le statut
+  global de l'ADR reste `Draft`.

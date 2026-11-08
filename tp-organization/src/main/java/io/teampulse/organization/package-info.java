@@ -1,10 +1,12 @@
 @ApplicationModule(
     displayName = "tp-organization",
     allowedDependencies = {
+        "common::error",
         "common::mapping",
         "common::persistence",
         "common::reference",
-        "identity::user"
+        "identity::user",
+        "websupport"
     }
 )
 package io.teampulse.organization;

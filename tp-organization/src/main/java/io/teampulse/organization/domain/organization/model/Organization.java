@@ -23,6 +23,21 @@ public final class Organization {
     private String managerReference;
     private OrganizationStatus status;
 
+    /**
+     * Builds a valid domain state for creation or restoration.
+     * References are checked without normalization; the name is stripped and the
+     * status-specific responsible-user structure is validated.
+     *
+     * @param reference functional organization reference
+     * @param name business name to normalize
+     * @param timezone timezone identifier to resolve
+     * @param adminReference optional administrator reference
+     * @param managerReference optional manager reference
+     * @param status initial or restored business status
+     * @throws OrganizationException for an invalid name, timezone or responsible-user structure
+     * @throws IllegalArgumentException if a supplied reference has an invalid format
+     * @throws NullPointerException if the status is null
+     */
     private Organization(
         String reference,
         String name,
@@ -318,6 +333,14 @@ public final class Organization {
         status = target;
     }
 
+    /**
+     * Checks the responsible references required by a proposed business status.
+     * Active organizations need both roles; suspended organizations need an administrator.
+     * This local invariant does not establish current user availability.
+     *
+     * @param statusToValidate status whose structural requirements are evaluated
+     * @throws OrganizationException if the required responsible references are missing
+     */
     private void validateResponsibleStructure(OrganizationStatus statusToValidate) {
         boolean requirementsNotMet = switch (statusToValidate) {
             case ACTIVE -> adminReference == null || managerReference == null;
@@ -334,6 +357,13 @@ public final class Organization {
         }
     }
 
+    /**
+     * Rejects an operation whose state-specific precondition is false.
+     *
+     * @param allowed whether the operation is permitted in the current state
+     * @param operation business operation name used in the diagnostic message
+     * @throws OrganizationException with {@code INVALID_STATUS_TRANSITION} if disallowed
+     */
     private void validateOperationAllowed(boolean allowed, String operation) {
         if (!allowed) {
             throw new OrganizationException(
@@ -344,6 +374,14 @@ public final class Organization {
         }
     }
 
+    /**
+     * Validates a responsible-user reference only when one is present.
+     *
+     * @param reference optional functional user reference
+     * @param fieldName field name used in diagnostics
+     * @return the unchanged reference, or null when the role is unassigned
+     * @throws IllegalArgumentException if a non-null reference has an invalid format
+     */
     private static String validateOptionalUserReference(
         String reference,
         String fieldName
@@ -354,6 +392,14 @@ public final class Organization {
         return validateUserReference(reference, fieldName);
     }
 
+    /**
+     * Requires an unchanged functional reference with the user prefix.
+     *
+     * @param reference required functional user reference
+     * @param fieldName field name used in diagnostics
+     * @return the validated reference
+     * @throws IllegalArgumentException if the reference is null or has an invalid format
+     */
     private static String validateUserReference(
         String reference,
         String fieldName
@@ -361,6 +407,15 @@ public final class Organization {
         return validateReference(reference, USER_REFERENCE_PREFIX, fieldName);
     }
 
+    /**
+     * Checks the shared functional-reference format and the expected business prefix.
+     *
+     * @param reference value to inspect without normalization
+     * @param expectedPrefix required entity prefix
+     * @param fieldName field name used in diagnostics
+     * @return the unchanged valid reference
+     * @throws IllegalArgumentException if the value does not match the required format
+     */
     private static String validateReference(
         String reference,
         String expectedPrefix,
@@ -374,6 +429,13 @@ public final class Organization {
         return reference;
     }
 
+    /**
+     * Strips surrounding whitespace and validates the business name's presence and length.
+     *
+     * @param name input business name
+     * @return the normalized name
+     * @throws OrganizationException with {@code INVALID_NAME} for null, blank or oversized input
+     */
     private static String validateName(String name) {
         if (name == null) {
             throw invalidName();
@@ -386,6 +448,11 @@ public final class Organization {
         return normalizedName;
     }
 
+    /**
+     * Builds the domain failure for a name that violates presence or length constraints.
+     *
+     * @return an {@code INVALID_NAME} exception
+     */
     private static OrganizationException invalidName() {
         return new OrganizationException(
             OrganizationErrorCode.INVALID_NAME,
@@ -394,6 +461,13 @@ public final class Organization {
         );
     }
 
+    /**
+     * Resolves a timezone identifier without silently correcting its value.
+     *
+     * @param timezone identifier recognized by {@link ZoneId}
+     * @return the resolved timezone
+     * @throws OrganizationException with {@code INVALID_TIMEZONE} if null or unrecognized
+     */
     private static ZoneId validateTimezone(String timezone) {
         if (timezone == null) {
             throw invalidTimezone();
@@ -410,6 +484,11 @@ public final class Organization {
         }
     }
 
+    /**
+     * Builds the domain failure for an absent timezone identifier.
+     *
+     * @return an {@code INVALID_TIMEZONE} exception
+     */
     private static OrganizationException invalidTimezone() {
         return new OrganizationException(
             OrganizationErrorCode.INVALID_TIMEZONE,

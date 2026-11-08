@@ -13,7 +13,7 @@ import java.util.List;
 public class IdentityOpenApiConfiguration {
 
     @Bean
-    OpenApiCustomizer identityApiMetadata(@Value("${teampulse.openapi.info-version:v0}") String apiVersion) {
+    OpenApiCustomizer identityApiMetadata(@Value("${teampulse.openapi.info-version}") String apiVersion) {
         return openApi -> {
             openApi.setInfo(new Info().title("TeamPulse Identity API").version(apiVersion));
             openApi.setServers(List.of(new Server().url("/")));
