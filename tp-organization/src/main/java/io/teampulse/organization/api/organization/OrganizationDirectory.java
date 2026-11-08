@@ -2,9 +2,10 @@ package io.teampulse.organization.api.organization;
 
 import jakarta.validation.constraints.NotBlank;
 
+import java.util.Optional;
+
 /**
- * Public organization contract for checking whether an organization is
- * operational.
+ * Public read-only contract for organization availability and assigned responsibilities.
  */
 public interface OrganizationDirectory {
 
@@ -19,4 +20,17 @@ public interface OrganizationDirectory {
     OrganizationAvailability check(
         @NotBlank String organizationReference
     );
+
+    /**
+     * Reads the current status and responsible-user references of an organization.
+     * The result exposes no persistence entity or domain model.
+     *
+     * @param organizationReference functional reference of the organization
+     * @return the organization responsibilities, or empty if it does not exist
+     * @throws OrganizationDirectoryException if the query fails technically
+     */
+    Optional<OrganizationResponsibilities> findByOrganizationReference(
+        @NotBlank String organizationReference
+    );
+
 }

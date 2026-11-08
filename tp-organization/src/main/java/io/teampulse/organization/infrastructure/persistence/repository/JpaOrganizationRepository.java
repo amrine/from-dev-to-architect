@@ -8,5 +8,11 @@ import java.util.Optional;
 public interface JpaOrganizationRepository
     extends JpaRepository<OrganizationEntity, Long> {
 
+    /**
+     * Queries the organization table using the functional reference.
+     *
+     * @param reference functional organization reference
+     * @return the matching entity, or empty if absent
+     */
     Optional<OrganizationEntity> findByReference(String reference);
 }

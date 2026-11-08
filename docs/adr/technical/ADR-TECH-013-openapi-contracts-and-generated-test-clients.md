@@ -3,6 +3,10 @@
 ## Status
 Draft
 
+## Linked ticket
+
+None. This is a reusable technical error-modeling decision.
+
 ## Context
 HTTP contracts can drift between server adapters, client code and published
 documentation. Handwritten clients repeat transport details, while generated

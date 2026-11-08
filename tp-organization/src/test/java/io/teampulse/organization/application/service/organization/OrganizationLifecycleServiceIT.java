@@ -1,10 +1,10 @@
 package io.teampulse.organization.application.service.organization;
 
 import io.teampulse.common.reference.ReferenceFormat;
-import io.teampulse.organization.AbstractIT;
-import io.teampulse.organization.application.port.in.organization.CreateOrganizationCommand;
-import io.teampulse.organization.application.port.in.organization.OrganizationLifecycleUseCase;
-import io.teampulse.organization.domain.organization.model.Organization;
+import io.teampulse.organization.AbstractOrganizationJpaIT;
+import io.teampulse.organization.api.lifecycle.OrganizationProvisioningCommand;
+import io.teampulse.organization.api.lifecycle.OrganizationLifecycleResult;
+import io.teampulse.organization.api.lifecycle.OrganizationLifecycle;
 import io.teampulse.organization.domain.organization.model.OrganizationStatus;
 import io.teampulse.organization.infrastructure.persistence.entity.OrganizationEntity;
 import io.teampulse.organization.infrastructure.persistence.repository.JpaOrganizationRepository;
@@ -26,13 +26,13 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class OrganizationLifecycleServiceIT extends AbstractIT {
+class OrganizationLifecycleServiceIT extends AbstractOrganizationJpaIT {
 
     private static final Instant CURRENT_INSTANT =
         Instant.parse("2026-09-14T08:00:00Z");
 
     @Inject
-    private OrganizationLifecycleUseCase organizationLifecycle;
+    private OrganizationLifecycle organizationLifecycle;
 
     @Inject
     private JpaOrganizationRepository jpaRepository;
@@ -48,18 +48,18 @@ class OrganizationLifecycleServiceIT extends AbstractIT {
 
     @Test
     void createsAndReturnsThePersistedOrganization() {
-        Organization organization = organizationLifecycle.create(
-            new CreateOrganizationCommand("  TeamPulse  ", "Europe/Paris")
+        OrganizationLifecycleResult organization = organizationLifecycle.create(
+            new OrganizationProvisioningCommand("  TeamPulse  ", "Europe/Paris")
         );
 
-        assertTrue(ReferenceFormat.matches(organization.getReference(), "ORG"));
-        assertEquals("TeamPulse", organization.getName());
-        assertEquals(OrganizationStatus.CREATING, organization.getStatus());
+        assertTrue(ReferenceFormat.matches(organization.organizationReference(), "ORG"));
+        assertEquals("TeamPulse", organization.name());
+        assertEquals("CREATING", organization.status());
 
         OrganizationEntity storedEntity = findStoredOrganization(
-            organization.getReference()
+            organization.organizationReference()
         );
-        assertEquals(organization.getReference(), storedEntity.getReference());
+        assertEquals(organization.organizationReference(), storedEntity.getReference());
         assertEquals("TeamPulse", storedEntity.getName());
         assertEquals(OrganizationStatus.CREATING, storedEntity.getStatus());
         assertEquals("SYSTEM", storedEntity.getCreatedBy());
@@ -69,7 +69,7 @@ class OrganizationLifecycleServiceIT extends AbstractIT {
     @Test
     void createsOrganizationInsideAnActiveReadWriteTransaction() {
         organizationLifecycle.create(
-            new CreateOrganizationCommand("TeamPulse", "UTC")
+            new OrganizationProvisioningCommand("TeamPulse", "UTC")
         );
 
         TransactionManagerProbe.TransactionObservation observation =
@@ -82,7 +82,7 @@ class OrganizationLifecycleServiceIT extends AbstractIT {
 
     @ParameterizedTest
     @MethodSource("invalidCommands")
-    void rejectsInvalidCommandsBeforePersisting(CreateOrganizationCommand command) {
+    void rejectsInvalidCommandsBeforePersisting(OrganizationProvisioningCommand command) {
         assertThrows(
             ConstraintViolationException.class,
             () -> organizationLifecycle.create(command)
@@ -93,26 +93,26 @@ class OrganizationLifecycleServiceIT extends AbstractIT {
 
     @Test
     void archivesACreatingOrganizationAndPersistsTheTerminalState() {
-        Organization organization = organizationLifecycle.create(
-            new CreateOrganizationCommand("TeamPulse", "UTC")
+        OrganizationLifecycleResult organization = organizationLifecycle.create(
+            new OrganizationProvisioningCommand("TeamPulse", "UTC")
         );
 
-        Organization archived = organizationLifecycle.archive(
-            organization.getReference()
+        OrganizationLifecycleResult archived = organizationLifecycle.archive(
+            organization.organizationReference()
         );
 
-        assertEquals(OrganizationStatus.ARCHIVED, archived.getStatus());
+        assertEquals("ARCHIVED", archived.status());
         assertEquals(
             OrganizationStatus.ARCHIVED,
-            findStoredOrganization(organization.getReference()).getStatus()
+            findStoredOrganization(organization.organizationReference()).getStatus()
         );
     }
 
     static Stream<Arguments> invalidCommands() {
         return Stream.of(
-            Arguments.of((CreateOrganizationCommand) null),
-            Arguments.of(new CreateOrganizationCommand(" ", "UTC")),
-            Arguments.of(new CreateOrganizationCommand("TeamPulse", " "))
+            Arguments.of((OrganizationProvisioningCommand) null),
+            Arguments.of(new OrganizationProvisioningCommand(" ", "UTC")),
+            Arguments.of(new OrganizationProvisioningCommand("TeamPulse", " "))
         );
     }
 

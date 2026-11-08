@@ -125,6 +125,27 @@ Remplacer `IdentityModuleTests` par `OrganizationModuleTests` ou
 `TeamModuleTests` pour cibler un autre module. Chaque test charge uniquement
 la configuration Flyway et le schéma du module concerné.
 
+### Générer et vérifier les contrats OpenAPI
+
+Avec Docker démarré, le build d'identité et d'organisation démarre leurs
+applications de test, exporte `target/openapi.yaml`, puis génère et compile les
+clients Java sous `target/generated-sources/openapi` :
+
+```bash
+./mvnw --batch-mode --no-transfer-progress -pl tp-identity,tp-organization -am verify
+```
+
+Le POM parent transmet sa version produit aux processus de génération et aux
+tests. `info.version` reprend cette version ; l'URL serveur annoncée reste `/`.
+Une version absente provoque un échec au démarrage au lieu d'utiliser `v0`.
+Les tests vérifient aussi les métadonnées des YAML effectivement exportés.
+
+Pour exécuter ces tests depuis l'IDE, déléguer leur exécution à Maven pour
+conserver les étapes de génération et les propriétés de test. Un lancement
+autonome d'une application de test doit fournir
+`-Dteampulse.openapi.info-version=<version-du-parent>`. L'application `tp-app`
+reçoit déjà cette propriété via sa configuration filtrée par Maven.
+
 ## Contributing
 
 Contributions from both first-time and experienced contributors are welcome.

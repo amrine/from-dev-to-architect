@@ -1,9 +1,9 @@
 package io.teampulse.identity;
 
 import io.teampulse.common.context.TenantContext;
-import io.teampulse.common.context.TenantContextProvider;
 import io.teampulse.common.reference.MonotonicReferenceFactory;
 import io.teampulse.common.reference.ReferenceFactory;
+import io.teampulse.identity.fixture.DeterministicTenantContextProvider;
 import io.teampulse.testsupport.persistence.PersistenceIntegrationTestConfiguration;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -12,7 +12,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 
 import java.time.Clock;
-import java.util.concurrent.atomic.AtomicInteger;
 
 @TestConfiguration
 @SpringBootApplication
@@ -33,28 +32,5 @@ public class IdentityTestApplication {
     @Bean
     DeterministicTenantContextProvider testTenantContextProvider() {
         return new DeterministicTenantContextProvider(TEST_TENANT);
-    }
-
-    public static class DeterministicTenantContextProvider implements TenantContextProvider {
-        private final TenantContext tenantContext;
-        private final AtomicInteger calls = new AtomicInteger();
-
-        public DeterministicTenantContextProvider(TenantContext tenantContext) {
-            this.tenantContext = tenantContext;
-        }
-
-        @Override
-        public TenantContext current() {
-            calls.incrementAndGet();
-            return tenantContext;
-        }
-
-        public int calls() {
-            return calls.get();
-        }
-
-        public void resetCalls() {
-            calls.set(0);
-        }
     }
 }

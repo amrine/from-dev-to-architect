@@ -142,7 +142,7 @@
                     </execution>
                 </executions>
             </plugin>
-            <!-- Compile only the test application entry point before Maven starts it. -->
+            <!-- Compile the test application and its fixtures before Maven starts it. -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -156,6 +156,7 @@
                         <configuration>
                             <testIncludes combine.self="override">
                                 <testInclude>**/IdentityTestApplication.java</testInclude>
+                                <testInclude>**/fixture/**/*.java</testInclude>
                             </testIncludes>
                         </configuration>
                     </execution>

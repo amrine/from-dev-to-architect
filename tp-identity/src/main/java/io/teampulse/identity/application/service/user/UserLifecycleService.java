@@ -126,30 +126,28 @@ public class UserLifecycleService implements UserLifecycle {
         } catch (UserLifecycleException exception) {
             throw exception;
         } catch (UserException exception) {
-            throw toPublicFailure(exception);
+            UserLifecycleErrorCode userLifecycleErrorCode = toPublicCode(exception.getErrorCode());
+            if (userLifecycleErrorCode == UserLifecycleErrorCode.CONCURRENT_MODIFICATION) {
+                log.warn("User lifecycle operation conflicted with a concurrent update", exception);
+            } else if (userLifecycleErrorCode == UserLifecycleErrorCode.OPERATION_FAILED) {
+                log.error("User lifecycle operation failed", exception);
+            }
+            throw new UserLifecycleException(userLifecycleErrorCode, exception);
         } catch (RuntimeException exception) {
             log.error("User lifecycle operation failed", exception);
             throw new UserLifecycleException(UserLifecycleErrorCode.OPERATION_FAILED, exception);
         }
     }
 
-    private static UserLifecycleException toPublicFailure(UserException exception) {
-        UserLifecycleErrorCode userLifecycleErrorCode = switch (exception.getErrorCode()) {
+    public UserLifecycleErrorCode toPublicCode(UserErrorCode errorCode) {
+        return switch (errorCode) {
             case NOT_FOUND -> UserLifecycleErrorCode.USER_NOT_FOUND;
             case INVALID_STATUS_TRANSITION -> UserLifecycleErrorCode.TRANSITION_NOT_ALLOWED;
             case EMAIL_ALREADY_USED -> UserLifecycleErrorCode.EMAIL_ALREADY_USED;
             case INVALID_EMAIL, INVALID_FIRST_NAME, INVALID_LAST_NAME ->
                 UserLifecycleErrorCode.INVALID_USER_DATA;
-            case CONCURRENT_MODIFICATION -> {
-                log.warn("User lifecycle operation conflicted with a concurrent update", exception);
-                yield UserLifecycleErrorCode.CONCURRENT_MODIFICATION;
-            }
-            case REFERENCE_GENERATION_FAILED -> {
-                log.error("User lifecycle operation failed", exception);
-                yield UserLifecycleErrorCode.OPERATION_FAILED;
-            }
+            case CONCURRENT_MODIFICATION -> UserLifecycleErrorCode.CONCURRENT_MODIFICATION;
+            case REFERENCE_GENERATION_FAILED -> UserLifecycleErrorCode.OPERATION_FAILED;
         };
-
-        return new UserLifecycleException(userLifecycleErrorCode, exception);
     }
 }

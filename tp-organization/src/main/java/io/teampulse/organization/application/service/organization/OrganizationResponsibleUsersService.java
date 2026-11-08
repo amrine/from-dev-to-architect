@@ -25,6 +25,12 @@ public class OrganizationResponsibleUsersService
     private final OrganizationRepository organizationRepository;
     private final OrganizationResponsibleUsersValidator responsibleUsersValidator;
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Checks candidate availability and the T05 deferred-transition guard before writing. The
+     * domain owns the permitted statuses.</p>
+     */
     @Override
     @Transactional
     public Organization assignAdministrator(OrganizationResponsibleCommand command) {
@@ -35,12 +41,31 @@ public class OrganizationResponsibleUsersService
                 command.responsibleReference()
             );
 
+        if (Objects.equals(
+            organization.getAdminReference(),
+            command.responsibleReference()
+        )) {
+            organization.assignAdministrator(command.responsibleReference());
+            return organization;
+        }
+
+        rejectDeferredTransition(
+            organization,
+            command.responsibleReference(),
+            organization.getManagerReference(),
+            availability
+        );
         organization.assignAdministrator(command.responsibleReference());
-        activateWhenResponsibleUsersAreAvailable(organization, availability);
 
         return organizationRepository.update(organization);
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Checks candidate availability and the T05 deferred-transition guard before writing. The
+     * domain owns the permitted statuses.</p>
+     */
     @Override
     @Transactional
     public Organization assignManager(OrganizationResponsibleCommand command) {
@@ -51,12 +76,31 @@ public class OrganizationResponsibleUsersService
                 command.responsibleReference()
             );
 
+        if (Objects.equals(
+            organization.getManagerReference(),
+            command.responsibleReference()
+        )) {
+            organization.assignManager(command.responsibleReference());
+            return organization;
+        }
+
+        rejectDeferredTransition(
+            organization,
+            organization.getAdminReference(),
+            command.responsibleReference(),
+            availability
+        );
         organization.assignManager(command.responsibleReference());
-        activateWhenResponsibleUsersAreAvailable(organization, availability);
 
         return organizationRepository.update(organization);
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Checks a changed candidate through identity; a same-reference no-op avoids a write. The
+     * domain owns the permitted statuses.</p>
+     */
     @Override
     @Transactional
     public Organization replaceAdministrator(OrganizationResponsibleCommand command) {
@@ -77,6 +121,12 @@ public class OrganizationResponsibleUsersService
         return organizationRepository.update(organization);
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Checks a changed candidate through identity; a same-reference no-op avoids a write. The
+     * domain owns the permitted statuses.</p>
+     */
     @Override
     @Transactional
     public Organization replaceManager(OrganizationResponsibleCommand command) {
@@ -97,6 +147,11 @@ public class OrganizationResponsibleUsersService
         return organizationRepository.update(organization);
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Persists the domain's removal result without consulting the identity module.</p>
+     */
     @Override
     @Transactional
     public Organization removeManager(String organizationReference) {
@@ -106,38 +161,56 @@ public class OrganizationResponsibleUsersService
         return organizationRepository.update(organization);
     }
 
-    private void activateWhenResponsibleUsersAreAvailable(
+    /**
+     * Refuses an available assignment that would complete activation or reactivation.
+     * The proposed references are checked before changing the domain model; incomplete
+     * responsibilities or non-available users do not trigger this particular guard.
+     *
+     * @param organization current state before assignment
+     * @param administratorReference proposed administrator, possibly null
+     * @param managerReference proposed manager, possibly null
+     * @param assignedUserAvailability availability already obtained for the candidate
+     * @throws OrganizationException with {@code LIFECYCLE_TRANSITION_DEFERRED} if
+     *         both proposed responsible users are available in a creating or suspended organization
+     */
+    private void rejectDeferredTransition(
         Organization organization,
+        String administratorReference,
+        String managerReference,
         UserAvailability assignedUserAvailability
     ) {
-        if (assignedUserAvailability != UserAvailability.AVAILABLE
-            || organization.getAdminReference() == null
-            || organization.getManagerReference() == null) {
+        if (assignedUserAvailability != UserAvailability.AVAILABLE) {
             return;
         }
 
-        if (organization.getStatus() != OrganizationStatus.CREATING
-            && organization.getStatus() != OrganizationStatus.SUSPENDED) {
+        if ((organization.getStatus() != OrganizationStatus.CREATING
+                && organization.getStatus() != OrganizationStatus.SUSPENDED)
+            || administratorReference == null
+            || managerReference == null) {
             return;
         }
 
-        boolean bothAvailable = responsibleUsersValidator
-            .areResponsibleUsersAvailable(
-                organization.getReference(),
-                organization.getAdminReference(),
-                organization.getManagerReference()
-            );
-        if (!bothAvailable) {
+        if (!responsibleUsersValidator.areResponsibleUsersAvailable(
+            organization.getReference(),
+            administratorReference,
+            managerReference
+        )) {
             return;
         }
 
-        if (organization.getStatus() == OrganizationStatus.CREATING) {
-            organization.activate();
-        } else {
-            organization.reactivate();
-        }
+        throw new OrganizationException(
+            OrganizationErrorCode.LIFECYCLE_TRANSITION_DEFERRED,
+            "Completing available organization responsibilities is deferred"
+        );
     }
 
+    /**
+     * Loads the organization required by a responsibility command.
+     *
+     * @param organizationReference functional organization reference
+     * @return the existing domain model
+     * @throws OrganizationException with {@code NOT_FOUND} if no organization exists
+     */
     private Organization findOrganization(String organizationReference) {
         return organizationRepository.findByReference(organizationReference)
             .orElseThrow(() -> new OrganizationException(

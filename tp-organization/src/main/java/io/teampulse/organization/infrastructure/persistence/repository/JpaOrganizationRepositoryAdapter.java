@@ -27,6 +27,12 @@ public class JpaOrganizationRepositoryAdapter implements OrganizationRepository 
     private final JpaOrganizationRepository jpaOrganizationRepository;
     private final OrganizationPersistenceMapper organizationPersistenceMapper;
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Flushes the insert within this adapter so a known reference collision can
+     * be translated before leaving the persistence boundary. Unknown failures propagate.</p>
+     */
     @Override
     public Organization create(Organization organization) {
         try {
@@ -43,6 +49,13 @@ public class JpaOrganizationRepositoryAdapter implements OrganizationRepository 
         }
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Loads the managed entity, copies business state and flushes the update.
+     * Optimistic locking failures become organization concurrency errors with their cause
+     * retained.</p>
+     */
     @Override
     public Organization update(Organization organization) {
         try {
@@ -77,6 +90,12 @@ public class JpaOrganizationRepositoryAdapter implements OrganizationRepository 
         }
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Restores business state through the persistence mapper; no entity escapes this
+     * adapter.</p>
+     */
     @Override
     public Optional<Organization> findByReference(
         String organizationReference
@@ -85,6 +104,13 @@ public class JpaOrganizationRepositoryAdapter implements OrganizationRepository 
             .map(organizationPersistenceMapper::toDomain);
     }
 
+    /**
+     * Translates the known unique-reference constraint and retains its cause.
+     * An unrecognized persistence failure is returned unchanged as a technical error.
+     *
+     * @param exception persistence failure to inspect
+     * @return the translated domain failure, or the original exception
+     */
     private RuntimeException translatePersistenceException(
         RuntimeException exception
     ) {

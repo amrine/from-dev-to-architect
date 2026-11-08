@@ -1,25 +1,32 @@
 package io.teampulse.organization.application.service.organization;
 
 import io.teampulse.common.reference.ReferenceFactory;
-import io.teampulse.organization.application.port.in.organization.CreateOrganizationCommand;
+import io.teampulse.organization.api.lifecycle.OrganizationLifecycleErrorCode;
+import io.teampulse.organization.api.lifecycle.OrganizationLifecycleException;
+import io.teampulse.organization.api.lifecycle.OrganizationLifecycleResult;
+import io.teampulse.organization.api.lifecycle.OrganizationProvisioningCommand;
 import io.teampulse.organization.application.port.out.organization.OrganizationRepository;
 import io.teampulse.organization.domain.organization.error.OrganizationErrorCode;
 import io.teampulse.organization.domain.organization.error.OrganizationException;
 import io.teampulse.organization.domain.organization.model.Organization;
 import io.teampulse.organization.domain.organization.model.OrganizationStatus;
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.ZoneId;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -33,333 +40,163 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class OrganizationLifecycleServiceTest {
 
-    private static final String ORGANIZATION_REFERENCE =
-        "ORG-2026-1309-00000ZA7B900";
+    private static final String ORGANIZATION_REFERENCE = "ORG-2026-1309-00000ZA7B900";
+    private static final String ADMINISTRATOR_REFERENCE = "USR-2026-1309-00000ZA7B901";
+    private static final String MANAGER_REFERENCE = "USR-2026-1309-00000ZA7B902";
 
     @Mock
     private ReferenceFactory referenceFactory;
     @Mock
     private OrganizationRepository organizationRepository;
-    @Mock
-    private OrganizationResponsibleUsersValidator responsibleUsersValidator;
     @InjectMocks
     private OrganizationLifecycleService service;
 
-    @Nested
-    class CreationTests {
+    @Test
+    void createsAndReturnsThePersistedOrganizationThroughThePublicContract() {
+        when(referenceFactory.generate("ORG")).thenReturn(ORGANIZATION_REFERENCE);
+        when(organizationRepository.create(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-        @Test
-        void createsAndPersistsAnOrganizationInOrder() {
-            prepareSuccessfulCreation();
-            ArgumentCaptor<Organization> organizationCaptor =
-                ArgumentCaptor.forClass(Organization.class);
+        OrganizationLifecycleResult result = service.create(new OrganizationProvisioningCommand(
+            " Team Pulse ", "Europe/Paris"
+        ));
 
-            service.create(validCommand());
-
-            InOrder orderedInteractions = inOrder(
-                referenceFactory,
-                organizationRepository
-            );
-            orderedInteractions.verify(referenceFactory).generate("ORG");
-            orderedInteractions.verify(organizationRepository)
-                .create(organizationCaptor.capture());
-
-            Organization createdOrganization = organizationCaptor.getValue();
-            assertEquals(
-                ORGANIZATION_REFERENCE,
-                createdOrganization.getReference()
-            );
-            assertEquals("Team Pulse", createdOrganization.getName());
-            assertEquals(
-                ZoneId.of("Europe/Paris"),
-                createdOrganization.getTimezone()
-            );
-            assertNull(createdOrganization.getAdminReference());
-            assertNull(createdOrganization.getManagerReference());
-            assertEquals(
-                OrganizationStatus.CREATING,
-                createdOrganization.getStatus()
-            );
-        }
-
-        @Test
-        void returnsThePersistedOrganization() {
-            when(referenceFactory.generate("ORG"))
-                .thenReturn(ORGANIZATION_REFERENCE);
-            Organization persistedOrganization = Organization.create(
-                ORGANIZATION_REFERENCE,
-                "Persisted organization",
-                "UTC"
-            );
-            when(organizationRepository.create(any(Organization.class)))
-                .thenReturn(persistedOrganization);
-
-            Organization result = service.create(validCommand());
-
-            assertSame(persistedOrganization, result);
-        }
-
-        @Test
-        void doesNotPersistWhenReferenceGenerationFails() {
-            IllegalStateException generationFailure =
-                new IllegalStateException("Reference generation failed");
-            when(referenceFactory.generate("ORG")).thenThrow(generationFailure);
-
-            IllegalStateException exception = assertThrows(
-                IllegalStateException.class,
-                () -> service.create(validCommand())
-            );
-
-            assertSame(generationFailure, exception);
-            verifyNoInteractions(organizationRepository);
-        }
-
-        @Test
-        void doesNotPersistWhenDomainValidationFails() {
-            when(referenceFactory.generate("ORG"))
-                .thenReturn(ORGANIZATION_REFERENCE);
-
-            OrganizationException exception = assertThrows(
-                OrganizationException.class,
-                () -> service.create(
-                    new CreateOrganizationCommand(" ", "Europe/Paris")
-                )
-            );
-
-            assertEquals(
-                OrganizationErrorCode.INVALID_NAME,
-                exception.getErrorCode()
-            );
-            verify(organizationRepository, never())
-                .create(any(Organization.class));
-        }
-
-        @Test
-        void propagatesReferenceCollisionWithoutRetry() {
-            when(referenceFactory.generate("ORG"))
-                .thenReturn(ORGANIZATION_REFERENCE);
-            OrganizationException collision = new OrganizationException(
-                OrganizationErrorCode.REFERENCE_GENERATION_FAILED,
-                "Organization reference already exists"
-            );
-            when(organizationRepository.create(any(Organization.class)))
-                .thenThrow(collision);
-
-            OrganizationException exception = assertThrows(
-                OrganizationException.class,
-                () -> service.create(validCommand())
-            );
-
-            assertSame(collision, exception);
-            verify(referenceFactory).generate("ORG");
-            verify(organizationRepository).create(any(Organization.class));
-        }
-
-        private void prepareSuccessfulCreation() {
-            when(referenceFactory.generate("ORG"))
-                .thenReturn(ORGANIZATION_REFERENCE);
-            when(organizationRepository.create(any(Organization.class)))
-                .thenAnswer(invocation -> invocation.getArgument(0));
-        }
+        var organizationCaptor = ArgumentCaptor.forClass(Organization.class);
+        var order = inOrder(referenceFactory, organizationRepository);
+        order.verify(referenceFactory).generate("ORG");
+        order.verify(organizationRepository).create(organizationCaptor.capture());
+        Organization created = organizationCaptor.getValue();
+        assertEquals(OrganizationStatus.CREATING, created.getStatus());
+        assertEquals(ZoneId.of("Europe/Paris"), created.getTimezone());
+        assertNull(created.getAdminReference());
+        assertNull(created.getManagerReference());
+        assertEquals(new OrganizationLifecycleResult(
+            ORGANIZATION_REFERENCE, "Team Pulse", "Europe/Paris", "CREATING", null, null
+        ), result);
     }
 
-    @Nested
-    class LifecycleOperationsTests {
-
-        @Test
-        void activatesCreatingOrganizationAfterOperationalValidation() {
-            Organization organization = Organization.restore(
-                ORGANIZATION_REFERENCE,
-                "Team Pulse",
-                "UTC",
-                ADMINISTRATOR_REFERENCE,
-                MANAGER_REFERENCE,
-                OrganizationStatus.CREATING
-            );
-            givenOrganization(organization);
-            when(organizationRepository.update(organization))
-                .thenReturn(organization);
-
-            Organization result = service.activate(ORGANIZATION_REFERENCE);
-
-            assertSame(organization, result);
-            assertEquals(OrganizationStatus.ACTIVE, organization.getStatus());
-            verify(responsibleUsersValidator)
-                .validateOperationalResponsibleUsers(
-                    ORGANIZATION_REFERENCE,
-                    ADMINISTRATOR_REFERENCE,
-                    MANAGER_REFERENCE
-                );
-            verify(organizationRepository).update(organization);
-        }
-
-        @Test
-        void rejectsActivationWhenOrganizationIsMissing() {
-            when(organizationRepository.findByReference(ORGANIZATION_REFERENCE))
-                .thenReturn(Optional.empty());
-
-            OrganizationException exception = assertThrows(
-                OrganizationException.class,
-                () -> service.activate(ORGANIZATION_REFERENCE)
-            );
-
-            assertEquals(OrganizationErrorCode.NOT_FOUND, exception.getErrorCode());
-            verifyNoInteractions(responsibleUsersValidator);
-            verify(organizationRepository, never()).update(any(Organization.class));
-        }
-
-        @Test
-        void rejectsActivationWhenResponsibleReferencesAreMissing() {
-            Organization organization = Organization.create(
-                ORGANIZATION_REFERENCE,
-                "Team Pulse",
-                "UTC"
-            );
-            givenOrganization(organization);
-
-            OrganizationException exception = assertThrows(
-                OrganizationException.class,
-                () -> service.activate(ORGANIZATION_REFERENCE)
-            );
-
-            assertEquals(
-                OrganizationErrorCode.ACTIVATION_REQUIREMENTS_NOT_MET,
-                exception.getErrorCode()
-            );
-            verifyNoInteractions(responsibleUsersValidator);
-            verify(organizationRepository, never()).update(any(Organization.class));
-        }
-
-        @Test
-        void doesNotPersistWhenAResponsibleUserIsNotOperational() {
-            Organization organization = Organization.restore(
-                ORGANIZATION_REFERENCE,
-                "Team Pulse",
-                "UTC",
-                ADMINISTRATOR_REFERENCE,
-                MANAGER_REFERENCE,
-                OrganizationStatus.CREATING
-            );
-            givenOrganization(organization);
-            OrganizationException validationFailure = new OrganizationException(
-                OrganizationErrorCode.MANAGER_NOT_AVAILABLE,
-                "Organization manager is not available"
-            );
-            org.mockito.Mockito.doThrow(validationFailure)
-                .when(responsibleUsersValidator)
-                .validateOperationalResponsibleUsers(
-                    ORGANIZATION_REFERENCE,
-                    ADMINISTRATOR_REFERENCE,
-                    MANAGER_REFERENCE
-                );
-
-            OrganizationException exception = assertThrows(
-                OrganizationException.class,
-                () -> service.activate(ORGANIZATION_REFERENCE)
-            );
-
-            assertSame(validationFailure, exception);
-            assertEquals(OrganizationStatus.CREATING, organization.getStatus());
-            verify(organizationRepository, never()).update(any(Organization.class));
-        }
-
-        @Test
-        void suspendsActiveOrganizationAndPreservesResponsibleReferences() {
-            Organization organization = organizationInStatus(OrganizationStatus.ACTIVE);
-            givenOrganization(organization);
-
-            service.suspend(ORGANIZATION_REFERENCE);
-
-            assertEquals(OrganizationStatus.SUSPENDED, organization.getStatus());
-            assertEquals(ADMINISTRATOR_REFERENCE, organization.getAdminReference());
-            assertEquals(MANAGER_REFERENCE, organization.getManagerReference());
-            verifyNoInteractions(responsibleUsersValidator);
-            verify(organizationRepository).update(organization);
-        }
-
-        @Test
-        void reactivatesSuspendedOrganizationAfterOperationalValidation() {
-            Organization organization = organizationInStatus(OrganizationStatus.SUSPENDED);
-            givenOrganization(organization);
-            when(organizationRepository.update(organization))
-                .thenReturn(organization);
-
-            Organization result = service.reactivate(ORGANIZATION_REFERENCE);
-
-            assertSame(organization, result);
-            assertEquals(OrganizationStatus.ACTIVE, organization.getStatus());
-            verify(responsibleUsersValidator)
-                .validateOperationalResponsibleUsers(
-                    ORGANIZATION_REFERENCE,
-                    ADMINISTRATOR_REFERENCE,
-                    MANAGER_REFERENCE
-                );
-            verify(organizationRepository).update(organization);
-        }
-
-        @Test
-        void archivesOrganizationWithoutCheckingResponsibleAvailability() {
-            Organization organization = organizationInStatus(OrganizationStatus.ACTIVE);
-            givenOrganization(organization);
-
-            service.archive(ORGANIZATION_REFERENCE);
-
-            assertEquals(OrganizationStatus.ARCHIVED, organization.getStatus());
-            verifyNoInteractions(responsibleUsersValidator);
-            verify(organizationRepository).update(organization);
-        }
-
-        @Test
-        void rejectsReactivationWhenManagerReferenceIsMissing() {
-            Organization organization = Organization.restore(
-                ORGANIZATION_REFERENCE,
-                "Team Pulse",
-                "UTC",
-                ADMINISTRATOR_REFERENCE,
-                null,
-                OrganizationStatus.SUSPENDED
-            );
-            givenOrganization(organization);
-
-            OrganizationException exception = assertThrows(
-                OrganizationException.class,
-                () -> service.reactivate(ORGANIZATION_REFERENCE)
-            );
-
-            assertEquals(
-                OrganizationErrorCode.ACTIVATION_REQUIREMENTS_NOT_MET,
-                exception.getErrorCode()
-            );
-            verifyNoInteractions(responsibleUsersValidator);
-            verify(organizationRepository, never()).update(any(Organization.class));
-        }
-
-        private void givenOrganization(Organization organization) {
-            when(organizationRepository.findByReference(ORGANIZATION_REFERENCE))
-                .thenReturn(Optional.of(organization));
-        }
-
-        private Organization organizationInStatus(OrganizationStatus status) {
-            return Organization.restore(
-                ORGANIZATION_REFERENCE,
-                "Team Pulse",
-                "UTC",
-                ADMINISTRATOR_REFERENCE,
-                MANAGER_REFERENCE,
-                status
-            );
-        }
+    @ParameterizedTest
+    @MethodSource("invalidData")
+    void mapsInvalidDataWithoutPersisting(OrganizationProvisioningCommand command,
+                                         OrganizationLifecycleErrorCode expectedCode) {
+        when(referenceFactory.generate("ORG")).thenReturn(ORGANIZATION_REFERENCE);
+        OrganizationLifecycleException failure = assertThrows(OrganizationLifecycleException.class,
+            () -> service.create(command));
+        assertEquals(expectedCode, failure.getErrorCode());
+        assertEquals(expectedCode.getMessage(), failure.getMessage());
+        assertInstanceOf(OrganizationException.class, failure.getCause());
+        verifyNoInteractions(organizationRepository);
     }
 
-    private static final String ADMINISTRATOR_REFERENCE =
-        "USR-2026-1309-00000ZA7B901";
-    private static final String MANAGER_REFERENCE =
-        "USR-2026-1309-00000ZA7B902";
-
-    private static CreateOrganizationCommand validCommand() {
-        return new CreateOrganizationCommand(
-            " Team Pulse ",
-            "Europe/Paris"
+    static Stream<Arguments> invalidData() {
+        return Stream.of(
+            Arguments.of(new OrganizationProvisioningCommand(" ", "UTC"), OrganizationLifecycleErrorCode.INVALID_NAME),
+            Arguments.of(new OrganizationProvisioningCommand("Acme", "private-invalid-zone"),
+                OrganizationLifecycleErrorCode.INVALID_TIMEZONE)
         );
+    }
+
+    @Test
+    void wrapsReferenceGenerationFailureAndPreservesItsCause() {
+        RuntimeException cause = new IllegalStateException("private generation failure");
+        when(referenceFactory.generate("ORG")).thenThrow(cause);
+        OrganizationLifecycleException failure = assertThrows(OrganizationLifecycleException.class,
+            () -> service.create(new OrganizationProvisioningCommand("Acme", "UTC")));
+        assertEquals(OrganizationLifecycleErrorCode.OPERATION_FAILED, failure.getErrorCode());
+        assertSame(cause, failure.getCause());
+        verifyNoInteractions(organizationRepository);
+    }
+
+    @Test
+    void wrapsPersistenceFailureAndPreservesItsCause() {
+        when(referenceFactory.generate("ORG")).thenReturn(ORGANIZATION_REFERENCE);
+        RuntimeException cause = new IllegalStateException("private persistence failure");
+        when(organizationRepository.create(any())).thenThrow(cause);
+        OrganizationLifecycleException failure = assertThrows(OrganizationLifecycleException.class,
+            () -> service.create(new OrganizationProvisioningCommand("Acme", "UTC")));
+        assertEquals(OrganizationLifecycleErrorCode.OPERATION_FAILED, failure.getErrorCode());
+        assertEquals("Organization lifecycle operation failed", failure.getMessage());
+        assertSame(cause, failure.getCause());
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = OrganizationErrorCode.class, names = {"REFERENCE_GENERATION_FAILED", "CONCURRENT_MODIFICATION"})
+    void preservesKnownTechnicalFailureCategoriesWithoutRetry(OrganizationErrorCode code) {
+        when(referenceFactory.generate("ORG")).thenReturn(ORGANIZATION_REFERENCE);
+        OrganizationException cause = new OrganizationException(code, "private technical details");
+        when(organizationRepository.create(any())).thenThrow(cause);
+        OrganizationLifecycleException failure = assertThrows(OrganizationLifecycleException.class,
+            () -> service.create(new OrganizationProvisioningCommand("Acme", "UTC")));
+        assertEquals(code.name(), failure.getErrorCode().name());
+        assertSame(cause, failure.getCause());
+        verify(referenceFactory).generate("ORG");
+        verify(organizationRepository).create(any());
+    }
+
+    @Test
+    void suspendsAnActiveOrganizationAndPreservesItsResponsibilities() {
+        Organization organization = organizationInStatus(OrganizationStatus.ACTIVE);
+        givenOrganization(organization);
+        OrganizationLifecycleResult result = service.suspend(ORGANIZATION_REFERENCE);
+        assertEquals("SUSPENDED", result.status());
+        assertEquals(ADMINISTRATOR_REFERENCE, result.administratorReference());
+        assertEquals(MANAGER_REFERENCE, result.managerReference());
+        verify(organizationRepository).update(organization);
+    }
+
+    @Test
+    void archivesAnOrganization() {
+        Organization organization = organizationInStatus(OrganizationStatus.CREATING);
+        givenOrganization(organization);
+        assertEquals("ARCHIVED", service.archive(ORGANIZATION_REFERENCE).status());
+        verify(organizationRepository).update(organization);
+    }
+
+    @Test
+    void rejectsAnInvalidTransitionBeforePersisting() {
+        Organization organization = organizationInStatus(OrganizationStatus.CREATING);
+        when(organizationRepository.findByReference(ORGANIZATION_REFERENCE)).thenReturn(Optional.of(organization));
+        OrganizationLifecycleException failure = assertThrows(OrganizationLifecycleException.class,
+            () -> service.suspend(ORGANIZATION_REFERENCE));
+        assertEquals(OrganizationLifecycleErrorCode.TRANSITION_NOT_ALLOWED, failure.getErrorCode());
+        assertEquals(OrganizationStatus.CREATING, organization.getStatus());
+        verify(organizationRepository, never()).update(any());
+    }
+
+    @Test
+    void translatesAnAbsentOrganizationWithoutWriting() {
+        when(organizationRepository.findByReference(ORGANIZATION_REFERENCE)).thenReturn(Optional.empty());
+        OrganizationLifecycleException failure = assertThrows(OrganizationLifecycleException.class,
+            () -> service.archive(ORGANIZATION_REFERENCE));
+        assertEquals(OrganizationLifecycleErrorCode.ORGANIZATION_NOT_FOUND, failure.getErrorCode());
+        verify(organizationRepository, never()).update(any());
+    }
+
+    @Test
+    void propagatesAnAlreadyPublicFailureWithoutWrappingItAgain() {
+        var failure = new OrganizationLifecycleException(
+            OrganizationLifecycleErrorCode.OPERATION_FAILED, new IllegalStateException("private diagnostic")
+        );
+        when(organizationRepository.findByReference(ORGANIZATION_REFERENCE)).thenThrow(failure);
+        assertSame(failure, assertThrows(OrganizationLifecycleException.class,
+            () -> service.archive(ORGANIZATION_REFERENCE)));
+    }
+
+    @Test
+    void translatesUnexpectedInternalCategoriesToTechnicalPublicFailure() {
+        var cause = new OrganizationException(OrganizationErrorCode.USER_DIRECTORY_UNAVAILABLE, "private diagnostic");
+        when(organizationRepository.findByReference(ORGANIZATION_REFERENCE)).thenThrow(cause);
+        var failure = assertThrows(OrganizationLifecycleException.class, () -> service.archive(ORGANIZATION_REFERENCE));
+        assertEquals(OrganizationLifecycleErrorCode.OPERATION_FAILED, failure.getErrorCode());
+        assertSame(cause, failure.getCause());
+    }
+
+    private void givenOrganization(Organization organization) {
+        when(organizationRepository.findByReference(ORGANIZATION_REFERENCE)).thenReturn(Optional.of(organization));
+        when(organizationRepository.update(organization)).thenReturn(organization);
+    }
+
+    private static Organization organizationInStatus(OrganizationStatus status) {
+        return Organization.restore(ORGANIZATION_REFERENCE, "Acme", "UTC",
+            ADMINISTRATOR_REFERENCE, MANAGER_REFERENCE, status);
     }
 }

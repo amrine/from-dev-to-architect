@@ -140,6 +140,16 @@ class OrganizationDirectoryServiceTest {
         assertSame(internalFailure, exception.getCause());
     }
 
+    @Test
+    void wrapsSnapshotLookupFailureAndPreservesItsCause() {
+        RuntimeException cause = new IllegalStateException("private database diagnostic");
+        when(organizationRepository.findByReference(ORGANIZATION_REFERENCE)).thenThrow(cause);
+        OrganizationDirectoryException failure = assertThrows(OrganizationDirectoryException.class,
+            () -> service.findByOrganizationReference(ORGANIZATION_REFERENCE));
+        assertSame(cause, failure.getCause());
+        assertEquals("Unable to check organization availability", failure.getMessage());
+    }
+
     private static Organization organizationWithStatus(
         OrganizationStatus status
     ) {

@@ -140,6 +140,16 @@ class OrganizationPersistenceMapperTest {
         );
     }
 
+    @Test
+    void handlesAbsentMappingSourcesWithoutChangingAnExistingEntity() {
+        assertNull(mapper.toTimezoneId(null));
+        assertNull(mapper.toDomain(null));
+        assertNull(mapper.toEntity(null));
+        var target = new OrganizationEntity().setName("Unchanged");
+        mapper.updateEntity(target, null);
+        assertEquals("Unchanged", target.getName());
+    }
+
     private static Organization organization(
         String adminReference,
         String managerReference,

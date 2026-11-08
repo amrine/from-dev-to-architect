@@ -1,6 +1,6 @@
 package io.teampulse.organization.infrastructure.persistence.repository;
 
-import io.teampulse.organization.AbstractIT;
+import io.teampulse.organization.AbstractOrganizationJpaIT;
 import io.teampulse.organization.domain.organization.error.OrganizationErrorCode;
 import io.teampulse.organization.domain.organization.error.OrganizationException;
 import io.teampulse.organization.domain.organization.model.Organization;
@@ -29,7 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class JpaOrganizationRepositoryAdapterIT extends AbstractIT {
+class JpaOrganizationRepositoryAdapterIT extends AbstractOrganizationJpaIT {
 
     private static final String ORGANIZATION_REFERENCE_1 =
         "ORG-2026-1309-00000ZA7B900";

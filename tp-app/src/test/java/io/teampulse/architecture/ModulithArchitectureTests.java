@@ -11,6 +11,12 @@ import io.teampulse.common.reference.ReferenceFormat;
 import io.teampulse.identity.api.user.UserAvailability;
 import io.teampulse.identity.api.user.UserDirectory;
 import io.teampulse.identity.api.user.UserDirectoryException;
+import io.teampulse.organization.api.lifecycle.OrganizationLifecycle;
+import io.teampulse.organization.api.lifecycle.OrganizationLifecycleErrorCode;
+import io.teampulse.organization.api.lifecycle.OrganizationLifecycleException;
+import io.teampulse.organization.api.lifecycle.OrganizationLifecycleResult;
+import io.teampulse.organization.api.lifecycle.OrganizationProvisioningCommand;
+import io.teampulse.organization.api.organization.OrganizationResponsibilities;
 import io.teampulse.organization.api.organization.OrganizationAvailability;
 import io.teampulse.organization.api.organization.OrganizationDirectory;
 import io.teampulse.organization.api.organization.OrganizationDirectoryException;
@@ -150,9 +156,27 @@ public class ModulithArchitectureTests {
             Set.of(
                 OrganizationDirectory.class.getName(),
                 OrganizationAvailability.class.getName(),
-                OrganizationDirectoryException.class.getName()
+                OrganizationDirectoryException.class.getName(),
+                OrganizationResponsibilities.class.getName()
             ),
             exposedTypes
         );
     }
+
+    @Test
+    void exposesOrganizationLifecycleThroughItsOwnNamedInterface() {
+        var lifecycle = modules.getModuleByName("organization").orElseThrow()
+            .getNamedInterfaces().getByName("lifecycle").orElseThrow();
+        Set<String> exposedTypes = lifecycle.asJavaClasses()
+            .map(JavaClass::getName)
+            .collect(Collectors.toUnmodifiableSet());
+        assertEquals(Set.of(
+            OrganizationLifecycle.class.getName(),
+            OrganizationLifecycleResult.class.getName(),
+            OrganizationProvisioningCommand.class.getName(),
+            OrganizationLifecycleException.class.getName(),
+            OrganizationLifecycleErrorCode.class.getName()
+        ), exposedTypes);
+    }
+
 }

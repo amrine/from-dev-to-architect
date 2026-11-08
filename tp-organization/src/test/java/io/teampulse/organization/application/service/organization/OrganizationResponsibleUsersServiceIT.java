@@ -1,27 +1,27 @@
 package io.teampulse.organization.application.service.organization;
 
 import io.teampulse.identity.api.user.UserAvailability;
-import io.teampulse.identity.api.user.UserDirectory;
-import io.teampulse.organization.AbstractIT;
+import io.teampulse.organization.AbstractOrganizationJpaIT;
+import io.teampulse.organization.fixture.DeterministicUserDirectory;
 import io.teampulse.organization.application.port.in.organization.OrganizationResponsibleCommand;
 import io.teampulse.organization.application.port.in.organization.OrganizationResponsibleUsersUseCase;
 import io.teampulse.organization.application.port.out.organization.OrganizationRepository;
+import io.teampulse.organization.domain.organization.error.OrganizationErrorCode;
+import io.teampulse.organization.domain.organization.error.OrganizationException;
 import io.teampulse.organization.domain.organization.model.Organization;
 import io.teampulse.organization.domain.organization.model.OrganizationStatus;
 import io.teampulse.organization.infrastructure.persistence.entity.OrganizationEntity;
 import io.teampulse.organization.infrastructure.persistence.repository.JpaOrganizationRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import jakarta.inject.Inject;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-class OrganizationResponsibleUsersServiceIT extends AbstractIT {
+class OrganizationResponsibleUsersServiceIT extends AbstractOrganizationJpaIT {
 
     private static final String ORGANIZATION_REFERENCE =
         "ORG-2026-1409-00000ZA7B930";
@@ -41,66 +41,104 @@ class OrganizationResponsibleUsersServiceIT extends AbstractIT {
     @Inject
     private JpaOrganizationRepository jpaRepository;
 
-    @MockitoBean
-    private UserDirectory userDirectory;
+    @Inject
+    private DeterministicUserDirectory userDirectory;
 
     @BeforeEach
     void cleanDatabase() {
         inTransactionTemplate(jpaRepository::deleteAllInBatch);
-        when(userDirectory.check(anyString(), anyString()))
-            .thenReturn(UserAvailability.NOT_FOUND);
+        userDirectory.reset();
     }
 
     @Test
-    void assignsBothAvailableUsersAndActivatesTheOrganization() {
+    void refusesTheFinalAvailableAssignmentAndPersistsNoActiveTransition() {
         givenOrganization(creatingOrganization());
-        when(userDirectory.check(
-            ORGANIZATION_REFERENCE,
-            ADMINISTRATOR_REFERENCE
-        )).thenReturn(UserAvailability.AVAILABLE);
-        when(userDirectory.check(
-            ORGANIZATION_REFERENCE,
-            MANAGER_REFERENCE
-        )).thenReturn(UserAvailability.AVAILABLE);
+        userDirectory.setAvailability(
+            ORGANIZATION_REFERENCE, ADMINISTRATOR_REFERENCE, UserAvailability.AVAILABLE
+        );
+        userDirectory.setAvailability(
+            ORGANIZATION_REFERENCE, MANAGER_REFERENCE, UserAvailability.AVAILABLE
+        );
 
         responsibleUsers.assignAdministrator(command(ADMINISTRATOR_REFERENCE));
-        Organization result = responsibleUsers.assignManager(
-            command(MANAGER_REFERENCE)
+        OrganizationException exception = assertThrows(
+            OrganizationException.class,
+            () -> responsibleUsers.assignManager(command(MANAGER_REFERENCE))
         );
 
-        assertEquals(OrganizationStatus.ACTIVE, result.getStatus());
         assertEquals(
-            OrganizationStatus.ACTIVE,
-            findStoredOrganization().getStatus()
+            OrganizationErrorCode.LIFECYCLE_TRANSITION_DEFERRED,
+            exception.getErrorCode()
         );
+        assertEquals(OrganizationStatus.CREATING, findStoredOrganization().getStatus());
+        assertEquals(ADMINISTRATOR_REFERENCE, findStoredOrganization().getAdminReference());
+        assertNull(findStoredOrganization().getManagerReference());
     }
 
     @Test
-    void assignsPendingManagerWithoutActivatingTheOrganization() {
-        givenOrganization(creatingOrganizationWithAdministrator());
-        when(userDirectory.check(
+    void refusesToReactivateASuspendedOrganizationByAssigningItsMissingManager() {
+        Organization suspended = Organization.restore(
             ORGANIZATION_REFERENCE,
-            MANAGER_REFERENCE
-        )).thenReturn(UserAvailability.PENDING);
-
-        Organization result = responsibleUsers.assignManager(
-            command(MANAGER_REFERENCE)
+            "TeamPulse",
+            "UTC",
+            ADMINISTRATOR_REFERENCE,
+            null,
+            OrganizationStatus.SUSPENDED
+        );
+        inTransactionTemplate(() -> {
+            jpaRepository.deleteAllInBatch();
+            organizationRepository.create(suspended);
+        });
+        userDirectory.setAvailability(
+            ORGANIZATION_REFERENCE, ADMINISTRATOR_REFERENCE, UserAvailability.AVAILABLE
+        );
+        userDirectory.setAvailability(
+            ORGANIZATION_REFERENCE, MANAGER_REFERENCE, UserAvailability.AVAILABLE
         );
 
-        assertEquals(OrganizationStatus.CREATING, result.getStatus());
+        OrganizationException exception = assertThrows(
+            OrganizationException.class,
+            () -> responsibleUsers.assignManager(command(MANAGER_REFERENCE))
+        );
+
         assertEquals(
-            OrganizationStatus.CREATING,
+            OrganizationErrorCode.LIFECYCLE_TRANSITION_DEFERRED,
+            exception.getErrorCode()
+        );
+        assertEquals(
+            OrganizationStatus.SUSPENDED,
             findStoredOrganization().getStatus()
         );
+        assertNull(findStoredOrganization().getManagerReference());
+    }
+
+    @Test
+    void refusesPendingManagerWithoutChangingThePersistedOrganization() {
+        givenOrganization(creatingOrganizationWithAdministrator());
+        userDirectory.setAvailability(
+            ORGANIZATION_REFERENCE, MANAGER_REFERENCE, UserAvailability.PENDING
+        );
+        OrganizationEntity before = findStoredOrganization();
+
+        OrganizationException exception = assertThrows(
+            OrganizationException.class,
+            () -> responsibleUsers.assignManager(command(MANAGER_REFERENCE))
+        );
+
+        assertEquals(OrganizationErrorCode.MANAGER_NOT_AVAILABLE, exception.getErrorCode());
+        OrganizationEntity after = findStoredOrganization();
+        assertEquals(before.getVersion(), after.getVersion());
+        assertEquals(before.getStatus(), after.getStatus());
+        assertEquals(before.getAdminReference(), after.getAdminReference());
+        assertEquals(before.getManagerReference(), after.getManagerReference());
     }
 
     @Test
     void replacesManagerWithoutChangingTheOrganizationStatus() {
         givenOrganization(activeOrganization());
-        when(userDirectory.check(
-            ORGANIZATION_REFERENCE,
-            OTHER_MANAGER_REFERENCE
-        )).thenReturn(UserAvailability.AVAILABLE);
+        userDirectory.setAvailability(
+            ORGANIZATION_REFERENCE, OTHER_MANAGER_REFERENCE, UserAvailability.AVAILABLE
+        );
 
         Organization result = responsibleUsers.replaceManager(
             command(OTHER_MANAGER_REFERENCE)

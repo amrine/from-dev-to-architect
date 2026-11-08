@@ -1,8 +1,8 @@
 package io.teampulse.identity.infrastructure.web.user;
 
 import io.teampulse.common.error.ApiError;
-import io.teampulse.identity.AbstractIdentityIT;
-import io.teampulse.identity.IdentityTestApplication.DeterministicTenantContextProvider;
+import io.teampulse.identity.AbstractIdentityMvcIT;
+import io.teampulse.identity.fixture.DeterministicTenantContextProvider;
 import io.teampulse.identity.api.lifecycle.UserProvisioningCommand;
 import io.teampulse.identity.application.port.out.user.UserRepository;
 import io.teampulse.identity.domain.user.model.User;
@@ -13,6 +13,9 @@ import io.teampulse.identity.infrastructure.persistence.repository.JpaUserReposi
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.config.YamlPropertiesFactoryBean;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.event.ApplicationEvents;
 import org.springframework.test.context.event.RecordApplicationEvents;
@@ -22,16 +25,23 @@ import java.util.List;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @RecordApplicationEvents
-class UserControllerIT extends AbstractIdentityIT {
+class UserControllerIT extends AbstractIdentityMvcIT {
 
     private static final String TENANT_REFERENCE = "ORG-2026-0908-00000ZA7B900";
     private static final String OTHER_TENANT_REFERENCE = "ORG-2026-0908-00000ZA7B901";
+
+    @Value("${teampulse.test.product-version}")
+    private String expectedApiVersion;
+
+    @Value("${teampulse.test.openapi-file}")
+    private String generatedOpenApiFile;
 
     @Inject
     private DeterministicTenantContextProvider tenantContextProvider;
@@ -184,6 +194,26 @@ class UserControllerIT extends AbstractIdentityIT {
 
         assertEquals(0, tenantContextProvider.calls());
         assertEquals(0L, jpaUserRepository.count());
+    }
+
+    @Test
+    void documentsTheMavenProductVersionAndRelativeServerUrl() throws Exception {
+        mockMvc.perform(get("/v3/api-docs"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.info.version").value(expectedApiVersion))
+            .andExpect(jsonPath("$.servers[0].url").value("/"));
+    }
+
+    @Test
+    void exportsTheMavenProductVersionInTheGeneratedContract() {
+        var yaml = new YamlPropertiesFactoryBean();
+        yaml.setResources(new FileSystemResource(generatedOpenApiFile));
+        var contract = yaml.getObject();
+
+        assertNotNull(contract);
+        assertEquals("TeamPulse Identity API", contract.getProperty("info.title"));
+        assertEquals(expectedApiVersion, contract.getProperty("info.version"));
+        assertEquals("/", contract.getProperty("servers[0].url"));
     }
 
     private UserEntity persisted(String tenant, String reference) {

@@ -117,6 +117,24 @@ class JpaOrganizationRepositoryAdapterTest {
         assertSame(persistenceFailure, exception.getCause());
     }
 
+    @Test
+    void refusesUpdatingAnAbsentOrganizationWithoutSaving() {
+        when(jpaRepository.findByReference(ORGANIZATION_REFERENCE)).thenReturn(Optional.empty());
+        var failure = assertThrows(OrganizationException.class, () -> adapter.update(organization()));
+        assertEquals(OrganizationErrorCode.NOT_FOUND, failure.getErrorCode());
+        verify(jpaRepository).findByReference(ORGANIZATION_REFERENCE);
+        verifyNoMoreInteractions(jpaRepository);
+    }
+
+    @Test
+    void preservesUnknownConstraintFailuresDuringUpdate() {
+        var entity = new OrganizationEntity();
+        var failure = constraintViolation("unknown_constraint");
+        when(jpaRepository.findByReference(ORGANIZATION_REFERENCE)).thenReturn(Optional.of(entity));
+        when(jpaRepository.saveAndFlush(entity)).thenThrow(failure);
+        assertSame(failure, assertThrows(DataIntegrityViolationException.class, () -> adapter.update(organization())));
+    }
+
     private static Stream<Arguments> optimisticLockFailures() {
         return Stream.of(
             Arguments.of(new OptimisticLockException("Stale organization")),

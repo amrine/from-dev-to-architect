@@ -162,6 +162,15 @@
         <pluginManagement>
             <plugins>
                 <plugin>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-maven-plugin</artifactId>
+                    <configuration>
+                        <systemPropertyVariables>
+                            <teampulse.openapi.info-version>${project.version}</teampulse.openapi.info-version>
+                        </systemPropertyVariables>
+                    </configuration>
+                </plugin>
+                <plugin>
                     <groupId>org.springdoc</groupId>
                     <artifactId>springdoc-openapi-maven-plugin</artifactId>
                     <version>${springdoc-openapi-maven-plugin.version}</version>
@@ -235,6 +244,11 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
+                    <systemPropertyVariables>
+                        <teampulse.openapi.info-version>${project.version}</teampulse.openapi.info-version>
+                        <teampulse.test.product-version>${project.version}</teampulse.test.product-version>
+                        <teampulse.test.openapi-file>${project.build.directory}/openapi.yaml</teampulse.test.openapi-file>
+                    </systemPropertyVariables>
                     <includes>
                         <include>**/*Test.java</include>
                         <include>**/*Tests.java</include>

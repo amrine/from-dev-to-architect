@@ -20,10 +20,24 @@ public enum OrganizationStatus {
             ARCHIVED, EnumSet.noneOf(OrganizationStatus.class)
         );
 
+    /**
+     * Checks the lifecycle transition table without changing state.
+     *
+     * @param target proposed target status, possibly null
+     * @return true only for a non-null target allowed from this status
+     */
     private boolean canTransitionTo(OrganizationStatus target) {
         return target != null && ALLOWED_TRANSITIONS.get(this).contains(target);
     }
 
+    /**
+     * Requires a transition allowed by the lifecycle table.
+     * Responsible-user invariants are checked separately by the organization model.
+     *
+     * @param target proposed target status
+     * @throws OrganizationException with {@code INVALID_STATUS_TRANSITION} if
+     *         the transition is forbidden, including a null target
+     */
     public void validateTransitionTo(OrganizationStatus target) {
         if (!canTransitionTo(target)) {
             throw new OrganizationException(
