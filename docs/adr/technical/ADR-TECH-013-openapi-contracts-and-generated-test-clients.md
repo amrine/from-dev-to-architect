@@ -1,7 +1,8 @@
 # ADR-TECH-013 — OpenAPI contracts and generated clients
 
 ## Status
-Draft
+
+Accepted
 
 ## Linked ticket
 

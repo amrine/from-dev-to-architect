@@ -1,7 +1,8 @@
 # ADR-TECH-015 — Shared Spring HTTP error support
 
 ## Status
-Draft
+
+Accepted
 
 ## Context
 HTTP error serialization and framework-level handling are repeated across
