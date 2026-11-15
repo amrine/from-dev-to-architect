@@ -1,10 +1,10 @@
-package io.teampulse.team.application.service.team;
+package io.teampulse.team.application.service.teammember;
 
 import io.teampulse.identity.api.user.UserAvailability;
 import io.teampulse.identity.api.user.UserDirectory;
 import io.teampulse.identity.api.user.UserDirectoryException;
-import io.teampulse.team.domain.team.error.TeamErrorCode;
-import io.teampulse.team.domain.team.error.TeamException;
+import io.teampulse.team.domain.team.error.TeamMemberErrorCode;
+import io.teampulse.team.domain.team.error.TeamMemberException;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
@@ -32,8 +32,8 @@ public class TeamMemberUserAvailabilityValidator {
         try {
             return userDirectory.check(organizationReference, userReference);
         } catch (UserDirectoryException exception) {
-            throw new TeamException(
-                    TeamErrorCode.USER_DIRECTORY_UNAVAILABLE, "Unable to validate team member user", exception);
+            throw new TeamMemberException(
+                    TeamMemberErrorCode.USER_DIRECTORY_UNAVAILABLE, "Unable to validate team member user", exception);
         }
     }
 
@@ -44,12 +44,14 @@ public class TeamMemberUserAvailabilityValidator {
                 if (pendingAllowed) {
                     return;
                 }
-                throw new TeamException(TeamErrorCode.MEMBER_USER_NOT_AVAILABLE, "Team member user is not available");
+                throw new TeamMemberException(
+                        TeamMemberErrorCode.USER_NOT_AVAILABLE, "Team member user is not available");
             }
             case NOT_FOUND ->
-                throw new TeamException(TeamErrorCode.MEMBER_USER_NOT_FOUND, "Team member user was not found");
+                throw new TeamMemberException(TeamMemberErrorCode.USER_NOT_FOUND, "Team member user was not found");
             case UNAVAILABLE ->
-                throw new TeamException(TeamErrorCode.MEMBER_USER_NOT_AVAILABLE, "Team member user is not available");
+                throw new TeamMemberException(
+                        TeamMemberErrorCode.USER_NOT_AVAILABLE, "Team member user is not available");
         }
     }
 }

@@ -2,8 +2,8 @@ package io.teampulse.team.infrastructure.persistence.repository;
 
 import io.teampulse.common.persistence.ConstraintNameExtractor;
 import io.teampulse.team.application.port.out.team.TeamMemberRepository;
-import io.teampulse.team.domain.team.error.TeamErrorCode;
-import io.teampulse.team.domain.team.error.TeamException;
+import io.teampulse.team.domain.team.error.TeamMemberErrorCode;
+import io.teampulse.team.domain.team.error.TeamMemberException;
 import io.teampulse.team.domain.team.model.TeamMember;
 import io.teampulse.team.domain.team.model.TeamMemberStatus;
 import io.teampulse.team.infrastructure.persistence.entity.TeamMemberEntity;
@@ -51,13 +51,14 @@ public class JpaTeamMemberRepositoryAdapter implements TeamMemberRepository {
                             teamMember.getOrganizationReference(),
                             teamMember.getTeamId(),
                             teamMember.getUserReference())
-                    .orElseThrow(() -> new TeamException(TeamErrorCode.MEMBER_NOT_FOUND, "Team member was not found"));
+                    .orElseThrow(
+                            () -> new TeamMemberException(TeamMemberErrorCode.NOT_FOUND, "Team member was not found"));
 
             teamMemberPersistenceMapper.updateEntity(entity, teamMember);
             return teamMemberPersistenceMapper.toDomain(jpaTeamMemberRepository.saveAndFlush(entity));
         } catch (OptimisticLockingFailureException | OptimisticLockException exception) {
-            throw new TeamException(
-                    TeamErrorCode.CONCURRENT_MODIFICATION, "Team member was modified concurrently", exception);
+            throw new TeamMemberException(
+                    TeamMemberErrorCode.CONCURRENT_MODIFICATION, "Team member was modified concurrently", exception);
         } catch (DataIntegrityViolationException | PersistenceException exception) {
             throw translatePersistenceException(exception);
         }
@@ -75,8 +76,8 @@ public class JpaTeamMemberRepositoryAdapter implements TeamMemberRepository {
         return ConstraintNameExtractor.extract(
                         exception, ConstraintViolationException.class, ConstraintViolationException::getConstraintName)
                 .filter(CURRENT_MEMBER_UNIQUE_CONSTRAINT::equals)
-                .<RuntimeException>map(_ -> new TeamException(
-                        TeamErrorCode.MEMBER_ALREADY_EXISTS, "Current team membership already exists", exception))
+                .<RuntimeException>map(_ -> new TeamMemberException(
+                        TeamMemberErrorCode.ALREADY_EXISTS, "Current team membership already exists", exception))
                 .orElse(exception);
     }
 }

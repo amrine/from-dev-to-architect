@@ -1,4 +1,4 @@
-package io.teampulse.team.application.port.in.team;
+package io.teampulse.team.application.port.in.teammember;
 
 import io.teampulse.common.context.TenantContext;
 import io.teampulse.team.domain.team.model.TeamMember;

@@ -2,7 +2,7 @@ package io.teampulse.identity.infrastructure.web.user;
 
 import io.teampulse.common.error.ApiError;
 import io.teampulse.identity.AbstractIdentityMvcIT;
-import io.teampulse.identity.fixture.DeterministicTenantContextProvider;
+import io.teampulse.testsupport.context.DeterministicTenantContextProvider;
 import io.teampulse.identity.api.lifecycle.UserProvisioningCommand;
 import io.teampulse.identity.application.port.out.user.UserRepository;
 import io.teampulse.identity.domain.user.model.User;

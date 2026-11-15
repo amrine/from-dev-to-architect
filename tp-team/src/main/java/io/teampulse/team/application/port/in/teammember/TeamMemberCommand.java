@@ -1,4 +1,4 @@
-package io.teampulse.team.application.port.in.team;
+package io.teampulse.team.application.port.in.teammember;
 
 import jakarta.validation.constraints.NotBlank;
 

@@ -1,36 +1,41 @@
 package io.teampulse.team;
 
-import io.teampulse.common.reference.MonotonicReferenceFactory;
-import io.teampulse.common.reference.ReferenceFactory;
+import io.teampulse.common.context.TenantContext;
 import io.teampulse.identity.api.user.UserAvailability;
 import io.teampulse.identity.api.user.UserDirectory;
 import io.teampulse.organization.api.organization.OrganizationAvailability;
 import io.teampulse.organization.api.organization.OrganizationDirectory;
 import io.teampulse.organization.api.organization.OrganizationResponsibilities;
+import io.teampulse.testsupport.context.DeterministicTenantContextProviderTestConfiguration;
+import io.teampulse.testsupport.persistence.PersistenceIntegrationTestConfiguration;
+import io.teampulse.testsupport.reference.ReferenceFactoryTestConfiguration;
 
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.SpringApplication;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 
-import java.time.Clock;
-import java.time.Instant;
-import java.time.ZoneOffset;
 import java.util.Optional;
 
 @TestConfiguration
 @SpringBootApplication
+@Import({
+    PersistenceIntegrationTestConfiguration.class,
+    DeterministicTenantContextProviderTestConfiguration.class,
+    ReferenceFactoryTestConfiguration.class
+})
 public class TeamTestApplication {
 
-    private static final Instant FIXED_INSTANT = Instant.parse("2026-09-16T08:30:00Z");
+    private static final TenantContext TEST_TENANT = new TenantContext("ORG-2026-0916-00000ZA7B950");
 
-    @Bean
-    Clock teamClock() {
-        return Clock.fixed(FIXED_INSTANT, ZoneOffset.UTC);
+    public static void main(String[] args) {
+        SpringApplication.run(TeamTestApplication.class, args);
     }
 
     @Bean
-    ReferenceFactory referenceFactory(Clock teamClock) {
-        return new MonotonicReferenceFactory(teamClock);
+    TenantContext testTenantContext() {
+        return TEST_TENANT;
     }
 
     @Bean

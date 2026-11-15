@@ -1,8 +1,8 @@
 package io.teampulse.team.infrastructure.persistence.repository;
 
-import io.teampulse.team.AbstractIT;
-import io.teampulse.team.domain.team.error.TeamErrorCode;
-import io.teampulse.team.domain.team.error.TeamException;
+import io.teampulse.team.AbstractTeamJpaIT;
+import io.teampulse.team.domain.team.error.TeamMemberErrorCode;
+import io.teampulse.team.domain.team.error.TeamMemberException;
 import io.teampulse.team.domain.team.model.Team;
 import io.teampulse.team.domain.team.model.TeamMember;
 import io.teampulse.team.domain.team.model.TeamMemberStatus;
@@ -26,7 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class JpaTeamMemberRepositoryAdapterIT extends AbstractIT {
+class JpaTeamMemberRepositoryAdapterIT extends AbstractTeamJpaIT {
 
     private static final String ORGANIZATION_A = "ORG-2026-0916-00000ZA7B900";
     private static final String ORGANIZATION_B = "ORG-2026-0916-00000ZA7B901";
@@ -116,11 +116,11 @@ class JpaTeamMemberRepositoryAdapterIT extends AbstractIT {
         Team team = teamRepository.create(newTeam());
         teamMemberRepository.create(TeamMember.invite(ORGANIZATION_A, team.getId(), USER_REFERENCE));
 
-        TeamException exception = assertThrows(
-                TeamException.class,
+        TeamMemberException exception = assertThrows(
+                TeamMemberException.class,
                 () -> teamMemberRepository.create(TeamMember.invite(ORGANIZATION_A, team.getId(), USER_REFERENCE)));
 
-        assertEquals(TeamErrorCode.MEMBER_ALREADY_EXISTS, exception.getErrorCode());
+        assertEquals(TeamMemberErrorCode.ALREADY_EXISTS, exception.getErrorCode());
         assertEquals(1L, jpaTeamMemberRepository.count());
     }
 
@@ -163,8 +163,8 @@ class JpaTeamMemberRepositoryAdapterIT extends AbstractIT {
                 new TransactionTemplate(transactionTemplate.getTransactionManager());
         independentTransaction.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
 
-        TeamException exception = assertThrows(
-                TeamException.class,
+        TeamMemberException exception = assertThrows(
+                TeamMemberException.class,
                 () -> transactionTemplate.executeWithoutResult(ignored -> {
                     TeamMemberEntity staleEntity = findEntity(member.getId());
 
@@ -184,7 +184,7 @@ class JpaTeamMemberRepositoryAdapterIT extends AbstractIT {
                             null));
                 }));
 
-        assertEquals(TeamErrorCode.CONCURRENT_MODIFICATION, exception.getErrorCode());
+        assertEquals(TeamMemberErrorCode.CONCURRENT_MODIFICATION, exception.getErrorCode());
         assertInstanceOf(OptimisticLockingFailureException.class, exception.getCause());
         TeamMemberEntity committedEntity = findEntity(member.getId());
         assertEquals(TeamMemberStatus.SUSPENDED, committedEntity.getStatus());
