@@ -1,12 +1,15 @@
-package io.teampulse.team.application.service.team;
+package io.teampulse.team.application.service.teammember;
 
 import io.teampulse.common.context.TenantContext;
-import io.teampulse.team.application.port.in.team.TeamMemberCommand;
-import io.teampulse.team.application.port.in.team.TeamMembershipUseCase;
+import io.teampulse.team.application.port.in.teammember.TeamMemberCommand;
+import io.teampulse.team.application.port.in.teammember.TeamMembershipUseCase;
 import io.teampulse.team.application.port.out.team.TeamMemberRepository;
 import io.teampulse.team.application.port.out.team.TeamRepository;
+import io.teampulse.team.application.service.team.TeamOrganizationAvailabilityValidator;
 import io.teampulse.team.domain.team.error.TeamErrorCode;
 import io.teampulse.team.domain.team.error.TeamException;
+import io.teampulse.team.domain.team.error.TeamMemberErrorCode;
+import io.teampulse.team.domain.team.error.TeamMemberException;
 import io.teampulse.team.domain.team.model.Team;
 import io.teampulse.team.domain.team.model.TeamMember;
 import io.teampulse.team.domain.team.model.TeamStatus;
@@ -123,14 +126,14 @@ public class TeamMembershipService implements TeamMembershipUseCase {
     private TeamMember findCurrentMembership(Team team, String userReference) {
         return teamMemberRepository
                 .findCurrent(team.getOrganizationReference(), team.getId(), userReference)
-                .orElseThrow(() -> new TeamException(TeamErrorCode.MEMBER_NOT_FOUND, "Team member was not found"));
+                .orElseThrow(() -> new TeamMemberException(TeamMemberErrorCode.NOT_FOUND, "Team member was not found"));
     }
 
     private void ensureNoCurrentMembership(Team team, String userReference) {
         if (teamMemberRepository
                 .findCurrent(team.getOrganizationReference(), team.getId(), userReference)
                 .isPresent()) {
-            throw new TeamException(TeamErrorCode.MEMBER_ALREADY_EXISTS, "Team member already exists");
+            throw new TeamMemberException(TeamMemberErrorCode.ALREADY_EXISTS, "Team member already exists");
         }
     }
 

@@ -7,6 +7,7 @@ import io.teampulse.team.domain.team.error.TeamErrorCode;
 import io.teampulse.team.domain.team.error.TeamException;
 import io.teampulse.team.domain.team.model.Team;
 import io.teampulse.team.domain.team.model.TeamStatus;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -45,160 +46,180 @@ class TeamResponsibleUsersServiceTest {
     @InjectMocks
     private TeamResponsibleUsersService service;
 
-    @Test
-    void replacesTheAdministratorWithoutChangingTheTeamStatus() {
-        Team team = activeTeam();
-        givenTeam(team);
-        when(teamRepository.update(team)).thenReturn(team);
-        ArgumentCaptor<Team> teamCaptor = ArgumentCaptor.forClass(Team.class);
+    @Nested
+    class ReplaceAdministrator {
 
-        Team result = service.replaceAdministrator(
-                tenantContext(), new TeamResponsibleCommand(TEAM_REFERENCE, REPLACEMENT_REFERENCE));
+        @Test
+        void replacesTheAdministratorWithoutChangingOtherTeamState() {
+            Team team = activeTeam();
+            givenTeam(team);
+            when(teamRepository.update(team)).thenReturn(team);
+            ArgumentCaptor<Team> teamCaptor = ArgumentCaptor.forClass(Team.class);
 
-        verify(teamRepository).update(teamCaptor.capture());
-        assertSame(team, result);
-        assertEquals(REPLACEMENT_REFERENCE, teamCaptor.getValue().getAdminReference());
-        assertEquals(MANAGER_REFERENCE, teamCaptor.getValue().getManagerReference());
-        assertEquals(TeamStatus.ACTIVE, teamCaptor.getValue().getStatus());
-        verify(responsibleUsersValidator)
-                .validateOperationalAdministrator(ORGANIZATION_REFERENCE, REPLACEMENT_REFERENCE);
+            Team result = service.replaceAdministrator(tenantContext(), command(REPLACEMENT_REFERENCE));
+
+            verify(teamRepository).update(teamCaptor.capture());
+            assertSame(team, result);
+            assertEquals(REPLACEMENT_REFERENCE, teamCaptor.getValue().getAdminReference());
+            assertEquals(MANAGER_REFERENCE, teamCaptor.getValue().getManagerReference());
+            assertEquals(TeamStatus.ACTIVE, teamCaptor.getValue().getStatus());
+            verify(responsibleUsersValidator)
+                    .validateOperationalAdministrator(ORGANIZATION_REFERENCE, REPLACEMENT_REFERENCE);
+        }
+
+        @Test
+        void stopsWhenTheReplacementAdministratorIsRejected() {
+            Team team = activeTeam();
+            givenTeam(team);
+            TeamException failure =
+                    new TeamException(TeamErrorCode.ADMINISTRATOR_NOT_AVAILABLE, "Team administrator is not available");
+            doThrow(failure)
+                    .when(responsibleUsersValidator)
+                    .validateOperationalAdministrator(ORGANIZATION_REFERENCE, REPLACEMENT_REFERENCE);
+
+            TeamException exception = assertThrows(
+                    TeamException.class,
+                    () -> service.replaceAdministrator(tenantContext(), command(REPLACEMENT_REFERENCE)));
+
+            assertSame(failure, exception);
+            assertEquals(ADMINISTRATOR_REFERENCE, team.getAdminReference());
+            verify(teamRepository, never()).update(any(Team.class));
+        }
+
+        @Test
+        void returnsTheSameTeamWithoutDirectoryLookupWhenTheAdministratorIsUnchanged() {
+            Team team = activeTeam();
+            givenTeam(team);
+
+            Team result = service.replaceAdministrator(tenantContext(), command(ADMINISTRATOR_REFERENCE));
+
+            assertSame(team, result);
+            verifyNoInteractions(responsibleUsersValidator);
+            verify(teamRepository, never()).update(any(Team.class));
+        }
+
+        @Test
+        void rejectsReplacementOnAnArchivedTeamBeforeCheckingTheUser() {
+            givenTeam(archivedTeam());
+
+            TeamException exception = assertThrows(
+                    TeamException.class,
+                    () -> service.replaceAdministrator(tenantContext(), command(REPLACEMENT_REFERENCE)));
+
+            assertEquals(TeamErrorCode.INVALID_STATUS_TRANSITION, exception.getErrorCode());
+            verifyNoInteractions(responsibleUsersValidator);
+            verify(teamRepository, never()).update(any(Team.class));
+        }
+
+        @Test
+        void reportsWhenTheTeamIsMissingFromTheCurrentTenant() {
+            givenTeamNotFound();
+
+            TeamException exception = assertThrows(
+                    TeamException.class,
+                    () -> service.replaceAdministrator(tenantContext(), command(REPLACEMENT_REFERENCE)));
+
+            assertEquals(TeamErrorCode.NOT_FOUND, exception.getErrorCode());
+            verifyNoInteractions(responsibleUsersValidator);
+            verify(teamRepository, never()).update(any(Team.class));
+        }
     }
 
-    @Test
-    void replacesTheManagerWithoutChangingTheTeamStatus() {
-        Team team = suspendedTeam();
-        givenTeam(team);
-        when(teamRepository.update(team)).thenReturn(team);
+    @Nested
+    class ReplaceManager {
 
-        Team result = service.replaceManager(
-                tenantContext(), new TeamResponsibleCommand(TEAM_REFERENCE, REPLACEMENT_REFERENCE));
+        @Test
+        void replacesTheManagerWithoutChangingOtherTeamState() {
+            Team team = suspendedTeam();
+            givenTeam(team);
+            when(teamRepository.update(team)).thenReturn(team);
 
-        assertSame(team, result);
-        assertEquals(ADMINISTRATOR_REFERENCE, team.getAdminReference());
-        assertEquals(REPLACEMENT_REFERENCE, team.getManagerReference());
-        assertEquals(TeamStatus.SUSPENDED, team.getStatus());
-        verify(responsibleUsersValidator).validateOperationalManager(ORGANIZATION_REFERENCE, REPLACEMENT_REFERENCE);
-        verify(teamRepository).update(team);
+            Team result = service.replaceManager(tenantContext(), command(REPLACEMENT_REFERENCE));
+
+            assertSame(team, result);
+            assertEquals(ADMINISTRATOR_REFERENCE, team.getAdminReference());
+            assertEquals(REPLACEMENT_REFERENCE, team.getManagerReference());
+            assertEquals(TeamStatus.SUSPENDED, team.getStatus());
+            verify(responsibleUsersValidator).validateOperationalManager(ORGANIZATION_REFERENCE, REPLACEMENT_REFERENCE);
+            verify(teamRepository).update(team);
+        }
+
+        @Test
+        void stopsWhenTheReplacementManagerIsRejected() {
+            Team team = activeTeam();
+            givenTeam(team);
+            TeamException failure =
+                    new TeamException(TeamErrorCode.MANAGER_NOT_AVAILABLE, "Team manager is not available");
+            doThrow(failure)
+                    .when(responsibleUsersValidator)
+                    .validateOperationalManager(ORGANIZATION_REFERENCE, REPLACEMENT_REFERENCE);
+
+            TeamException exception = assertThrows(
+                    TeamException.class, () -> service.replaceManager(tenantContext(), command(REPLACEMENT_REFERENCE)));
+
+            assertSame(failure, exception);
+            assertEquals(MANAGER_REFERENCE, team.getManagerReference());
+            verify(teamRepository, never()).update(any(Team.class));
+        }
+
+        @Test
+        void returnsTheSameTeamWithoutDirectoryLookupWhenTheManagerIsUnchanged() {
+            Team team = suspendedTeam();
+            givenTeam(team);
+
+            Team result = service.replaceManager(tenantContext(), command(MANAGER_REFERENCE));
+
+            assertSame(team, result);
+            verifyNoInteractions(responsibleUsersValidator);
+            verify(teamRepository, never()).update(any(Team.class));
+        }
+
+        @Test
+        void rejectsReplacementOnAnArchivedTeamBeforeCheckingTheUser() {
+            givenTeam(archivedTeam());
+
+            TeamException exception = assertThrows(
+                    TeamException.class, () -> service.replaceManager(tenantContext(), command(REPLACEMENT_REFERENCE)));
+
+            assertEquals(TeamErrorCode.INVALID_STATUS_TRANSITION, exception.getErrorCode());
+            verifyNoInteractions(responsibleUsersValidator);
+            verify(teamRepository, never()).update(any(Team.class));
+        }
+
+        @Test
+        void reportsWhenTheTeamIsMissingFromTheCurrentTenant() {
+            givenTeamNotFound();
+
+            TeamException exception = assertThrows(
+                    TeamException.class, () -> service.replaceManager(tenantContext(), command(REPLACEMENT_REFERENCE)));
+
+            assertEquals(TeamErrorCode.NOT_FOUND, exception.getErrorCode());
+            verifyNoInteractions(responsibleUsersValidator);
+            verify(teamRepository, never()).update(any(Team.class));
+        }
     }
 
-    @Test
-    void doesNotWriteWhenTheNewAdministratorIsRejected() {
-        Team team = activeTeam();
-        givenTeam(team);
-        TeamException validationFailure =
-                new TeamException(TeamErrorCode.ADMINISTRATOR_NOT_AVAILABLE, "Team administrator is not available");
-        doThrow(validationFailure)
-                .when(responsibleUsersValidator)
-                .validateOperationalAdministrator(ORGANIZATION_REFERENCE, REPLACEMENT_REFERENCE);
-
-        TeamException exception = assertThrows(
-                TeamException.class,
-                () -> service.replaceAdministrator(
-                        tenantContext(), new TeamResponsibleCommand(TEAM_REFERENCE, REPLACEMENT_REFERENCE)));
-
-        assertSame(validationFailure, exception);
-        assertEquals(ADMINISTRATOR_REFERENCE, team.getAdminReference());
-        verify(teamRepository, never()).update(any(Team.class));
-    }
-
-    @Test
-    void returnsAnUnchangedTeamWithoutDirectoryLookupWhenTheAdministratorIsUnchanged() {
-        Team team = activeTeam();
-        givenTeam(team);
-
-        Team result = service.replaceAdministrator(
-                tenantContext(), new TeamResponsibleCommand(TEAM_REFERENCE, ADMINISTRATOR_REFERENCE));
-
-        assertSame(team, result);
-        verifyNoInteractions(responsibleUsersValidator);
-        verify(teamRepository, never()).update(any(Team.class));
-    }
-
-    @Test
-    void returnsAnUnchangedTeamWithoutDirectoryLookupWhenTheManagerIsUnchanged() {
-        Team team = suspendedTeam();
-        givenTeam(team);
-
-        Team result =
-                service.replaceManager(tenantContext(), new TeamResponsibleCommand(TEAM_REFERENCE, MANAGER_REFERENCE));
-
-        assertSame(team, result);
-        verifyNoInteractions(responsibleUsersValidator);
-        verify(teamRepository, never()).update(any(Team.class));
-    }
-
-    @Test
-    void rejectsTheReplacementWhenTheTeamIsArchived() {
-        Team team = archivedTeam();
-        givenTeam(team);
-
-        TeamException exception = assertThrows(
-                TeamException.class,
-                () -> service.replaceManager(
-                        tenantContext(), new TeamResponsibleCommand(TEAM_REFERENCE, REPLACEMENT_REFERENCE)));
-
-        assertEquals(TeamErrorCode.INVALID_STATUS_TRANSITION, exception.getErrorCode());
-        verifyNoInteractions(responsibleUsersValidator);
-        verify(teamRepository, never()).update(any(Team.class));
-    }
-
-    @Test
-    void rejectsAdministratorReplacementWhenTheTeamIsArchived() {
-        Team team = archivedTeam();
-        givenTeam(team);
-
-        TeamException exception = assertThrows(
-                TeamException.class,
-                () -> service.replaceAdministrator(
-                        tenantContext(), new TeamResponsibleCommand(TEAM_REFERENCE, REPLACEMENT_REFERENCE)));
-
-        assertEquals(TeamErrorCode.INVALID_STATUS_TRANSITION, exception.getErrorCode());
-        verifyNoInteractions(responsibleUsersValidator);
-        verify(teamRepository, never()).update(any(Team.class));
-    }
-
-    @Test
-    void doesNotWriteWhenTheTeamIsMissingFromTheCurrentTenant() {
-        when(teamRepository.findByReference(ORGANIZATION_REFERENCE, TEAM_REFERENCE))
-                .thenReturn(Optional.empty());
-
-        TeamException exception = assertThrows(
-                TeamException.class,
-                () -> service.replaceManager(
-                        tenantContext(), new TeamResponsibleCommand(TEAM_REFERENCE, REPLACEMENT_REFERENCE)));
-
-        assertEquals(TeamErrorCode.NOT_FOUND, exception.getErrorCode());
-        verifyNoInteractions(responsibleUsersValidator);
-        verify(teamRepository, never()).update(any(Team.class));
-    }
-
-    private TenantContext tenantContext() {
+    private static TenantContext tenantContext() {
         return new TenantContext(ORGANIZATION_REFERENCE);
     }
 
-    private Team activeTeam() {
-        return Team.restore(
-                TEAM_ID,
-                TEAM_REFERENCE,
-                ORGANIZATION_REFERENCE,
-                "Platform",
-                ADMINISTRATOR_REFERENCE,
-                MANAGER_REFERENCE,
-                TeamStatus.ACTIVE);
+    private static TeamResponsibleCommand command(String responsibleReference) {
+        return new TeamResponsibleCommand(TEAM_REFERENCE, responsibleReference);
     }
 
-    private Team suspendedTeam() {
-        return Team.restore(
-                TEAM_ID,
-                TEAM_REFERENCE,
-                ORGANIZATION_REFERENCE,
-                "Platform",
-                ADMINISTRATOR_REFERENCE,
-                MANAGER_REFERENCE,
-                TeamStatus.SUSPENDED);
+    private static Team activeTeam() {
+        return team(TeamStatus.ACTIVE);
     }
 
-    private Team archivedTeam() {
+    private static Team suspendedTeam() {
+        return team(TeamStatus.SUSPENDED);
+    }
+
+    private static Team archivedTeam() {
+        return team(TeamStatus.ARCHIVED);
+    }
+
+    private static Team team(TeamStatus status) {
         return Team.restore(
                 TEAM_ID,
                 TEAM_REFERENCE,
@@ -206,11 +227,16 @@ class TeamResponsibleUsersServiceTest {
                 "Platform",
                 ADMINISTRATOR_REFERENCE,
                 MANAGER_REFERENCE,
-                TeamStatus.ARCHIVED);
+                status);
     }
 
     private void givenTeam(Team team) {
         when(teamRepository.findByReference(ORGANIZATION_REFERENCE, TEAM_REFERENCE))
                 .thenReturn(Optional.of(team));
+    }
+
+    private void givenTeamNotFound() {
+        when(teamRepository.findByReference(ORGANIZATION_REFERENCE, TEAM_REFERENCE))
+                .thenReturn(Optional.empty());
     }
 }

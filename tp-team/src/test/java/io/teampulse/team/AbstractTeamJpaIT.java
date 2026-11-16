@@ -8,4 +8,4 @@ import org.springframework.context.annotation.Import;
 
 @SpringBootTest(classes = TeamTestApplication.class, webEnvironment = SpringBootTest.WebEnvironment.NONE)
 @Import({PersistenceIntegrationTestConfiguration.class, JpaTransactionManagerProbeConfiguration.class})
-public abstract class AbstractIT extends AbstractJpaIT {}
+public abstract class AbstractTeamJpaIT extends AbstractJpaIT {}

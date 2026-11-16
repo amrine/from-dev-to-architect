@@ -1,7 +1,7 @@
 package io.teampulse.team.domain.team.model;
 
-import io.teampulse.team.domain.team.error.TeamErrorCode;
-import io.teampulse.team.domain.team.error.TeamException;
+import io.teampulse.team.domain.team.error.TeamMemberErrorCode;
+import io.teampulse.team.domain.team.error.TeamMemberException;
 
 import java.util.EnumSet;
 import java.util.Map;
@@ -24,8 +24,8 @@ public enum TeamMemberStatus {
 
     public void validateTransitionTo(TeamMemberStatus target) {
         if (!canTransitionTo(target)) {
-            throw new TeamException(
-                    TeamErrorCode.INVALID_MEMBER_STATUS_TRANSITION,
+            throw new TeamMemberException(
+                    TeamMemberErrorCode.INVALID_STATUS_TRANSITION,
                     "Transition from %s to %s is not allowed".formatted(this, target));
         }
     }

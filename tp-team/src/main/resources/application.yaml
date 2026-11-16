@@ -1,3 +1,7 @@
 spring:
   application:
     name: tp-team
+
+springdoc:
+  api-docs:
+    enabled: false

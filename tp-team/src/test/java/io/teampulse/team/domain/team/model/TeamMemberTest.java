@@ -1,7 +1,7 @@
 package io.teampulse.team.domain.team.model;
 
-import io.teampulse.team.domain.team.error.TeamErrorCode;
-import io.teampulse.team.domain.team.error.TeamException;
+import io.teampulse.team.domain.team.error.TeamMemberErrorCode;
+import io.teampulse.team.domain.team.error.TeamMemberException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -208,8 +208,8 @@ class TeamMemberTest {
     }
 
     private static void assertInvalidTransition(Runnable action) {
-        TeamException exception = assertThrows(TeamException.class, action::run);
+        TeamMemberException exception = assertThrows(TeamMemberException.class, action::run);
 
-        assertEquals(TeamErrorCode.INVALID_MEMBER_STATUS_TRANSITION, exception.getErrorCode());
+        assertEquals(TeamMemberErrorCode.INVALID_STATUS_TRANSITION, exception.getErrorCode());
     }
 }

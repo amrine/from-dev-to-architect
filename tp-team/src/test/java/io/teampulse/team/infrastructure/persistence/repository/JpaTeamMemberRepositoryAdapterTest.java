@@ -1,7 +1,7 @@
 package io.teampulse.team.infrastructure.persistence.repository;
 
-import io.teampulse.team.domain.team.error.TeamErrorCode;
-import io.teampulse.team.domain.team.error.TeamException;
+import io.teampulse.team.domain.team.error.TeamMemberErrorCode;
+import io.teampulse.team.domain.team.error.TeamMemberException;
 import io.teampulse.team.domain.team.model.TeamMember;
 import io.teampulse.team.domain.team.model.TeamMemberStatus;
 import io.teampulse.team.infrastructure.persistence.entity.TeamMemberEntity;
@@ -56,9 +56,9 @@ class JpaTeamMemberRepositoryAdapterTest {
         when(teamMemberPersistenceMapper.toEntity(teamMember)).thenReturn(entity);
         when(jpaTeamMemberRepository.saveAndFlush(any(TeamMemberEntity.class))).thenThrow(persistenceFailure);
 
-        TeamException exception = assertThrows(TeamException.class, () -> adapter.create(teamMember));
+        TeamMemberException exception = assertThrows(TeamMemberException.class, () -> adapter.create(teamMember));
 
-        assertEquals(TeamErrorCode.MEMBER_ALREADY_EXISTS, exception.getErrorCode());
+        assertEquals(TeamMemberErrorCode.ALREADY_EXISTS, exception.getErrorCode());
         assertSame(persistenceFailure, exception.getCause());
         ArgumentCaptor<TeamMemberEntity> entityCaptor = ArgumentCaptor.forClass(TeamMemberEntity.class);
         verify(jpaTeamMemberRepository, times(1)).saveAndFlush(entityCaptor.capture());
@@ -78,9 +78,9 @@ class JpaTeamMemberRepositoryAdapterTest {
                 .thenReturn(Optional.of(entity));
         when(jpaTeamMemberRepository.saveAndFlush(entity)).thenThrow(persistenceFailure);
 
-        TeamException exception = assertThrows(TeamException.class, () -> adapter.update(teamMember));
+        TeamMemberException exception = assertThrows(TeamMemberException.class, () -> adapter.update(teamMember));
 
-        assertEquals(TeamErrorCode.CONCURRENT_MODIFICATION, exception.getErrorCode());
+        assertEquals(TeamMemberErrorCode.CONCURRENT_MODIFICATION, exception.getErrorCode());
         assertSame(persistenceFailure, exception.getCause());
         verify(teamMemberPersistenceMapper).updateEntity(entity, teamMember);
         verify(jpaTeamMemberRepository).saveAndFlush(entity);

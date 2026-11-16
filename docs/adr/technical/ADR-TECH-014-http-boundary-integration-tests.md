@@ -2,7 +2,7 @@
 
 ## Status
 
-Draft
+Accepted
 
 ## Linked ticket
 
@@ -42,9 +42,11 @@ acceptance boundary.
 - A web slice such as `@WebMvcTest`, or a test that mocks the controller's
   application use case, does not satisfy a required HTTP boundary test.
   Such tests may still cover a focused adapter concern.
-- When an OpenAPI-generated client is part of the project's client strategy,
-  exercise that client in at least one boundary test. Compiling the generated
-  client alone does not prove that it works against the running server.
+- When a module selects a generated OpenAPI client to exercise its HTTP-client
+  boundary, execute at least one call against the running server. Compiling a
+  generated client alone does not prove that it works against the server.
+  Modules that select full-context `MockMvc` explicitly accept that their
+  controller suites do not prove generated-client/server interoperability.
 
 ### Application and persistence path
 
@@ -130,8 +132,10 @@ not depend on HTTP from paying the cost of server startup.
 - When PostgreSQL persistence behavior is in scope, verify that PostgreSQL
   Testcontainers starts, Flyway migrations run, and assertions inspect the
   resulting application state.
-- When an OpenAPI-generated client is adopted, verify that at least one test
-  executes it against the running server.
+- When the generated client is selected as the HTTP-client boundary, verify
+  that at least one test executes it against the running server. For a
+  `MockMvc` boundary, record that generated-client/server interoperability is
+  outside that suite.
 - Assert relevant success and refusal responses, validation and error payloads,
   and persisted effects.
 - Verify that only collaborators outside the tested subsystem are replaced.

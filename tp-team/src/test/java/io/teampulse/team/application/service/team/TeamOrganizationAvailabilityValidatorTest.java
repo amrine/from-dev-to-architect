@@ -5,6 +5,7 @@ import io.teampulse.organization.api.organization.OrganizationDirectory;
 import io.teampulse.organization.api.organization.OrganizationDirectoryException;
 import io.teampulse.team.domain.team.error.TeamErrorCode;
 import io.teampulse.team.domain.team.error.TeamException;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -34,40 +35,44 @@ class TeamOrganizationAvailabilityValidatorTest {
     @InjectMocks
     private TeamOrganizationAvailabilityValidator validator;
 
-    @ParameterizedTest
-    @MethodSource("availabilityMappings")
-    void mapsOrganizationAvailability(OrganizationAvailability availability, TeamErrorCode expectedErrorCode) {
-        when(organizationDirectory.check(ORGANIZATION_REFERENCE)).thenReturn(availability);
+    @Nested
+    class ValidateAvailable {
 
-        if (expectedErrorCode == null) {
-            validator.validateAvailable(ORGANIZATION_REFERENCE);
-        } else {
+        @ParameterizedTest
+        @MethodSource("availabilityMappings")
+        void mapsOrganizationAvailability(OrganizationAvailability availability, TeamErrorCode expectedErrorCode) {
+            when(organizationDirectory.check(ORGANIZATION_REFERENCE)).thenReturn(availability);
+
+            if (expectedErrorCode == null) {
+                validator.validateAvailable(ORGANIZATION_REFERENCE);
+            } else {
+                TeamException exception =
+                        assertThrows(TeamException.class, () -> validator.validateAvailable(ORGANIZATION_REFERENCE));
+
+                assertEquals(expectedErrorCode, exception.getErrorCode());
+            }
+
+            verify(organizationDirectory).check(ORGANIZATION_REFERENCE);
+        }
+
+        @Test
+        void preservesTheCauseWhenTheOrganizationDirectoryCannotBeReached() {
+            OrganizationDirectoryException directoryException =
+                    new OrganizationDirectoryException(new IllegalStateException("Organization unavailable"));
+            when(organizationDirectory.check(ORGANIZATION_REFERENCE)).thenThrow(directoryException);
+
             TeamException exception =
                     assertThrows(TeamException.class, () -> validator.validateAvailable(ORGANIZATION_REFERENCE));
 
-            assertEquals(expectedErrorCode, exception.getErrorCode());
+            assertEquals(TeamErrorCode.ORGANIZATION_DIRECTORY_UNAVAILABLE, exception.getErrorCode());
+            assertSame(directoryException, exception.getCause());
         }
 
-        verify(organizationDirectory).check(ORGANIZATION_REFERENCE);
-    }
-
-    @Test
-    void preservesTheCauseWhenTheOrganizationDirectoryCannotBeReached() {
-        OrganizationDirectoryException directoryException =
-                new OrganizationDirectoryException(new IllegalStateException("Organization unavailable"));
-        when(organizationDirectory.check(ORGANIZATION_REFERENCE)).thenThrow(directoryException);
-
-        TeamException exception =
-                assertThrows(TeamException.class, () -> validator.validateAvailable(ORGANIZATION_REFERENCE));
-
-        assertEquals(TeamErrorCode.ORGANIZATION_DIRECTORY_UNAVAILABLE, exception.getErrorCode());
-        assertSame(directoryException, exception.getCause());
-    }
-
-    private static Stream<Arguments> availabilityMappings() {
-        return Stream.of(
-                Arguments.of(OrganizationAvailability.AVAILABLE, null),
-                Arguments.of(OrganizationAvailability.UNAVAILABLE, TeamErrorCode.ORGANIZATION_UNAVAILABLE),
-                Arguments.of(OrganizationAvailability.NOT_FOUND, TeamErrorCode.ORGANIZATION_NOT_FOUND));
+        private static Stream<Arguments> availabilityMappings() {
+            return Stream.of(
+                    Arguments.of(OrganizationAvailability.AVAILABLE, null),
+                    Arguments.of(OrganizationAvailability.UNAVAILABLE, TeamErrorCode.ORGANIZATION_UNAVAILABLE),
+                    Arguments.of(OrganizationAvailability.NOT_FOUND, TeamErrorCode.ORGANIZATION_NOT_FOUND));
+        }
     }
 }

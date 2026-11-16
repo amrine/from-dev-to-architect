@@ -664,11 +664,12 @@ l'identité issue d'un JWT validé et les contrôles d'autorisation.
 
 Chaque module subdivise sa couche `domain` par domaine fonctionnel. Dans chaque
 sous-domaine, les packages `model` et `error` sont placés au même niveau sous
-`domain.<domaine>`. Le domaine propriétaire possède une enum de codes d'erreur
-stable et une seule exception métier non vérifiée qui transporte obligatoirement
-un code, un message de diagnostic interne et, si nécessaire, une cause. Les
-enums ne portent ni message utilisateur, ni statut HTTP et ne sont pas placées
-dans `tp-common`. L'adapter web du module décidera ultérieurement de leur
+`domain.<domaine>`. Chaque vocabulaire d'erreurs métier cohérent possède une
+enum stable et une exception non vérifiée qui transporte obligatoirement un
+code, un message de diagnostic interne et, si nécessaire, une cause. Deux
+responsabilités distinctes d'un même module peuvent donc posséder leurs propres
+types d'erreur. Les enums ne portent ni message utilisateur, ni statut HTTP et
+ne sont pas placées dans `tp-common`. L'adapter web du module décide de leur
 représentation externe sans exposer directement le message interne de
 l'exception.
 
@@ -683,7 +684,9 @@ io.teampulse.identity.domain.user.error
 
 io.teampulse.team.domain.team.error
 ├── TeamErrorCode
-└── TeamException
+├── TeamException
+├── TeamMemberErrorCode
+└── TeamMemberException
 ```
 
 `OrganizationErrorCode` contient :
@@ -738,19 +741,28 @@ MANAGER_NOT_AVAILABLE
 USER_DIRECTORY_UNAVAILABLE
 INVALID_STATUS_TRANSITION
 TEAM_UNAVAILABLE
-MEMBER_NOT_FOUND
-MEMBER_ALREADY_EXISTS
-MEMBER_USER_NOT_FOUND
-MEMBER_USER_NOT_AVAILABLE
-INVALID_MEMBER_STATUS_TRANSITION
 REFERENCE_GENERATION_FAILED
 CONCURRENT_MODIFICATION
 ```
 
-Les erreurs de `TeamMember` restent dans `TeamErrorCode`, car l'appartenance
-appartient au module `tp-team`. Lorsqu'un utilisateur `AVAILABLE` est exigé,
-`*_NOT_AVAILABLE` regroupe les résultats `PENDING` et `UNAVAILABLE`, tandis que
-`*_NOT_FOUND` reste distinct.
+`TeamMemberErrorCode` contient :
+
+```text
+NOT_FOUND
+ALREADY_EXISTS
+USER_NOT_FOUND
+USER_NOT_AVAILABLE
+USER_DIRECTORY_UNAVAILABLE
+INVALID_STATUS_TRANSITION
+CONCURRENT_MODIFICATION
+```
+
+Les erreurs concernant l'équipe parente (`NOT_FOUND` et `TEAM_UNAVAILABLE`)
+restent dans `TeamErrorCode`, même lorsqu'elles sont rencontrées par un cas
+d'usage d'appartenance. Les erreurs propres à la ligne d'appartenance et à
+l'utilisateur membre utilisent `TeamMemberErrorCode`. Lorsqu'un utilisateur
+`AVAILABLE` est exigé, `USER_NOT_AVAILABLE` regroupe les résultats `PENDING` et
+`UNAVAILABLE`, tandis que `USER_NOT_FOUND` reste distinct.
 
 `ORGANIZATION_UNAVAILABLE` signifie que l'organisation existe mais que son
 statut interdit l'opération. `ORGANIZATION_DIRECTORY_UNAVAILABLE` et
@@ -913,14 +925,14 @@ Les commandes suivantes ont été exécutées avec succès le 16 septembre 2026 
   - Preuve : `TeamTest`, `TeamLifecycleServiceTest`, `TeamResponsibleUsersServiceTest` et `TeamMembershipServiceTest`.
 - [x] `TEAM_UNAVAILABLE` distingue une équipe trouvée mais non opérationnelle de `NOT_FOUND` et d'une transition invalide de `TeamStatus`.
   - Preuve : `TeamLifecycleServiceTest` et `TeamMembershipServiceTest`.
-- [x] `OrganizationErrorCode`, `UserErrorCode` et `TeamErrorCode` contiennent exactement les codes définis par ce besoin et restent dans leurs modules propriétaires.
-  - Preuve : `OrganizationExceptionTest`, `UserLifecycleServiceTest`, `TeamExceptionTest` et `ModulithArchitectureTests`.
-- [x] Les erreurs de `TeamMember` utilisent `TeamErrorCode` et aucune enum métier globale n'est ajoutée à `tp-common`.
-  - Preuve : `JpaTeamMemberRepositoryAdapterTest`, `TeamExceptionTest` et `InternalArchitectureTests`.
+- [x] `OrganizationErrorCode`, `UserErrorCode`, `TeamErrorCode` et `TeamMemberErrorCode` contiennent exactement les codes définis par ce besoin et restent dans leurs modules propriétaires.
+  - Preuve : `OrganizationExceptionTest`, `UserLifecycleServiceTest`, `TeamExceptionTest`, `TeamMemberExceptionTest` et `ModulithArchitectureTests`.
+- [x] Les erreurs d'appartenance utilisent `TeamMemberErrorCode` et `TeamMemberException`, tandis que les erreurs de l'équipe parente utilisent `TeamErrorCode` et `TeamException`; aucune enum métier globale n'est ajoutée à `tp-common`.
+  - Preuve : `JpaTeamMemberRepositoryAdapterTest`, `TeamMembershipServiceTest`, `TeamMemberExceptionTest` et `InternalArchitectureTests`.
 - [x] Les opérations refusées exposent le code correspondant sans dépendre d'un statut HTTP ou d'un message utilisateur.
   - Preuve : tests de domaine `OrganizationTest`, `UserTest`, `TeamTest`, `TeamMemberTest` et tests de services associés.
-- [x] Chaque module possède une seule exception métier interne portant un code obligatoire, un message de diagnostic et une cause facultative.
-  - Preuve : `OrganizationExceptionTest`, `UserLifecycleServiceTest` et `TeamExceptionTest`.
+- [x] Chaque vocabulaire d'erreurs métier cohérent possède une exception non vérifiée portant un code obligatoire, un message de diagnostic et une cause facultative.
+  - Preuve : `OrganizationExceptionTest`, `UserLifecycleServiceTest`, `TeamExceptionTest` et `TeamMemberExceptionTest`.
 - [x] Les résultats métier attendus des APIs `Directory` sont retournés par les enums d'availability ; une panne technique est exposée par l'exception publique du contrat puis traduite par le module consommateur.
   - Preuve : `UserDirectoryServiceTest`, `UserDirectoryServiceIdentityJpaIT`, `OrganizationDirectoryServiceTest` et `OrganizationDirectoryServiceIT`.
 - [x] Aucune exception JPA, Spring ou issue du package `domain.<domaine>.error` d'un autre module ne traverse une dépendance inter-module.
@@ -1085,8 +1097,9 @@ Les commandes suivantes ont été exécutées avec succès le 16 septembre 2026 
   `OrganizationDirectoryException` et implémentation locale dans
   `tp-organization`.
 - Enums et exceptions métier internes `OrganizationErrorCode` /
-  `OrganizationException`, `UserErrorCode` / `UserException` et
-  `TeamErrorCode` / `TeamException` dans leurs modules propriétaires.
+  `OrganizationException`, `UserErrorCode` / `UserException`, `TeamErrorCode` /
+  `TeamException` et `TeamMemberErrorCode` / `TeamMemberException` dans leurs
+  modules propriétaires.
 - Migrations Flyway des tables et contraintes initiales, notamment les
   garanties tenantées et temporelles de `teams` et `team_members`.
 - Tests d'isolation multi-tenant.

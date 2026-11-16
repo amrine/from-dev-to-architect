@@ -1,8 +1,8 @@
 package io.teampulse.team.domain.team.model;
 
 import io.teampulse.common.reference.ReferenceFormat;
-import io.teampulse.team.domain.team.error.TeamErrorCode;
-import io.teampulse.team.domain.team.error.TeamException;
+import io.teampulse.team.domain.team.error.TeamMemberErrorCode;
+import io.teampulse.team.domain.team.error.TeamMemberException;
 import lombok.Getter;
 
 import java.time.Instant;
@@ -101,8 +101,8 @@ public final class TeamMember {
 
     private void validateOperationAllowed(boolean allowed, String operation) {
         if (!allowed) {
-            throw new TeamException(
-                    TeamErrorCode.INVALID_MEMBER_STATUS_TRANSITION,
+            throw new TeamMemberException(
+                    TeamMemberErrorCode.INVALID_STATUS_TRANSITION,
                     "Operation %s is not allowed from status %s".formatted(operation, status));
         }
     }

@@ -1,7 +1,7 @@
 package io.teampulse.team.domain.team.model;
 
-import io.teampulse.team.domain.team.error.TeamErrorCode;
-import io.teampulse.team.domain.team.error.TeamException;
+import io.teampulse.team.domain.team.error.TeamMemberErrorCode;
+import io.teampulse.team.domain.team.error.TeamMemberException;
 import org.junit.jupiter.api.Test;
 
 import java.util.Set;
@@ -33,9 +33,11 @@ class TeamMemberStatusTest {
                 if (ALLOWED_TRANSITIONS.contains(transition)) {
                     assertDoesNotThrow(() -> source.validateTransitionTo(target), transition.toString());
                 } else {
-                    TeamException exception = assertThrows(
-                            TeamException.class, () -> source.validateTransitionTo(target), transition.toString());
-                    assertEquals(TeamErrorCode.INVALID_MEMBER_STATUS_TRANSITION, exception.getErrorCode());
+                    TeamMemberException exception = assertThrows(
+                            TeamMemberException.class,
+                            () -> source.validateTransitionTo(target),
+                            transition.toString());
+                    assertEquals(TeamMemberErrorCode.INVALID_STATUS_TRANSITION, exception.getErrorCode());
                 }
             }
         }
@@ -44,10 +46,10 @@ class TeamMemberStatusTest {
     @Test
     void rejectsNullTargetFromEveryStatus() {
         for (TeamMemberStatus source : TeamMemberStatus.values()) {
-            TeamException exception =
-                    assertThrows(TeamException.class, () -> source.validateTransitionTo(null), source.toString());
+            TeamMemberException exception =
+                    assertThrows(TeamMemberException.class, () -> source.validateTransitionTo(null), source.toString());
 
-            assertEquals(TeamErrorCode.INVALID_MEMBER_STATUS_TRANSITION, exception.getErrorCode());
+            assertEquals(TeamMemberErrorCode.INVALID_STATUS_TRANSITION, exception.getErrorCode());
         }
     }
 

@@ -29,9 +29,9 @@ que les API métier restent dans les modules qui possèdent les données.
 Les capacités T04 ne sont pas encore utilisables via HTTP. Il faut exposer des
 contrats cohérents, exécuter le bootstrap de plateforme sans déplacer la
 propriété métier, garantir les contrôles tenantés et prouver les comportements
-des contrôleurs avec l'application réelle et PostgreSQL. Le besoin de preuve
+des contrôleurs avec l'application complète et PostgreSQL. Le besoin de preuve
 réseau est explicite seulement pour les propriétaires qui adoptent un serveur
-sur port aléatoire.
+sur port aléatoire ; identité, organisation et équipe retiennent `MockMvc`.
 
 ## Objectif
 Exposer les API HTTP des trois modules métier et de l'administration de
@@ -91,11 +91,11 @@ compatible avec l'architecture modulaire.
   pour ses consommateurs et réutilisables par les tests, sans générer deux
   copies. Le code de production du propriétaire ne dépend pas de son propre
   client généré pour appeler ses endpoints ; il utilise ses ports et types
-  serveur. Identité et organisation utilisent `MockMvc` avec l'application
-  complète ; leurs tests
-  n'exercent donc ni le réseau ni le client généré. Les autres tests utilisent
-  le niveau de transport explicité dans l'adoption locale. Toute DSL métier
-  éventuelle reste locale au `src/test` du module. Le support HTTP générique
+  serveur. Identité, organisation et équipe utilisent `MockMvc` avec
+  l'application complète ; leurs tests n'exercent donc ni le réseau ni le client
+  généré. L'administration utilise le niveau de transport explicité dans son
+  adoption locale. Toute DSL métier éventuelle reste locale au `src/test` du
+  module. Le support HTTP générique
   reste dans `tp-test-support` ;
   aucun module autonome `tp-test-clients` n'est créé. Générer chaque contrat
   depuis les contrôleurs, DTO et contraintes de validation du propriétaire avec
@@ -105,14 +105,15 @@ compatible avec l'architecture modulaire.
   DTO de réponse reste un type Java pur dans `tp-common` ; chaque module traduit
   ses propres erreurs métier et codes HTTP.
 - Couvrir les contrôleurs avec l'application Spring et les cas d'usage réels,
-  Flyway et PostgreSQL Testcontainers. Pour identité et organisation, utiliser
-  `MockMvc` avec
+  Flyway et PostgreSQL Testcontainers. Pour identité, organisation et équipe,
+  utiliser `MockMvc` avec
   `@SpringBootTest` et `WebEnvironment.MOCK`, sans `@WebMvcTest` ni mock de cas
   d'usage ; cette suite vérifie le dispatch MVC, le mapping, le chemin applicatif
   et la persistance sans démarrer de serveur réseau ni utiliser le client
-  généré. Équipe et administration conservent leurs tests sur serveur réel à
-  port aléatoire. Vérifier les réponses, erreurs, l'isolation tenant et les
-  effets persistés pertinents.
+  généré. Les clients OpenAPI restent générés et compilés dans le build sans
+  être utilisés par ces suites MVC. Administration conserve un test sur serveur
+  réel à port aléatoire. Vérifier les réponses, erreurs, l'isolation tenant et
+  les effets persistés pertinents.
 - Réutiliser le support et les fixtures de `AbstractIdentityJpaIT` sans
   transformer ses tests existants `WebEnvironment.NONE` en tests avec serveur ;
   ajouter une base d'intégration Web dédiée par application de test.
@@ -197,20 +198,19 @@ compatible avec l'architecture modulaire.
   pas émis en T05. T05 n'inclut ni consommateur de notification ni livraison
   email.
 - [ ] Les contrôleurs sont couverts avec l'application Spring et les cas
-  d'usage réels, Flyway et PostgreSQL Testcontainers. Pour identité et
-  organisation, utiliser
+  d'usage réels, Flyway et PostgreSQL Testcontainers. Pour identité,
+  organisation et équipe, utiliser
   `MockMvc` avec `@SpringBootTest` et `WebEnvironment.MOCK`, sans `@WebMvcTest`
   ni mock de cas d'usage ; cette suite vérifie le chemin MVC et la persistance
-  sans démarrer de serveur réseau ni utiliser le client généré. Équipe et
-  administration conservent leurs tests sur serveur réel à port aléatoire.
-  Vérifier les réponses, erreurs,
-  l'isolation tenant et les effets persistés pertinents.
+  sans démarrer de serveur réseau ni utiliser le client généré. Administration
+  conserve un test sur serveur réel à port aléatoire. Vérifier les réponses,
+  erreurs, l'isolation tenant et les effets persistés pertinents.
 - [ ] Les stubs sont limités aux contrats inter-modules hors du propriétaire du
   test ; les composants internes du module testé ne sont pas remplacés.
 - [ ] Les clients HTTP générés compilent comme sources de production à partir
-  des contrats OpenAPI et peuvent être réutilisés par les tests ; le code de
-  production de chaque propriétaire ne dépend pas de son propre package
-  `.generated`. Toute DSL métier éventuelle reste locale à chaque `src/test`.
+  des contrats OpenAPI ; le code de production de chaque propriétaire ne dépend
+  pas de son propre package `.generated`. Les suites MVC ne les utilisent pas.
+  Toute DSL métier éventuelle reste locale à chaque `src/test`.
 - [ ] Chaque spec OpenAPI est générée depuis le code de son propriétaire par
   une requête HTTP vers l'application réelle et écrite sous
   `target/openapi.yaml` avant la génération des clients dans

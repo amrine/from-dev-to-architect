@@ -21,22 +21,20 @@ public class TeamOrganizationAvailabilityValidator {
     private final OrganizationDirectory organizationDirectory;
 
     public void validateAvailable(String organizationReference) {
-        OrganizationAvailability availability;
         try {
-            availability = organizationDirectory.check(organizationReference);
+            switch (organizationDirectory.check(organizationReference)) {
+                case AVAILABLE -> {}
+                case UNAVAILABLE ->
+                    throw new TeamException(
+                            TeamErrorCode.ORGANIZATION_UNAVAILABLE, "Team organization is not available");
+                case NOT_FOUND ->
+                    throw new TeamException(TeamErrorCode.ORGANIZATION_NOT_FOUND, "Team organization was not found");
+            }
         } catch (OrganizationDirectoryException exception) {
             throw new TeamException(
                     TeamErrorCode.ORGANIZATION_DIRECTORY_UNAVAILABLE,
                     "Unable to validate team organization",
                     exception);
-        }
-
-        switch (availability) {
-            case AVAILABLE -> {}
-            case UNAVAILABLE ->
-                throw new TeamException(TeamErrorCode.ORGANIZATION_UNAVAILABLE, "Team organization is not available");
-            case NOT_FOUND ->
-                throw new TeamException(TeamErrorCode.ORGANIZATION_NOT_FOUND, "Team organization was not found");
         }
     }
 }

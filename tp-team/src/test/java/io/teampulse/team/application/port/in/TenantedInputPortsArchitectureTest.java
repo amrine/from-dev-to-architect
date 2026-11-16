@@ -1,6 +1,12 @@
-package io.teampulse.team.application.port.in.team;
+package io.teampulse.team.application.port.in;
 
 import io.teampulse.common.context.TenantContext;
+import io.teampulse.team.application.port.in.team.CreateTeamCommand;
+import io.teampulse.team.application.port.in.team.TeamLifecycleUseCase;
+import io.teampulse.team.application.port.in.team.TeamResponsibleCommand;
+import io.teampulse.team.application.port.in.team.TeamResponsibleUsersUseCase;
+import io.teampulse.team.application.port.in.teammember.TeamMemberCommand;
+import io.teampulse.team.application.port.in.teammember.TeamMembershipUseCase;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
