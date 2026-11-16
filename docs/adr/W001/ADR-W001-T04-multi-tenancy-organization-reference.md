@@ -402,8 +402,8 @@ appartenance `TeamMember` ne constitue pas une responsabilité bloquante.
 
 TeamPulse adopte ADR-TECH-012 avec un vocabulaire par domaine fonctionnel :
 
-- chaque domaine possède une enum de codes stable et une exception non vérifiée
-  unique exigeant un code non nul et acceptant une cause ;
+- chaque vocabulaire d'erreurs métier cohérent possède une enum de codes stable
+  et une exception non vérifiée exigeant un code non nul et acceptant une cause ;
 - ces types restent indépendants de Spring, JPA et HTTP ;
 - `tp-common` ne contient ni catalogue global d'erreurs métier, ni exception
   métier racine imposée aux modules.
@@ -453,16 +453,32 @@ MANAGER_NOT_AVAILABLE
 USER_DIRECTORY_UNAVAILABLE
 INVALID_STATUS_TRANSITION
 TEAM_UNAVAILABLE
-MEMBER_NOT_FOUND
-MEMBER_ALREADY_EXISTS
-MEMBER_USER_NOT_FOUND
-MEMBER_USER_NOT_AVAILABLE
-INVALID_MEMBER_STATUS_TRANSITION
 REFERENCE_GENERATION_FAILED
 CONCURRENT_MODIFICATION
 ```
 
-`TeamMember` utilise `TeamErrorCode` puisqu'il appartient à `tp-team`.
+Les erreurs du cycle de vie et des responsables de `Team` utilisent
+`TeamErrorCode` et `TeamException`. Les opérations métier d'appartenance ont un
+vocabulaire distinct, `TeamMemberErrorCode` et `TeamMemberException`, afin que
+leur propriétaire soit explicite dans le domaine, les services et les adapters.
+Cette distinction reste interne à `tp-team` et ne change pas le contrat HTTP.
+
+`TeamMemberErrorCode` contient :
+
+```text
+NOT_FOUND
+ALREADY_EXISTS
+USER_NOT_FOUND
+USER_NOT_AVAILABLE
+USER_DIRECTORY_UNAVAILABLE
+INVALID_STATUS_TRANSITION
+CONCURRENT_MODIFICATION
+```
+
+Les erreurs concernant l'équipe parente (`NOT_FOUND` et `TEAM_UNAVAILABLE`)
+restent dans `TeamErrorCode`, même lorsqu'elles sont rencontrées par un cas
+d'usage d'appartenance. Les erreurs propres à la ligne d'appartenance et à
+l'utilisateur membre utilisent `TeamMemberErrorCode`.
 
 Les valeurs attendues des directories sont traduites dans le vocabulaire du
 consommateur. Une défaillance technique est enveloppée dans le code
