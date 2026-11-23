@@ -63,9 +63,18 @@ de notification : `tp-notification` et sa livraison relèvent de T10.
   dans le flux de la commande lorsqu'il doit fournir immédiatement un résultat
   HTTP. Il n'utilise pas les événements pour commander une création ou obtenir
   son résultat.
-- La création initiale d'une organisation initialise son statut à `CREATING`.
-  Le premier utilisateur peut être créé ou invité, mais `INVITED` et `CREATING`
-  restent `PENDING` selon `UserDirectory`.
+- La création d'une organisation et la mise en place de son premier utilisateur
+  sont deux opérations séparées. `tp-organization` crée l'organisation en
+  `CREATING`, sans utilisateur ; `tp-administration` reçoit ensuite son
+  `TenantContext`, vérifie que l'organisation existe, puis orchestre la création
+  ou l'invitation du premier utilisateur via `identity::lifecycle`. Une erreur
+  de création ou d'invitation laisse l'organisation existante sans utilisateur.
+  Chaque commande utilisateur reste transactionnelle. La suspension et la
+  désactivation encadrent aussi les vérifications de responsabilités et la
+  transition d'identité dans la frontière transactionnelle de l'orchestration.
+- Le premier utilisateur peut être créé ou invité après la création de
+  l'organisation, mais `INVITED` et `CREATING` restent `PENDING` selon
+  `UserDirectory`.
 - T05 spécialise le comportement historique T04 pour les nouvelles affectations
   de responsables : le candidat doit être `AVAILABLE`. Les candidats `PENDING`
   et `UNAVAILABLE` sont refusés avant toute mutation, avec HTTP `409` et le code
@@ -252,6 +261,8 @@ report des notifications évite d'ajouter leur persistance et leur exploitation
   utilisables dans cette phase et T05 ne livre pas seul un onboarding complet.
 - Il n'y a aucun email d'invitation avant T10 et aucune reprise rétroactive
   prévue pour cette période.
+- Une organisation peut rester sans utilisateur si sa création réussit mais que
+  la commande ultérieure de création ou d'invitation échoue.
 - Les contrôleurs réels avec PostgreSQL sont plus lents que des tests de slice
   ou des tests utilisant des mocks.
 - Le client généré entre dans l'artefact de production et son contrat Java peut
@@ -431,7 +442,7 @@ report des notifications évite d'ajouter leur persistance et leur exploitation
   `MockMvc` et n'appellent pas ce client. Chaque requête tenantée appelle
   `TenantContextProvider.current()` une seule fois ; aucune donnée de tenant
   client ne sélectionne le tenant. Le contrat Java
-  `team::team` ajoute une lecture tenantée des responsabilités admin/manager,
+  `team::api` ajoute une lecture tenantée des responsabilités admin/manager,
   avec référence et état d'équipe uniquement ; les membres ordinaires ne sont
   pas des responsabilités. `TeamControllerIT` et `TeamMemberControllerIT`
   étendent directement `AbstractTeamMvcIT`, qui utilise `WebEnvironment.MOCK` ;
@@ -456,6 +467,83 @@ report des notifications évite d'ajouter leur persistance et leur exploitation
   `TeamMemberMapper` et ses DTO) sont regroupés dans `infrastructure.web.teammember`.
   Les URLs, les `operationId` et le tag OpenAPI `Teams` restent inchangés. Le
   statut de l'ADR reste `Draft`.
+
+- L'implémentation de `W001-T05-openapi-test-clients` fixe la version du
+  générateur dans le POM parent et configure la génération de clients Java
+  uniquement pour les sources de test, sous `target/generated-test-sources`.
+  La verticale identité fournit maintenant le premier contrat OpenAPI et la
+  compilation de son client généré ; les autres propriétaires ajoutent leurs
+  contrats dans leurs verticales. Le statut de cet ADR reste `Draft`.
+- L'implémentation de `W001-T05-identity-api` expose `POST /api/users`,
+  `POST /api/users/invitations` et `GET /api/users`. Chaque route tenantée
+  résout une fois le `TenantContext` et les écritures utilisent le tenant du
+  provider même si le corps contient une référence d'organisation inconnue du
+  contrat. L'invitation persiste `INVITED` et publie `UserInvited` avec les
+  références utilisateur/organisation seulement.
+- Le contrat Java public `identity::lifecycle` fournit à `tp-administration`
+  les commandes synchrones de création, invitation, suspension et
+  désactivation avec des types de contrat sans modèle domaine identité.
+  L'administration reste responsable des vérifications de responsabilités T04
+  avant les deux transitions de fermeture. Aucun endpoint HTTP identité ne
+  contourne cette orchestration. Le mapping métier identité prévaut sur l'advice
+  partagé ; les erreurs de transport restent génériques et masquées. Les tests
+  HTTP/PostgreSQL et `./mvnw --batch-mode --no-transfer-progress -pl tp-identity
+  -am verify` passent. Cet ADR reste `Draft`.
+- La verticale organisation expose la création en `CREATING`, la suspension,
+  l'archivage et la gestion T04 des responsables ; aucune route d'activation ou
+  de réactivation n'est publiée. `OrganizationResponsibleUsersService` refuse
+  avant mutation toute affectation disponible qui aurait activé ou réactivé
+  l'organisation, y compris lorsque l'application l'appelle directement. Le
+  code métier `LIFECYCLE_TRANSITION_DEFERRED` est traduit localement en
+  `409 ORGANIZATION_LIFECYCLE_DEFERRED` et documenté dans OpenAPI. Les contrats
+  Java `organization::lifecycle` expose les commandes synchrones de cycle de
+  vie ; `organization::organization` reste dédié à la lecture des
+  responsabilités et du statut, sans modèle domaine ni entité. Les tests
+  vérifient les refus, l'absence d'écriture `ACTIVE`, les réponses métier et
+  transport sur HTTP réel avec Flyway/PostgreSQL ;
+  `./mvnw --batch-mode --no-transfer-progress -pl tp-organization -am verify`
+  passe. Cet ADR reste `Draft`.
+- La verticale équipe expose en HTTP les cycles de vie d'équipe, la gestion des
+  responsables et les appartenances T04, avec un contrat OpenAPI et un client
+  généré utilisé par une DSL de test locale. Chaque requête tenantée appelle
+  `TenantContextProvider.current()` une seule fois ; aucune donnée de tenant
+  client ne sélectionne le tenant. Le contrat Java
+  `team::api` ajoute une lecture tenantée des responsabilités admin/manager,
+  avec référence et état d'équipe uniquement ; les membres ordinaires ne sont
+  pas des responsabilités. Les cas HTTP utilisent le vrai serveur, Flyway et
+  PostgreSQL Testcontainers, avec stubs limités aux contrats publics
+  `UserDirectory` et `OrganizationDirectory`. Les erreurs métier restent
+  locales et les contrôles T04 de disponibilité sont conservés. Les dix tests
+  HTTP, le test PostgreSQL de responsabilités et
+  `./mvnw --batch-mode --no-transfer-progress -pl tp-team -am verify`
+  passent. Cet ADR reste `Draft`.
+- Le noyau `tp-administration` est ajouté au reactor et à `tp-app`. Il ne porte
+  ni entité, ni repository, ni règle métier des modules propriétaires. Son
+  provisioning ne crée pas l'organisation : il reçoit le `TenantContext` d'une
+  organisation déjà créée, vérifie son existence par `organization::organization`
+  puis crée ou invite son premier utilisateur par `identity::lifecycle`, sans
+  affectation finale de responsables. Les opérations de provisioning initial,
+  suspension et désactivation sont regroupées dans le port entrant
+  `UserLifecycleAdministrationUseCase` et son service, car elles administrent
+  le même cycle de vie utilisateur. Une erreur utilisateur ne supprime pas
+  l'organisation. Les contrôles avant suspension/désactivation lisent
+  les contrats publics de responsabilités d'organisation et d'équipe ; ils
+  refusent les responsabilités `CREATING`, `ACTIVE` ou `SUSPENDED` d'une
+  organisation et `ACTIVE` ou `SUSPENDED` d'une équipe, mais laissent passer
+  `ARCHIVED` et une simple appartenance `TeamMember`. Les contrats d'organisation
+  transportent le statut sous forme textuelle (`CREATING`, `ACTIVE`,
+  `SUSPENDED`, `ARCHIVED`) afin de ne pas exposer `OrganizationStatus`, qui
+  appartient au domaine interne du module. Les contrôles d'administration
+  comparent ces statuts aux constantes de `OrganizationLifecycleResult`, et
+  les tests de la verticale organisation vérifient le mapping du statut domaine
+  vers cette représentation publique. Des tests d'intégration
+  assemblent les vrais modules sur PostgreSQL Testcontainers et vérifient l'état
+  persisté, dont le refus d'une organisation inconnue et le maintien d'une
+  organisation sans utilisateur après l'échec d'une commande utilisateur.
+  `ActorContextProvider` alimente `AuditorAware`; son implémentation
+  par défaut fournit `SYSTEM` en W001 et n'authentifie ni n'autorise. Cet ADR
+  reste `Draft`. La commande de validation complète est
+  `./mvnw --batch-mode --no-transfer-progress clean install`.
 
 ### Harmonisation des tests de la verticale organisation
 

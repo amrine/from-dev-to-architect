@@ -1,5 +1,6 @@
 package io.teampulse.config;
 
+import io.teampulse.common.context.ActorContextProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,7 +15,7 @@ public class JpaAuditingConfiguration {
 
     @Bean("auditorAware")
     @ConditionalOnMissingBean(name = "auditorAware")
-    AuditorAware<String> systemAuditorAware() {
-        return () -> Optional.of("SYSTEM");
+    AuditorAware<String> actorContextAuditorAware(ActorContextProvider actorContextProvider) {
+        return () -> Optional.of(actorContextProvider.current().actorReference());
     }
 }

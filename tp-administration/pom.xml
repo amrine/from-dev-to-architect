@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>io.teampulse</groupId>
+        <artifactId>parent</artifactId>
+        <version>0.1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>tp-administration</artifactId>
+    <name>tp-administration</name>
+    <description>Platform administration orchestration</description>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.modulith</groupId>
+            <artifactId>spring-modulith-api</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-tx</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>io.teampulse</groupId>
+            <artifactId>tp-common</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>io.teampulse</groupId>
+            <artifactId>tp-identity</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>io.teampulse</groupId>
+            <artifactId>tp-organization</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>io.teampulse</groupId>
+            <artifactId>tp-team</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>io.teampulse</groupId>
+            <artifactId>tp-test-support</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>
