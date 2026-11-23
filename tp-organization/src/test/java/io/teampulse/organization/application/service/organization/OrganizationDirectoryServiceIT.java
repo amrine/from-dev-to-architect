@@ -4,6 +4,7 @@ import io.teampulse.organization.AbstractOrganizationJpaIT;
 import io.teampulse.organization.api.organization.OrganizationAvailability;
 import io.teampulse.organization.api.organization.OrganizationDirectory;
 import io.teampulse.organization.api.organization.OrganizationDirectoryException;
+import io.teampulse.organization.api.lifecycle.OrganizationLifecycleResult;
 import io.teampulse.organization.domain.organization.model.Organization;
 import io.teampulse.organization.domain.organization.model.OrganizationStatus;
 import io.teampulse.organization.infrastructure.persistence.repository.JpaOrganizationRepository;
@@ -117,7 +118,7 @@ class OrganizationDirectoryServiceIT extends AbstractOrganizationJpaIT {
         void preservesUnassignedResponsibilities() {
             organizationRepository.create(Organization.create(ORGANIZATION_REFERENCE, "Acme", "UTC"));
             assertEquals(new OrganizationResponsibilities(
-                ORGANIZATION_REFERENCE, "CREATING", null, null
+                ORGANIZATION_REFERENCE, OrganizationLifecycleResult.STATUS_CREATING, null, null
             ), organizationDirectory.findByOrganizationReference(ORGANIZATION_REFERENCE).orElseThrow());
         }
 

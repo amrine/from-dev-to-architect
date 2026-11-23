@@ -54,7 +54,7 @@ class OrganizationLifecycleServiceIT extends AbstractOrganizationJpaIT {
 
         assertTrue(ReferenceFormat.matches(organization.organizationReference(), "ORG"));
         assertEquals("TeamPulse", organization.name());
-        assertEquals("CREATING", organization.status());
+        assertEquals(OrganizationLifecycleResult.STATUS_CREATING, organization.status());
 
         OrganizationEntity storedEntity = findStoredOrganization(
             organization.organizationReference()
@@ -101,7 +101,7 @@ class OrganizationLifecycleServiceIT extends AbstractOrganizationJpaIT {
             organization.organizationReference()
         );
 
-        assertEquals("ARCHIVED", archived.status());
+        assertEquals(OrganizationLifecycleResult.STATUS_ARCHIVED, archived.status());
         assertEquals(
             OrganizationStatus.ARCHIVED,
             findStoredOrganization(organization.organizationReference()).getStatus()

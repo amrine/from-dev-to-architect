@@ -24,6 +24,31 @@ as part of the business transaction and tracks their completion. It adds
 persistence, retention, monitoring, and recovery responsibilities.
 
 ## Decision
+- Use synchronous calls to public Java module contracts for commands whose
+  result is required by the initiating use case or HTTP response.
+- Use Spring application events only for facts/secondary effects, published
+  after the owning business transition. Events are not commands and consumers
+  do not return a business acknowledgement to the original request.
+- When a durable listener is introduced, use Spring Modulith's persistent Event
+  Publication Registry with the JPA integration and the shared PostgreSQL
+  transaction. The registry records one publication per registered
+  transactional listener and marks it complete only after that listener
+  succeeds. Manage its schema with the repository's Flyway conventions.
+- Run secondary consumers after commit. Treat delivery as at-least-once:
+  listeners must be idempotent. Failed/incomplete publications remain
+  observable and can be resubmitted; operator-facing retry controls and
+  scheduled recovery policy are separate operational scope.
+- Keep event payloads minimal and reference-based. Do not copy contact details,
+  credentials or other PII into an event; a consumer that needs contact data
+  calls the owning module's public read contract.
+- In T05, define/publish the owner fact `UserInvited`, but do not create a
+  notification listener or `tp-notification`. Organization activation and its
+  `OrganizationActivated` fact are deferred to W008. T10 adds the notification
+  consumers. Until such a listener exists, no notification delivery or
+  historical replay is implied.
+- Do not introduce Kafka, another external broker, event sourcing or business
+  acknowledgement events in T05. A later service extraction may replace the
+  delivery adapter without changing synchronous command ownership.
 
 ### Commands and events
 

@@ -17,4 +17,10 @@ public record OrganizationLifecycleResult(
     String status,
     String administratorReference,
     String managerReference
-) { }
+) {
+
+    public static final String STATUS_CREATING = "CREATING";
+    public static final String STATUS_ACTIVE = "ACTIVE";
+    public static final String STATUS_SUSPENDED = "SUSPENDED";
+    public static final String STATUS_ARCHIVED = "ARCHIVED";
+}

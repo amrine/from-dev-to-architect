@@ -46,6 +46,11 @@
 
         <dependency>
             <groupId>io.teampulse</groupId>
+            <artifactId>tp-administration</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>io.teampulse</groupId>
             <artifactId>tp-common</artifactId>
         </dependency>
 

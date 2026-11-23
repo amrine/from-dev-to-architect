@@ -70,7 +70,12 @@ class OrganizationLifecycleServiceTest {
         assertNull(created.getAdminReference());
         assertNull(created.getManagerReference());
         assertEquals(new OrganizationLifecycleResult(
-            ORGANIZATION_REFERENCE, "Team Pulse", "Europe/Paris", "CREATING", null, null
+            ORGANIZATION_REFERENCE,
+            "Team Pulse",
+            "Europe/Paris",
+            OrganizationLifecycleResult.STATUS_CREATING,
+            null,
+            null
         ), result);
     }
 
@@ -137,7 +142,7 @@ class OrganizationLifecycleServiceTest {
         Organization organization = organizationInStatus(OrganizationStatus.ACTIVE);
         givenOrganization(organization);
         OrganizationLifecycleResult result = service.suspend(ORGANIZATION_REFERENCE);
-        assertEquals("SUSPENDED", result.status());
+        assertEquals(OrganizationLifecycleResult.STATUS_SUSPENDED, result.status());
         assertEquals(ADMINISTRATOR_REFERENCE, result.administratorReference());
         assertEquals(MANAGER_REFERENCE, result.managerReference());
         verify(organizationRepository).update(organization);
@@ -147,7 +152,7 @@ class OrganizationLifecycleServiceTest {
     void archivesAnOrganization() {
         Organization organization = organizationInStatus(OrganizationStatus.CREATING);
         givenOrganization(organization);
-        assertEquals("ARCHIVED", service.archive(ORGANIZATION_REFERENCE).status());
+        assertEquals(OrganizationLifecycleResult.STATUS_ARCHIVED, service.archive(ORGANIZATION_REFERENCE).status());
         verify(organizationRepository).update(organization);
     }
 
