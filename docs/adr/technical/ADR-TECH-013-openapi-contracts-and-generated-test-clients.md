@@ -3,125 +3,98 @@
 ## Status
 Draft
 
-## Linked ticket
-Initial adoption: W001-T05. Reusable technical decision.
-
 ## Context
-HTTP contracts are easy to duplicate accidentally between server DTOs, test
-clients and documentation. Handwritten test clients also drift as operations
-change. A generated client alone, however, does not express readable business
-scenarios, and generated server code can impose framework structure on a
-hexagonal application.
+HTTP contracts can drift between server adapters, client code and published
+documentation. Handwritten clients repeat transport details, while generated
+server code can impose a framework structure on an otherwise ports-and-adapters
+application. Generated clients also need a project-owned layer for readable
+business scenarios.
 
 ## Decision
-- Maintain one OpenAPI 3 contract for each HTTP owner. The initial owners are
-  identity, organization, team and platform administration.
-- Keep each contract with its owning module and treat it as the public
-  transport contract for paths, parameters, request/response schemas and
-  documented status/error responses.
-- Implement server adapters explicitly against the owner's application ports;
-  do not generate controllers or domain/application code from the specification.
-- Use OpenAPI Generator's Maven plugin to generate Java HTTP clients and
-  transport models for tests. Generated sources live under Maven's
-  `target/generated-test-sources` and are not committed.
-- Keep readable business DSLs handwritten and module-owned under each module's
-  `src/test`. They wrap generated clients; they do not duplicate transport
-  serialization. Generic HTTP setup and assertions belong in test-scoped
-  `tp-test-support`. Do not create a separate `tp-test-clients` module.
-- Pin the generator/plugin version centrally when implementing, after checking
-  compatibility with the repository's Java 25 and Spring Boot 4.1 baseline.
-  Generated clients are test tools and do not create a new production runtime
-  dependency.
-- Use the shared Maven product version for contract metadata and generated
-  artifact metadata. Do not independently version each module or introduce a
-  URL version segment without an explicit compatibility requirement.
+- Give each HTTP owner one OpenAPI contract for paths, parameters, request and
+  response schemas, and documented status/error responses.
+- Keep the contract with its owner and implement server adapters explicitly
+  against that owner's application ports. Do not generate domain, application
+  or server-controller code from the specification.
+- Generate clients and transport models for tests only. Keep generated sources
+  in the build output and out of version control; do not add a production
+  dependency solely for test clients.
+- Keep business scenario DSLs handwritten and local to the owning module's
+  test sources. Shared test support may provide generic transport setup, but
+  should not become a second business client layer.
+- Pin generator and plugin versions at the build level after checking
+  compatibility with the project's supported runtime and serialization stack.
+- Use the project's shared product version for contract metadata unless a
+  demonstrated compatibility requirement justifies independent API versions.
+  Do not add a URL version segment without that requirement.
 
 ## Alternatives considered
 - Handwrite a separate client and documentation for every endpoint.
-- Generate both server controllers and test clients from OpenAPI.
-- Put generated clients and business DSLs in a shared Maven module.
-- Use JGiven as the primary contract and client-generation mechanism.
-- Assign independent SemVer versions to the four module APIs.
+- Generate server controllers and test clients from OpenAPI.
+- Put generated clients and business DSLs in a shared test module.
+- Use a narrative-testing library as the contract and client-generation
+  mechanism.
+- Assign independent semantic versions to every module API.
 
 ## Justification
-The OpenAPI contract gives every owner one reviewable HTTP boundary and can
-drive deterministic client generation. Keeping server adapters handwritten
-preserves the existing ports-and-adapters design. Generated transport code
-removes boilerplate, while module-local DSLs retain business vocabulary and
-avoid cross-module test dependencies or a Maven cycle.
+OpenAPI provides a reviewable transport contract and deterministic client
+generation. Handwritten server adapters preserve the application's chosen
+architecture, while owner-local DSLs retain business vocabulary without
+duplicating serialization or creating cross-module test dependencies.
 
 ## Positive consequences
-- API documentation, generated test clients and server behavior can be checked
+- Contract documentation, generated clients and server behavior can be checked
   against the same schemas.
-- Module ownership remains visible in both production code and tests.
-- Generated sources are reproducible build artifacts rather than reviewed
-  source-of-truth files.
-- Test scenarios remain readable without adding a narrative-testing library.
+- Ownership stays visible in production and test code.
+- Generated sources are reproducible build artifacts rather than a second
+  source of truth.
+- Business scenarios remain readable without requiring generated client types
+  throughout the tests.
 
 ## Negative consequences / trade-offs
-- OpenAPI contracts and generated clients add build configuration and generator
-  maintenance.
-- A specification can still be inaccurate unless contract validation and
-  black-box HTTP tests run in CI.
-- Generated clients may be verbose; the DSL must add business value rather than
-  become a second generated API layer.
-- API compatibility policy remains tied to the shared product version until a
-  genuine independent compatibility need appears.
+- Contracts, generated clients and build configuration add maintenance work.
+- A specification and generated client can agree while both disagree with the
+  server; runtime contract tests are still required.
+- Generated clients can be verbose, so local DSLs should add business meaning
+  rather than wrap every generated method mechanically.
+- Compatibility policy remains tied to the shared product version until an
+  independent release need is demonstrated.
 
 ## Technical impact
-- One OpenAPI 3 document and generated test client per HTTP owner.
-- Maven generation and validation executions, centrally versioned.
-- Module-local test DSLs, with only generic HTTP facilities in
-  `tp-test-support`.
+- One OpenAPI document per HTTP owner.
+- Centrally managed client generation in the build's test-source lifecycle.
+- Owner-local business DSLs and project-defined generic HTTP test support.
 - No generated production controller or server-interface requirement.
 
 ## Validation
-- Fail the Maven build on an invalid OpenAPI document or failed client
-  generation.
-- Compile generated clients and module DSLs on the supported Java version.
-- Exercise every documented request/response shape through real HTTP tests.
-- Check that generated files are confined to `target` and that no production
-  source imports a test client.
-- Verify all contracts use the common product version and do not introduce
-  independent module versions.
+- Fail the build on an invalid contract or failed client generation.
+- Compile generated clients and local DSLs on the supported Java/runtime
+  configuration.
+- Exercise documented request and response shapes against the running server.
+- Verify generated files remain in build output and production code does not
+  depend on test clients.
+- Verify version metadata follows the project's documented compatibility
+  policy.
 
 ## Risks
-- Generator upgrades can change generated source and serialization behavior;
-  upgrades must be pinned and reviewed.
-- A contract and generated client may agree with each other while both disagree
-  with the server; only the real HTTP tests catch that divergence.
+- Generator upgrades can change source and serialization behavior; pin and
+  review upgrades.
+- Contract and generated-client agreement alone does not prove server behavior.
 
-## Implementation progress
+## Project adoption contract
+Each adopting project records its local decision in a project ADR, including:
+- HTTP owners and the source location of each contract;
+- OpenAPI, generator and plugin versions, runtime compatibility, generation
+  options, output path and test-only dependency scope;
+- ownership and location of module-local business DSLs and generic test
+  support;
+- product/API version and server-base-URL policies;
+- build/CI validation commands and the evidence currently available.
 
-The `W001-T05-openapi-test-clients` branch pins OpenAPI Generator Maven plugin
-`7.25.0` in the parent and manages a test-only Java `restclient` configuration.
-An owner activates the inherited `generate-test-sources` execution by declaring
-the plugin in its POM and stores its contract at
-`src/main/openapi/openapi.yaml`. Generated code is confined to
-`target/generated-test-sources/openapi`, attached only to test compilation, and
-uses the shared Maven product version. The generator targets Spring Boot 4 and
-Jackson 3 to match the checked-in baseline. Nullable wrappers are disabled in
-the shared configuration because nullable response references need ordinary
-Java null values, not a tri-state wrapper; this keeps generated clients
-compilable without an unused runtime support library.
-
-The identity owner now supplies an OpenAPI 3.0.3 contract for user creation,
-invitation and tenant-scoped listing. Its generated `UsersApi` and transport
-models compile with the module's test sources, and the contract metadata and
-generated artifact use the shared `0.1.0-SNAPSHOT` product version. The
-organization owner now supplies its contract and generated `OrganizationsApi`
-client, including nullable response references without nullable wrapper types.
-Both owner verticals compile their generated clients with the local test DSL.
-The team owner now supplies its lifecycle, responsibility and membership
-contract and generated `TeamsApi` client, compiled with the team-local test
-DSL. The administration owner now supplies an OpenAPI 3.0.3 contract for
-initial organization/user provisioning and tenant-scoped user
-suspension/deactivation. Its generated provisioning and lifecycle clients
-compile with the local test DSL; generation remains test-only under `target`,
-and the contract uses the parent product version. The administration/app
-verification and full reactor `verify` pass. This ADR remains `Draft`.
+The technical ADR remains reusable. Its status does not approve a project's
+local adoption or replace that project's own architectural decision.
 
 ## References
+- [OpenAPI Specification](https://spec.openapis.org/oas/latest.html)
 - [OpenAPI Generator Maven plugin](https://openapi-generator.tech/docs/plugins/)
 - [OpenAPI Generator Java client options](https://openapi-generator.tech/docs/generators/java/)
-- [OpenAPI Generator 7.25.0 release](https://github.com/OpenAPITools/openapi-generator/releases/tag/v7.25.0)

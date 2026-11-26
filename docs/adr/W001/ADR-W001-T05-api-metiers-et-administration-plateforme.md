@@ -9,7 +9,12 @@ W001-T05 — APIs métier et administration de plateforme
 ## Besoin associé
 [`docs/besoins/W001/W001-T05-api-metiers-et-administration-plateforme.md`](../../besoins/W001/W001-T05-api-metiers-et-administration-plateforme.md)
 
-## ADR techniques adoptés
+## ADR techniques de référence (Draft)
+
+Les ADR techniques ci-dessous exposent des choix réutilisables. Leur statut
+Draft ne vaut pas adoption par TeamPulse ; le présent ADR précise le contrat
+d'adoption local proposé et conserve lui-même son statut Draft.
+
 - [ADR-TECH-013 — OpenAPI contracts and generated test clients](../technical/ADR-TECH-013-openapi-contracts-and-generated-test-clients.md)
 - [ADR-TECH-014 — Black-box HTTP integration tests](../technical/ADR-TECH-014-black-box-http-integration-tests.md)
 - [ADR-TECH-015 — Shared Spring HTTP error support](../technical/ADR-TECH-015-shared-spring-http-error-support.md)
@@ -55,24 +60,33 @@ de notification : `tp-notification` et sa livraison relèvent de T10.
 - La création initiale d'une organisation initialise son statut à `CREATING`.
   Le premier utilisateur peut être créé ou invité, mais `INVITED` et `CREATING`
   restent `PENDING` selon `UserDirectory`.
-- L'affectation d'un responsable respecte les invariants T04 : le responsable
-  doit être `AVAILABLE`. T05 ne rend pas le premier compte disponible ; le
-  bootstrap s'arrête donc en `CREATING` avant l'affectation finale. T05 n'expose
+- La règle d'éligibilité d'un candidat responsable reste en arbitrage : le
+  comportement T04 autorise `PENDING` dans certains parcours, tandis que le
+  besoin T05 Draft propose `AVAILABLE` uniquement. En attendant la décision,
+  T05 ne modifie pas le comportement accepté en T04. Le premier compte n'étant
+  pas rendu disponible en T05, le bootstrap s'arrête en `CREATING` avant
+  l'affectation finale. T05 n'expose
   pas l'activation/réactivation et ne doit pas permettre qu'une affectation de
   responsables la déclenche indirectement. W008 introduit l'activation du compte,
   l'affectation finale et la transition de l'organisation vers `ACTIVE`.
-- `TenantContext` reste le tenant uniquement. T05 introduit un
-  `ActorContext` distinct, réservé à l'audit/orchestration ; aucune
-  authentification, affectation de rôle ou autorisation n'est décidée en T05.
-  W008 fournit ces capacités.
+- `TenantContext` porte uniquement le périmètre des données. `ActorContext`
+  identifie l'acteur technique enregistré pour l'audit, notamment `SYSTEM` en
+  local ; il ne prouve pas une authentification et ne fournit aucun rôle ou
+  droit. Le contexte de sécurité, lorsqu'il sera introduit, portera l'identité
+  authentifiée et les décisions d'autorisation. T05 n'introduit pas ce dernier
+  contexte ; ces capacités relèvent de W008.
 
 ### 3. Lier le profil local à une organisation persistée
 
-Le profil `local` initialise une organisation de démonstration persistée et
-en `CREATING`, puis fournit sa référence exacte au `TenantContextProvider`. Le
-provider ne génère pas une référence en mémoire qui ne correspondrait pas à un
-agrégat existant. Les opérations exigeant une organisation `ACTIVE` attendent
-W008.
+Le `TenantContextProvider` du profil `local` initialise paresseusement une
+organisation de démonstration persistée en `CREATING` à son premier appel,
+puis mémorise sa référence pour la durée du processus. En cas d'échec, aucun
+contexte n'est mémorisé et un appel ultérieur retente l'initialisation,
+conformément au comportement accepté en T04. Il ne fabrique pas de référence
+tenant en mémoire. Le comportement actuel crée donc une nouvelle organisation
+de démonstration au premier appel de chaque processus ; la réutilisation d'une
+organisation persistante entre redémarrages reste à arbitrer. Les opérations
+exigeant une organisation `ACTIVE` attendent W008.
 Les API T05 non authentifiées restent réservées à l'environnement local/de
 développement jusqu'à W008 ; elles ne doivent pas être exposées à un réseau non
 fiable.
@@ -80,33 +94,92 @@ fiable.
 ### 4. Publier des faits sans inclure les notifications
 
 - Le propriétaire publie `UserInvited` comme fait métier contenant des
-  références uniquement. Il n'embarque pas les coordonnées ou autres PII.
-  `OrganizationActivated` est réservé à W008, qui introduira la transition
-  effective vers `ACTIVE`. L'adaptateur consommateur résout ultérieurement les
-  coordonnées auprès d'un contrat de lecture du module identité.
+  références uniquement. En T05, un port sortant d'identité délègue la
+  publication à un adaptateur Spring ; le service applicatif n'appelle pas
+  directement l'API d'événements Spring. Le fait n'embarque aucune PII et aucun
+  consommateur n'est livré. `OrganizationActivated` est réservé à W008, qui
+  introduira la transition effective vers `ACTIVE`.
 - L'orchestration synchrone ne dépend pas de ces événements. Les événements
   traitent les effets secondaires ; aucun accusé de réception métier n'est
   ajouté à la réponse HTTP.
 - T05 ne crée pas `tp-notification`, ne persiste pas de notifications et
   n'envoie aucun email. Le besoin actuellement envisagé sous W001-T10, encore
-  Draft et non officialisé dans la roadmap canonique, pourra ajouter les
-  consommateurs TeamPulse et le moteur réutilisable de persistance/livraison.
-  Les invitations créées avant qu'un consommateur soit disponible ne
-  déclenchent pas d'email rétroactif.
+  Draft et non officialisé dans la roadmap canonique, pourra adopter un
+  consommateur si un besoin réel le justifie. Un registre durable et la reprise
+  ne seront évalués qu'avec un vrai listener qui en a besoin ; T05 ne livre ni
+  registre, ni listener factice, ni rejeu historique. Les invitations créées
+  avant qu'un consommateur soit disponible ne déclenchent pas d'email
+  rétroactif.
 
 ### 5. Standardiser les frontières HTTP et leur preuve
 
-- Les détails sont délégués aux ADR-TECH-013 à 016 : contrats OpenAPI et
-  clients de test générés, vrais tests HTTP/PostgreSQL par module, support
-  Spring d'erreurs séparé du DTO Java pur et publications d'événements
-  récupérables.
+- Les décisions génériques des ADR-TECH-013 à 016 sont adoptées pour TeamPulse
+  selon le contrat local ci-dessous : contrats OpenAPI et clients de test
+  générés, tests HTTP/PostgreSQL réels, support Spring d'erreurs séparé du DTO
+  Java pur et publication in-process sans registre durable en l'absence de
+  listener réel.
 - Les erreurs métier restent codées et traduites par leur module propriétaire.
-- Le test de contrôleur traverse un serveur réel sur port aléatoire et la vraie
-  persistence PostgreSQL. Les tests `AbstractIntegrationTest` existants sans
-  serveur restent inchangés ; une base Web dédiée réutilise leur support.
+- La preuve des contrats contrôleur traverse un serveur réel sur port
+  aléatoire, l'application et le chemin interne réels, Flyway et PostgreSQL
+  Testcontainers. Aucun test de contrôleur en slice ou avec cas d'usage mocké
+  n'est ajouté. Les tests `AbstractIntegrationTest` existants sans serveur
+  restent inchangés ; une base Web dédiée réutilise leur support.
 - Tous les modules du reactor conservent la version commune du parent Maven,
   actuellement `0.1.0-SNAPSHOT`. Aucune version de produit indépendante par
   module ou version d'API d'URL n'est ajoutée par défaut.
+
+### Contrat d'adoption TeamPulse
+
+Ce contrat décrit l'adoption locale proposée et l'implémentation observée ; il
+ne change pas le statut Draft de cet ADR.
+
+- Propriétaires HTTP : `tp-identity`, `tp-organization`, `tp-team` et
+  `tp-administration`, chacun avec son contrat sous `src/main/openapi`.
+- Génération : OpenAPI Generator Maven `7.25.0`, version centralisée dans le
+  POM parent ; générateur Java `restclient`, modèles et clients générés sous
+  `target/generated-test-sources/openapi`, attachés uniquement aux sources de
+  test. `useSpringBoot4=true`, `useJackson3=true` et `openApiNullable=false`
+  correspondent au runtime Java 25 / Spring Boot 4.1.0 et évitent le wrapper
+  nullable non utilisé par ces clients. Les contrats et artefacts utilisent la
+  version Maven commune `0.1.0-SNAPSHOT`, sans version d'URL. Le serveur
+  annoncé est `http://localhost:8080` ; les clients DSL remplacent la base URL
+  par le port aléatoire du serveur de test.
+- Erreurs : `ApiError` reste un DTO Java pur dans `tp-common`. L'advice Spring
+  partagé est dans `tp-web-support`, sans dépendance métier ; chaque propriétaire
+  conserve ses codes et mappings métier. Les frontières Java publiques
+  traduisent les défaillances techniques en erreur stable `OPERATION_FAILED`,
+  préservent la cause et sa chaîne pour le consommateur interne, et masquent les
+  diagnostics dans la réponse HTTP.
+- Tests HTTP : les tests d'acceptation des contrôleurs démarrent un serveur sur
+  port aléatoire avec l'application réelle, Flyway et PostgreSQL Testcontainers.
+  `tp-test-support` porte le support HTTP générique ; chaque module garde sa DSL
+  métier dans `src/test`. Les bases non Web existantes conservent
+  `WebEnvironment.NONE`. Les tests autonomes remplacent seulement les contrats
+  publics externes : provider déterministe pour identité, `UserDirectory` pour
+  organisation, `UserDirectory` et `OrganizationDirectory` pour équipe ; les
+  tests d'administration assemblent les vrais modules concernés. Les writes
+  du thread serveur sont nettoyées ou isolées explicitement. Cette spécialisation
+  adopte la preuve HTTP réelle comme exigence TeamPulse ; elle ne transforme pas
+  la stratégie générique de test en interdiction universelle des slices.
+- Contexte : `TenantContextProvider.current()` est appelé une seule fois par
+  requête tenantée et le résultat est transmis tel quel. `ActorContext` alimente
+  l'audit via `AuditorAware` ; le provider par défaut fournit `SYSTEM` en W001.
+  Ce contexte d'acteur n'authentifie ni n'autorise.
+- Événements : identité publie `UserInvited` via un port et un adaptateur Spring,
+  avec les références utilisateur et organisation seulement. T05 ne possède
+  aucun listener, registre durable ou rejeu ; `OrganizationActivated` n'est pas
+  publié.
+- Sécurité locale : avant W008, les quatre APIs sont réservées aux profils
+  locaux/de développement et écoutent sur loopback par défaut.
+- Choix métier en attente : la disponibilité `PENDING` d'un candidat
+  responsable, l'atomicité du provisioning organisation/utilisateur et la
+  réutilisation du tenant local après redémarrage restent soumis à arbitrage.
+  L'implémentation actuelle accepte certains candidats `PENDING`, effectue les
+  deux créations sans transaction englobante et crée un tenant de démonstration
+  par processus. Le lazy init avec retry reste aligné sur T04 Accepted.
+
+Les validations d'implémentation sont consignées dans les notes de cet ADR.
+Une réussite de build ou de CI ne vaut pas acceptation des décisions métier.
 
 ## Alternatives envisagées
 - Exposer uniquement `POST/GET /api/users` : rejeté, car ce périmètre omet les
@@ -119,8 +192,9 @@ fiable.
   T10 afin de garder T05 centré sur les API et le provisioning métier.
 - Ajouter rôles et permissions avant l'authentification : rejeté ; les
   responsabilités métier T04 restent distinctes des décisions d'accès W008.
-- Activer une organisation avec des responsables `PENDING` : rejeté, car cela
-  contredirait les invariants déjà livrés et validés en T04.
+- Permettre qu'une affectation finale active l'organisation en T05 : rejeté,
+  car l'activation attend W008, quel que soit le statut de disponibilité du
+  responsable.
 - Exposer l'activation/réactivation de l'organisation en T05 : rejeté, car le
   premier compte ne peut devenir `AVAILABLE` qu'avec le parcours W008 et le
   bootstrap doit rester en `CREATING` jusque-là.
@@ -186,38 +260,44 @@ report des notifications évite d'ajouter leur persistance et leur exploitation
 ## Risques
 - Les endpoints sans autorisation ne doivent pas être exposés hors des profils
   locaux/de développement avant W008.
-- Les consommateurs d'événements sont au moins une fois et doivent être
-  idempotents ; une défaillance de listener n'est pas un échec de la commande
-  HTTP initiale.
+- Si un consommateur est ajouté ultérieurement pour un besoin réel, sa
+  livraison peut être au moins une fois ; il devra être idempotent et ses
+  échecs rester séparés du résultat de la commande HTTP initiale.
 - L'absence d'envoi rétroactif avant T10 est une limite fonctionnelle assumée.
-- Un provider local lié à une référence non persistée créerait un tenant
-  incohérent ; le démarrage local doit échouer clairement si l'organisation de
-  démonstration ne peut être initialisée.
+- Le provider local initialise à la première requête tenantée et retente au
+  prochain appel si l'initialisation échoue ; une organisation distincte est
+  actuellement créée par processus. La réutilisation après redémarrage reste à
+  décider.
+- Le provisioning peut laisser une organisation `CREATING` persistée si la
+  création ou l'invitation de l'utilisateur échoue. Le résultat attendu
+  (atomicité ou résultat partiel récupérable) reste à arbitrer.
+- Le statut `PENDING` de certains candidats responsables est accepté par les
+  règles T04 actuelles alors que le besoin T05 Draft propose `AVAILABLE` ; la
+  règle cible reste à arbitrer et n'est pas traitée comme un défaut contre T04.
 
 ## Notes
 - Les changements de décision intervenus pendant l'analyse sont conservés ici :
   notification/email déplacés de T05 vers T10 ; activation effective de
   l'organisation et publication de `OrganizationActivated` différées à W008.
 - Les documents Draft T08-T14 de `ztmp` ne sont pas officialisés par cet ADR.
-- L'implémentation de `W001-T05-http-test-support` prépare le support
+- L'implémentation de `W001-T05-http-test-support` ajoute le support
   `RestTestClient`, le nettoyage des écritures PostgreSQL et les bases de test
-  avec serveur réel dédiées à identité, organisation et équipe. Les bases
+  avec serveur réel dédiées aux propriétaires HTTP. Les bases
   `AbstractIntegrationTest` existantes en `NONE` restent inchangées. La
-  compilation des sources de test passe ; le parcours HTTP réel
-  sera prouvé par la première verticale API. Le statut de cet ADR reste `Draft`.
+  compilation des sources de test et les verticales HTTP/PostgreSQL passent ;
+  cet ADR reste `Draft`.
 - L'implémentation de `W001-T05-shared-http-errors` ajoute `ApiError` avec les
   champs `code` et `message`, ainsi que l'advice Spring partagé auto-configuré
   dans `tp-web-support`. Les détails techniques et les données personnelles ne
   sont pas renvoyés dans les réponses ; les mappings métier restent locaux et
-  prioritaires. `tp-common` et `tp-web-support` passent `verify`. La preuve
-  HTTP réelle sera apportée par les verticales propriétaires ; le statut de cet
-  ADR reste `Draft`.
-- L'implémentation de `W001-T05-openapi-test-clients` fixe la version du
-  générateur dans le POM parent et configure la génération de clients Java
+  prioritaires. `tp-common` et `tp-web-support` passent `verify`, puis les
+  réponses ont été exercées dans les tests HTTP réels des propriétaires ; le
+  statut de cet ADR reste `Draft`.
+- L'implémentation de `W001-T05-openapi-test-clients` fixe OpenAPI Generator
+  Maven `7.25.0` dans le POM parent et configure la génération de clients Java
   uniquement pour les sources de test, sous `target/generated-test-sources`.
-  La verticale identité fournit maintenant le premier contrat OpenAPI et la
-  compilation de son client généré ; les autres propriétaires ajoutent leurs
-  contrats dans leurs verticales. Le statut de cet ADR reste `Draft`.
+  Les quatre contrats propriétaires sont présents et leurs clients générés
+  compilent avec le reactor. Le statut de cet ADR reste `Draft`.
 - L'implémentation de `W001-T05-identity-api` expose `POST /api/users`,
   `POST /api/users/invitations` et `GET /api/users`. Chaque route tenantée
   résout une fois le `TenantContext` et les écritures utilisent le tenant du
@@ -251,7 +331,7 @@ report des notifications évite d'ajouter leur persistance et leur exploitation
   généré utilisé par une DSL de test locale. Chaque requête tenantée appelle
   `TenantContextProvider.current()` une seule fois ; aucune donnée de tenant
   client ne sélectionne le tenant. Le contrat Java
-  `team::team` ajoute une lecture tenantée des responsabilités admin/manager,
+  `team::api` ajoute une lecture tenantée des responsabilités admin/manager,
   avec référence et état d'équipe uniquement ; les membres ordinaires ne sont
   pas des responsabilités. Les cas HTTP utilisent le vrai serveur, Flyway et
   PostgreSQL Testcontainers, avec stubs limités aux contrats publics
@@ -293,3 +373,17 @@ report des notifications évite d'ajouter leur persistance et leur exploitation
   `./mvnw --batch-mode --no-transfer-progress -pl tp-administration,tp-app
   -am verify` et `./mvnw --batch-mode --no-transfer-progress verify` passent.
   Cet ADR reste `Draft`.
+- La correction des frontières de contrats utilise un port sortant d'identité
+  pour publier `UserInvited` via Spring et convertit les erreurs techniques des
+  contrats Java publics en `OPERATION_FAILED`, avec cause conservée. La
+  validation `./mvnw --batch-mode --no-transfer-progress -pl
+  tp-identity,tp-organization -am verify` passe.
+- Les quatre serveurs OpenAPI annoncent `http://localhost:8080`. Les parcours
+  HTTP PostgreSQL couvrent le remplacement d'administrateur/manager et la
+  suppression du manager avec `ACTIVE` vers `SUSPENDED`, le refus
+  `409 USER_HAS_ACTIVE_RESPONSIBILITIES` sans mutation et le 404 inter-tenant
+  sans mutation. `./mvnw --batch-mode --no-transfer-progress -pl
+  tp-organization,tp-administration,tp-app -am verify` passe.
+  Ces validations locales ne remplacent pas encore une preuve CI de `verify`
+  sur tous les commits de la pile ; les PR restent non fusionnées et l'ADR
+  reste `Draft`.

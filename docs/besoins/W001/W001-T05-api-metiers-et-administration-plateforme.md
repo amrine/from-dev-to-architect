@@ -74,9 +74,10 @@ compatible avec l'architecture modulaire.
 - Publier le fait métier `UserInvited` avec des références seulement, sans
   email ni autre PII. `OrganizationActivated` ne peut être publié qu'avec la
   transition effective introduite en W008. Ces faits ne sont pas des commandes
-  et ne modifient pas la réponse synchrone des API. La livraison durable vers un
-  consommateur est traitée par la stratégie Spring Modulith décrite dans
-  ADR-TECH-016.
+  et ne modifient pas la réponse synchrone des API. T05 ne livre ni listener,
+  ni registry durable, ni rejeu historique. L'adoption d'une livraison durable
+  Spring Modulith est à évaluer dans un ADR TeamPulse lorsqu'un vrai listener
+  disposera d'un besoin de livraison formulé, conformément à ADR-TECH-016.
 - Définir un contrat OpenAPI par propriétaire HTTP : identité, organisation,
   équipe et administration de plateforme. Générer les clients HTTP de test
   depuis ces contrats, puis conserver une DSL lisible propre à chaque module
@@ -89,6 +90,9 @@ compatible avec l'architecture modulaire.
   d'intégration par module : requête HTTP vers un serveur démarré sur port
   aléatoire, application Spring réelle, Flyway et PostgreSQL Testcontainers. Les
   tests traversent le contrôleur, les cas d'usage, la persistance et le mapping.
+  Cette exigence est l'adoption locale TeamPulse ; la recommandation générique
+  de slice de l'ADR-TECH-011 reste une option ciblée pour d'autres projets et
+  ne remplace pas cette preuve HTTP.
 - Réutiliser le support et les fixtures de `AbstractIntegrationTest` sans
   transformer ses tests existants `WebEnvironment.NONE` en tests avec serveur ;
   ajouter une base d'intégration Web dédiée par application de test.
@@ -157,8 +161,10 @@ compatible avec l'architecture modulaire.
 - [ ] `tp-administration` orchestre les contrats Java publics synchrones et ne
   possède ni données métier ni CRUD des modules.
 - [ ] Le bootstrap crée une organisation `CREATING` et permet la création ou
-  l'invitation du premier utilisateur. Une tentative d'affectation avec un
-  utilisateur non `AVAILABLE` est refusée ; aucun parcours T05 ne fait passer
+  l'invitation du premier utilisateur. La règle d'éligibilité d'un candidat
+  responsable reste à arbitrer entre le comportement T04 qui autorise
+  `PENDING` dans certains parcours et la proposition T05 Draft `AVAILABLE`
+  uniquement ; aucun parcours T05 ne fait passer
   une organisation à `ACTIVE`, y compris indirectement par affectation de
   responsables. L'activation du compte, l'affectation finale et les transitions
   vers `ACTIVE` attendent W008.
@@ -184,6 +190,24 @@ compatible avec l'architecture modulaire.
   n'expose ni cause technique, ni message interne, ni donnée personnelle.
 - [ ] Les règles ArchUnit et Spring Modulith continuent de vérifier les
   frontières et `tp-test-support` reste limité au scope test.
+
+## Arbitrages restant ouverts
+
+Ces points ne sont pas décidés par le statut Draft du besoin ou de l'ADR. Les
+changements qui en dépendent attendent une décision explicite.
+
+- **Candidats responsables `PENDING`** : T04 Accepted autorise ce statut dans
+  certains parcours ; le besoin T05 Draft propose de limiter l'éligibilité à
+  `AVAILABLE`. Jusqu'à l'arbitrage, T05 ne modifie pas la règle acceptée en T04.
+- **Provisioning partiel** : le code crée actuellement l'organisation avant
+  l'utilisateur sans transaction englobante ; un échec utilisateur peut donc
+  laisser une organisation `CREATING` dont la référence n'est pas rendue au
+  demandeur. Décider entre tout-ou-rien et un résultat partiel récupérable avec
+  procédure et résultat observables.
+- **Tenant local entre redémarrages** : l'initialisation paresseuse avec retry
+  suit T04 Accepted. L'implémentation mémorise le contexte et crée une
+  organisation de démonstration par processus ; décider si ce tenant reste par
+  lancement ou s'il doit être retrouvé/réutilisé après redémarrage.
 
 ## Validation attendue
 - Valider les contrats OpenAPI et exécuter leur génération de clients pendant
