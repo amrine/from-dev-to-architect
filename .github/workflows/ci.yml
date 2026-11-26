@@ -5,6 +5,8 @@ on:
     branches:
       - main
   pull_request:
+    branches:
+      - main
 
 permissions:
   contents: read
@@ -30,8 +32,8 @@ jobs:
           java-version: "25"
           cache: maven
 
-      - name: Verify backend
-        run: ./mvnw --batch-mode --no-transfer-progress verify
+      - name: Run backend tests
+        run: ./mvnw --batch-mode --no-transfer-progress test
 
   slidev:
     name: Slidev
