@@ -3,6 +3,7 @@
     allowedDependencies = {
         "common::context",
         "common::error",
+        "common::mapping",
         "identity::lifecycle",
         "organization::organization",
         "team::api"
