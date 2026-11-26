@@ -1,10 +1,11 @@
-package io.teampulse.administration.application.service;
+package io.teampulse.administration.application.service.identity;
 
-import io.teampulse.administration.AbstractAdministrationIntegrationTest;
+import io.teampulse.AbstractAdministrationJpaIT;
+import io.teampulse.AdministrationTestApplication;
 import io.teampulse.administration.application.error.PlatformAdministrationErrorCode;
 import io.teampulse.administration.application.error.PlatformAdministrationException;
-import io.teampulse.administration.application.port.in.PlatformProvisioningResult;
-import io.teampulse.administration.application.port.in.UserLifecycleAdministrationUseCase;
+import io.teampulse.administration.application.port.in.identity.UserLifecycleAdministrationResult;
+import io.teampulse.administration.application.port.in.identity.UserLifecycleAdministrationUseCase;
 import io.teampulse.common.context.TenantContext;
 import io.teampulse.identity.api.lifecycle.UserProvisioningCommand;
 import io.teampulse.identity.api.user.UserAvailability;
@@ -36,7 +37,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class UserLifecycleAdministrationServiceIT extends AbstractAdministrationIntegrationTest {
+class UserLifecycleAdministrationServiceIT extends AbstractAdministrationJpaIT {
 
     private static final String ORGANIZATION_REFERENCE = "ORG-2026-1001-00000ZA7B901";
     private static final String TARGET_USER_REFERENCE = "USR-2026-1001-00000ZA7B901";
@@ -72,7 +73,7 @@ class UserLifecycleAdministrationServiceIT extends AbstractAdministrationIntegra
     void createsAnInitialUserForAnExistingOrganizationWithoutAssigningResponsibilities() {
         TenantContext tenantContext = createOrganizationWithoutUsers("TeamPulse create");
 
-        PlatformProvisioningResult result = userLifecycleAdministration.createInitialUser(
+        UserLifecycleAdministrationResult result = userLifecycleAdministration.createInitialUser(
             tenantContext,
             command("create@example.test")
         );
@@ -84,7 +85,7 @@ class UserLifecycleAdministrationServiceIT extends AbstractAdministrationIntegra
     void invitesAnInitialUserForAnExistingOrganizationWithoutAcceptingTheInvitation() {
         TenantContext tenantContext = createOrganizationWithoutUsers("TeamPulse invite");
 
-        PlatformProvisioningResult result = userLifecycleAdministration.inviteInitialUser(
+        UserLifecycleAdministrationResult result = userLifecycleAdministration.inviteInitialUser(
             tenantContext,
             command("invite@example.test")
         );
@@ -252,7 +253,7 @@ class UserLifecycleAdministrationServiceIT extends AbstractAdministrationIntegra
 
     private void assertInitialUserState(
         TenantContext tenantContext,
-        PlatformProvisioningResult result,
+        UserLifecycleAdministrationResult result,
         UserStatus expectedUserStatus
     ) {
         assertEquals(tenantContext.tenantReference(), result.organizationReference());

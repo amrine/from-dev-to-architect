@@ -2,6 +2,7 @@
     displayName = "tp-administration",
     allowedDependencies = {
         "common::context",
+        "common::error",
         "identity::lifecycle",
         "organization::organization",
         "team::api"

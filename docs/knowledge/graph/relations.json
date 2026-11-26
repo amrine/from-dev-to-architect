@@ -1,0 +1,5705 @@
+[
+  {
+    "from": "api:identity-http",
+    "predicate": "DOCUMENTED_BY",
+    "to": "decision:tech-013",
+    "description": "ADR qui spécifie le principe ou son adoption locale.",
+    "sources": [
+      {
+        "path": "docs/adr/technical/ADR-TECH-013-openapi-contracts-and-generated-test-clients.md"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "api:identity-http",
+    "predicate": "DOCUMENTED_BY",
+    "to": "decision:tech-014",
+    "description": "ADR qui spécifie le principe ou son adoption locale.",
+    "sources": [
+      {
+        "path": "docs/adr/technical/ADR-TECH-014-http-boundary-integration-tests.md"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "api:identity-http",
+    "predicate": "DOCUMENTED_BY",
+    "to": "decision:w001-t05",
+    "description": "ADR qui spécifie le principe ou son adoption locale.",
+    "sources": [
+      {
+        "path": "docs/adr/W001/ADR-W001-T05-api-metiers-et-administration-plateforme.md"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "api:identity-http",
+    "predicate": "EXPOSES",
+    "to": "uc:list-users",
+    "description": "Le point d’entrée HTTP rend la capacité ou le contrat accessible.",
+    "sources": [
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/infrastructure/web/user/UserController.java",
+        "line": 24,
+        "symbol": "@RequestMapping"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "api:identity-http",
+    "predicate": "EXPOSES",
+    "to": "uc:user-lifecycle",
+    "description": "Le point d’entrée HTTP rend la capacité ou le contrat accessible.",
+    "sources": [
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/infrastructure/web/user/UserController.java",
+        "line": 24,
+        "symbol": "@RequestMapping"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "api:identity-http",
+    "predicate": "TESTED_BY",
+    "to": "test:user-http-it",
+    "description": "Scénarios HTTP MockMvc sur PostgreSQL.",
+    "sources": [
+      {
+        "path": "tp-identity/src/test/java/io/teampulse/identity/infrastructure/web/user/UserControllerIT.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "api:org-directory",
+    "predicate": "DOCUMENTED_BY",
+    "to": "decision:tech-009",
+    "description": "ADR qui spécifie le principe ou son adoption locale.",
+    "sources": [
+      {
+        "path": "docs/adr/technical/ADR-TECH-009-module-owned-directory-contracts-and-error-translation.md"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "api:org-directory",
+    "predicate": "DOCUMENTED_BY",
+    "to": "decision:w001-t05",
+    "description": "ADR qui spécifie le principe ou son adoption locale.",
+    "sources": [
+      {
+        "path": "docs/adr/W001/ADR-W001-T05-api-metiers-et-administration-plateforme.md"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "api:organization-http",
+    "predicate": "DOCUMENTED_BY",
+    "to": "decision:tech-013",
+    "description": "ADR qui spécifie le principe ou son adoption locale.",
+    "sources": [
+      {
+        "path": "docs/adr/technical/ADR-TECH-013-openapi-contracts-and-generated-test-clients.md"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "api:organization-http",
+    "predicate": "DOCUMENTED_BY",
+    "to": "decision:tech-014",
+    "description": "ADR qui spécifie le principe ou son adoption locale.",
+    "sources": [
+      {
+        "path": "docs/adr/technical/ADR-TECH-014-http-boundary-integration-tests.md"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "api:organization-http",
+    "predicate": "DOCUMENTED_BY",
+    "to": "decision:w001-t05",
+    "description": "ADR qui spécifie le principe ou son adoption locale.",
+    "sources": [
+      {
+        "path": "docs/adr/W001/ADR-W001-T05-api-metiers-et-administration-plateforme.md"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "api:organization-http",
+    "predicate": "EXPOSES",
+    "to": "api:org-directory",
+    "description": "Le point d’entrée HTTP rend la capacité ou le contrat accessible.",
+    "sources": [
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/infrastructure/web/organization/OrganizationController.java",
+        "line": 27,
+        "symbol": "@RequestMapping"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "api:organization-http",
+    "predicate": "EXPOSES",
+    "to": "uc:org-lifecycle",
+    "description": "Le point d’entrée HTTP rend la capacité ou le contrat accessible.",
+    "sources": [
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/infrastructure/web/organization/OrganizationController.java",
+        "line": 27,
+        "symbol": "@RequestMapping"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "api:organization-http",
+    "predicate": "EXPOSES",
+    "to": "uc:org-responsibles",
+    "description": "Le point d’entrée HTTP rend la capacité ou le contrat accessible.",
+    "sources": [
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/infrastructure/web/organization/OrganizationController.java",
+        "line": 27,
+        "symbol": "@RequestMapping"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "api:organization-http",
+    "predicate": "TESTED_BY",
+    "to": "test:org-http-it",
+    "description": "Scénarios HTTP MockMvc sur PostgreSQL.",
+    "sources": [
+      {
+        "path": "tp-organization/src/test/java/io/teampulse/organization/infrastructure/web/organization/OrganizationControllerIT.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "api:platform-http",
+    "predicate": "DOCUMENTED_BY",
+    "to": "decision:tech-013",
+    "description": "ADR qui spécifie le principe ou son adoption locale.",
+    "sources": [
+      {
+        "path": "docs/adr/technical/ADR-TECH-013-openapi-contracts-and-generated-test-clients.md"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "api:platform-http",
+    "predicate": "DOCUMENTED_BY",
+    "to": "decision:tech-014",
+    "description": "ADR qui spécifie le principe ou son adoption locale.",
+    "sources": [
+      {
+        "path": "docs/adr/technical/ADR-TECH-014-http-boundary-integration-tests.md"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "api:platform-http",
+    "predicate": "DOCUMENTED_BY",
+    "to": "decision:w001-t05",
+    "description": "ADR qui spécifie le principe ou son adoption locale.",
+    "sources": [
+      {
+        "path": "docs/adr/W001/ADR-W001-T05-api-metiers-et-administration-plateforme.md"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "api:platform-http",
+    "predicate": "EXPOSES",
+    "to": "uc:platform-user",
+    "description": "Le point d’entrée HTTP rend la capacité ou le contrat accessible.",
+    "sources": [
+      {
+        "path": "tp-administration/src/main/java/io/teampulse/administration/infrastructure/web/identity/UserLifecycleAdministrationController.java",
+        "line": 26,
+        "symbol": "@RequestMapping"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "api:platform-http",
+    "predicate": "TESTED_BY",
+    "to": "test:platform-it",
+    "description": "Vérifie la création MVC et ses effets PostgreSQL avec tenant déterministe.",
+    "sources": [
+      {
+        "path": "tp-administration/src/test/java/io/teampulse/administration/infrastructure/web/identity/UserLifecycleAdministrationControllerIT.java",
+        "line": 55,
+        "symbol": "void createsAndPersistsAnInitialUserInTheProviderTenant"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "api:team-directory",
+    "predicate": "DOCUMENTED_BY",
+    "to": "decision:tech-009",
+    "description": "ADR qui spécifie le principe ou son adoption locale.",
+    "sources": [
+      {
+        "path": "docs/adr/technical/ADR-TECH-009-module-owned-directory-contracts-and-error-translation.md"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "api:team-directory",
+    "predicate": "DOCUMENTED_BY",
+    "to": "decision:w001-t05",
+    "description": "ADR qui spécifie le principe ou son adoption locale.",
+    "sources": [
+      {
+        "path": "docs/adr/W001/ADR-W001-T05-api-metiers-et-administration-plateforme.md"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "api:team-http",
+    "predicate": "DOCUMENTED_BY",
+    "to": "decision:tech-013",
+    "description": "ADR qui spécifie le principe ou son adoption locale.",
+    "sources": [
+      {
+        "path": "docs/adr/technical/ADR-TECH-013-openapi-contracts-and-generated-test-clients.md"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "api:team-http",
+    "predicate": "DOCUMENTED_BY",
+    "to": "decision:tech-014",
+    "description": "ADR qui spécifie le principe ou son adoption locale.",
+    "sources": [
+      {
+        "path": "docs/adr/technical/ADR-TECH-014-http-boundary-integration-tests.md"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "api:team-http",
+    "predicate": "DOCUMENTED_BY",
+    "to": "decision:w001-t05",
+    "description": "ADR qui spécifie le principe ou son adoption locale.",
+    "sources": [
+      {
+        "path": "docs/adr/W001/ADR-W001-T05-api-metiers-et-administration-plateforme.md"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "api:team-http",
+    "predicate": "EXPOSES",
+    "to": "uc:team-lifecycle",
+    "description": "Le point d’entrée HTTP rend la capacité ou le contrat accessible.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/infrastructure/web/team/TeamController.java",
+        "line": 22,
+        "symbol": "@RequestMapping"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "api:team-http",
+    "predicate": "EXPOSES",
+    "to": "uc:team-membership",
+    "description": "Le point d’entrée HTTP rend la capacité ou le contrat accessible.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/infrastructure/web/teammember/TeamMemberController.java",
+        "line": 20,
+        "symbol": "@RequestMapping"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "api:team-http",
+    "predicate": "EXPOSES",
+    "to": "uc:team-responsibles",
+    "description": "Le point d’entrée HTTP rend la capacité ou le contrat accessible.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/infrastructure/web/team/TeamController.java",
+        "line": 22,
+        "symbol": "@RequestMapping"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "api:team-http",
+    "predicate": "TESTED_BY",
+    "to": "test:member-http-it",
+    "description": "Scénarios HTTP appartenance via MockMvc et PostgreSQL.",
+    "sources": [
+      {
+        "path": "tp-team/src/test/java/io/teampulse/team/infrastructure/web/teammember/TeamMemberControllerIT.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "api:team-http",
+    "predicate": "TESTED_BY",
+    "to": "test:team-http-it",
+    "description": "Scénarios HTTP équipe via MockMvc et PostgreSQL.",
+    "sources": [
+      {
+        "path": "tp-team/src/test/java/io/teampulse/team/infrastructure/web/team/TeamControllerIT.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "api:user-directory",
+    "predicate": "DOCUMENTED_BY",
+    "to": "decision:tech-009",
+    "description": "ADR qui spécifie le principe ou son adoption locale.",
+    "sources": [
+      {
+        "path": "docs/adr/technical/ADR-TECH-009-module-owned-directory-contracts-and-error-translation.md"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:actor-audit",
+    "predicate": "ENFORCES",
+    "to": "rule:audit-concurrency",
+    "description": "Ce composant contribue à appliquer la règle à son niveau.",
+    "sources": [
+      {
+        "path": "tp-app/src/main/java/io/teampulse/config/JpaAuditingConfiguration.java",
+        "line": 19,
+        "symbol": "actorContextProvider.current()"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:local-tenant",
+    "predicate": "ENFORCES",
+    "to": "rule:local-tenant",
+    "description": "Ce composant contribue à appliquer la règle à son niveau.",
+    "sources": [
+      {
+        "path": "tp-app/src/main/java/io/teampulse/context/LocalTenantContextProvider.java",
+        "line": 29,
+        "symbol": "public TenantContext current"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:member-http",
+    "predicate": "ENFORCES",
+    "to": "rule:tenant-scope",
+    "description": "Ce composant contribue à appliquer la règle à son niveau.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/infrastructure/web/teammember/TeamMemberController.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:member-http",
+    "predicate": "EXPOSES",
+    "to": "api:team-http",
+    "description": "Le contrôleur porte les mappings de cette surface.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/infrastructure/web/teammember/TeamMemberController.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:member-jpa",
+    "predicate": "ENFORCES",
+    "to": "rule:audit-concurrency",
+    "description": "Ce composant contribue à appliquer la règle à son niveau.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/infrastructure/persistence/repository/JpaTeamMemberRepositoryAdapter.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:member-jpa",
+    "predicate": "PERSISTS",
+    "to": "table:team-members",
+    "description": "Accès JPA à la table de l’entité du module.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/infrastructure/persistence/repository/JpaTeamMemberRepositoryAdapter.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:member-model",
+    "predicate": "ENFORCES",
+    "to": "rule:member-dates",
+    "description": "Ce composant contribue à appliquer la règle à son niveau.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/domain/team/model/TeamMember.java",
+        "line": 110,
+        "symbol": "private void validateTemporalState"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:member-model",
+    "predicate": "ENFORCES",
+    "to": "rule:member-lifecycle",
+    "description": "Ce composant contribue à appliquer la règle à son niveau.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/domain/team/model/TeamMember.java",
+        "line": 47,
+        "symbol": "public static TeamMember invite"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:membership",
+    "predicate": "DEPENDS_ON",
+    "to": "component:member-jpa",
+    "description": "Dépendance de flux par port, repository ou composant collaborateur.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/service/teammember/TeamMembershipService.java"
+      },
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/infrastructure/persistence/repository/JpaTeamMemberRepositoryAdapter.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:membership",
+    "predicate": "DEPENDS_ON",
+    "to": "component:team-member-validator",
+    "description": "Dépendance de flux par port, repository ou composant collaborateur.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/service/teammember/TeamMembershipService.java"
+      },
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/service/teammember/TeamMemberUserAvailabilityValidator.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:membership",
+    "predicate": "DEPENDS_ON",
+    "to": "component:team-org-validator",
+    "description": "Dépendance de flux par port, repository ou composant collaborateur.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/service/teammember/TeamMembershipService.java"
+      },
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/service/team/TeamOrganizationAvailabilityValidator.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:membership",
+    "predicate": "ENFORCES",
+    "to": "rule:member-close",
+    "description": "Ce composant contribue à appliquer la règle à son niveau.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/service/teammember/TeamMembershipService.java",
+        "line": 74,
+        "symbol": "public TeamMember suspendMember"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:membership",
+    "predicate": "ENFORCES",
+    "to": "rule:member-open",
+    "description": "Ce composant contribue à appliquer la règle à son niveau.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/service/teammember/TeamMembershipService.java",
+        "line": 37,
+        "symbol": "public TeamMember addMember"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:membership",
+    "predicate": "ENFORCES",
+    "to": "rule:member-unique",
+    "description": "Ce composant contribue à appliquer la règle à son niveau.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/service/teammember/TeamMembershipService.java",
+        "line": 132,
+        "symbol": "private void ensureNoCurrentMembership"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:membership",
+    "predicate": "IMPLEMENTS",
+    "to": "uc:team-membership",
+    "description": "Le service implémente ce port entrant.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/service/teammember/TeamMembershipService.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:membership",
+    "predicate": "MANAGES",
+    "to": "entity:team-membership",
+    "description": "Le service exécute des opérations sur ce type canonique.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/service/teammember/TeamMembershipService.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:org-directory",
+    "predicate": "ENFORCES",
+    "to": "rule:org-availability",
+    "description": "Ce composant contribue à appliquer la règle à son niveau.",
+    "sources": [
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/application/service/organization/OrganizationDirectoryService.java",
+        "line": 49,
+        "symbol": "public Optional<OrganizationResponsibilities> findByOrganizationReference"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:org-directory",
+    "predicate": "IMPLEMENTS",
+    "to": "api:org-directory",
+    "description": "Le service implémente le contrat Java public du module.",
+    "sources": [
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/application/service/organization/OrganizationDirectoryService.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:org-http",
+    "predicate": "EXPOSES",
+    "to": "api:organization-http",
+    "description": "Le contrôleur porte les mappings de cette surface.",
+    "sources": [
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/infrastructure/web/organization/OrganizationController.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:org-jpa",
+    "predicate": "PERSISTS",
+    "to": "table:organizations",
+    "description": "Accès JPA à la table de l’entité du module.",
+    "sources": [
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/infrastructure/persistence/repository/JpaOrganizationRepositoryAdapter.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:org-lifecycle",
+    "predicate": "ENFORCES",
+    "to": "rule:org-lifecycle",
+    "description": "Ce composant contribue à appliquer la règle à son niveau.",
+    "sources": [
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/application/service/organization/OrganizationLifecycleService.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:org-lifecycle",
+    "predicate": "IMPLEMENTS",
+    "to": "api:org-lifecycle",
+    "description": "Le service implémente le contrat Java public du module.",
+    "sources": [
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/application/service/organization/OrganizationLifecycleService.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:org-lifecycle",
+    "predicate": "IMPLEMENTS",
+    "to": "uc:org-lifecycle",
+    "description": "Le service implémente ce port entrant.",
+    "sources": [
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/application/service/organization/OrganizationLifecycleService.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:org-lifecycle",
+    "predicate": "MANAGES",
+    "to": "entity:organization",
+    "description": "Le service exécute des opérations sur ce type canonique.",
+    "sources": [
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/application/service/organization/OrganizationLifecycleService.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:org-model",
+    "predicate": "ENFORCES",
+    "to": "rule:org-assign",
+    "description": "Ce composant contribue à appliquer la règle à son niveau.",
+    "sources": [
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/domain/organization/model/Organization.java",
+        "line": 134,
+        "symbol": "public void assignAdministrator"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:org-model",
+    "predicate": "ENFORCES",
+    "to": "rule:org-data",
+    "description": "Ce composant contribue à appliquer la règle à son niveau.",
+    "sources": [
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/domain/organization/model/Organization.java",
+        "line": 439,
+        "symbol": "private static String validateName"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:org-model",
+    "predicate": "ENFORCES",
+    "to": "rule:org-lifecycle",
+    "description": "Ce composant contribue à appliquer la règle à son niveau.",
+    "sources": [
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/domain/organization/model/Organization.java",
+        "line": 78,
+        "symbol": "public static Organization create"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:org-model",
+    "predicate": "ENFORCES",
+    "to": "rule:org-remove-manager",
+    "description": "Ce composant contribue à appliquer la règle à son niveau.",
+    "sources": [
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/domain/organization/model/Organization.java",
+        "line": 264,
+        "symbol": "public void removeManager"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:org-model",
+    "predicate": "ENFORCES",
+    "to": "rule:org-replace",
+    "description": "Ce composant contribue à appliquer la règle à son niveau.",
+    "sources": [
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/domain/organization/model/Organization.java",
+        "line": 209,
+        "symbol": "public void replaceAdministrator"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:org-model",
+    "predicate": "ENFORCES",
+    "to": "rule:org-responsibility-shape",
+    "description": "Ce composant contribue à appliquer la règle à son niveau.",
+    "sources": [
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/domain/organization/model/Organization.java",
+        "line": 344,
+        "symbol": "private void validateResponsibleStructure"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:org-responsibles",
+    "predicate": "DEPENDS_ON",
+    "to": "component:org-jpa",
+    "description": "Dépendance de flux par port, repository ou composant collaborateur.",
+    "sources": [
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/application/service/organization/OrganizationResponsibleUsersService.java"
+      },
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/infrastructure/persistence/repository/JpaOrganizationRepositoryAdapter.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:org-responsibles",
+    "predicate": "DEPENDS_ON",
+    "to": "component:org-responsibles-validator",
+    "description": "Dépendance de flux par port, repository ou composant collaborateur.",
+    "sources": [
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/application/service/organization/OrganizationResponsibleUsersService.java"
+      },
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/application/service/organization/OrganizationResponsibleUsersValidator.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:org-responsibles",
+    "predicate": "ENFORCES",
+    "to": "rule:org-activation-deferred",
+    "description": "Ce composant contribue à appliquer la règle à son niveau.",
+    "sources": [
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/application/service/organization/OrganizationResponsibleUsersService.java",
+        "line": 176,
+        "symbol": "private void rejectDeferredTransition"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:org-responsibles",
+    "predicate": "ENFORCES",
+    "to": "rule:org-assign",
+    "description": "Ce composant contribue à appliquer la règle à son niveau.",
+    "sources": [
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/application/service/organization/OrganizationResponsibleUsersService.java",
+        "line": 36,
+        "symbol": "public Organization assignAdministrator"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:org-responsibles",
+    "predicate": "ENFORCES",
+    "to": "rule:org-remove-manager",
+    "description": "Ce composant contribue à appliquer la règle à son niveau.",
+    "sources": [
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/application/service/organization/OrganizationResponsibleUsersService.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:org-responsibles",
+    "predicate": "ENFORCES",
+    "to": "rule:org-replace",
+    "description": "Ce composant contribue à appliquer la règle à son niveau.",
+    "sources": [
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/application/service/organization/OrganizationResponsibleUsersService.java",
+        "line": 132,
+        "symbol": "public Organization replaceManager"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:org-responsibles",
+    "predicate": "IMPLEMENTS",
+    "to": "uc:org-responsibles",
+    "description": "Le service implémente ce port entrant.",
+    "sources": [
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/application/service/organization/OrganizationResponsibleUsersService.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:org-responsibles",
+    "predicate": "MANAGES",
+    "to": "entity:organization",
+    "description": "Le service exécute des opérations sur ce type canonique.",
+    "sources": [
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/application/service/organization/OrganizationResponsibleUsersService.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:org-responsibles-validator",
+    "predicate": "CONSUMES",
+    "to": "api:user-directory",
+    "description": "Vérifie l’éligibilité d’un responsable d’organisation.",
+    "sources": [
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/application/service/organization/OrganizationResponsibleUsersValidator.java",
+        "line": 237,
+        "symbol": "private UserAvailability checkAvailability"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:org-responsibles-validator",
+    "predicate": "ENFORCES",
+    "to": "rule:org-assign",
+    "description": "Ce composant contribue à appliquer la règle à son niveau.",
+    "sources": [
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/application/service/organization/OrganizationResponsibleUsersValidator.java",
+        "line": 195,
+        "symbol": "private UserAvailability validateAssignable"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:org-responsibles-validator",
+    "predicate": "ENFORCES",
+    "to": "rule:org-replace",
+    "description": "Ce composant contribue à appliquer la règle à son niveau.",
+    "sources": [
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/application/service/organization/OrganizationResponsibleUsersValidator.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:platform-http",
+    "predicate": "ENFORCES",
+    "to": "rule:tenant-scope",
+    "description": "Ce composant contribue à appliquer la règle à son niveau.",
+    "sources": [
+      {
+        "path": "tp-administration/src/main/java/io/teampulse/administration/infrastructure/web/identity/UserLifecycleAdministrationController.java",
+        "line": 44,
+        "symbol": "tenantContextProvider.current()"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:platform-http",
+    "predicate": "EXPOSES",
+    "to": "api:platform-http",
+    "description": "Le contrôleur porte les mappings de cette surface.",
+    "sources": [
+      {
+        "path": "tp-administration/src/main/java/io/teampulse/administration/infrastructure/web/identity/UserLifecycleAdministrationController.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:platform-user",
+    "predicate": "CONSUMES",
+    "to": "api:org-directory",
+    "description": "Vérifie l’existence et les responsabilités de l’organisation.",
+    "sources": [
+      {
+        "path": "tp-administration/src/main/java/io/teampulse/administration/application/service/identity/UserLifecycleAdministrationService.java",
+        "line": 78,
+        "symbol": "private void ensureOrganizationExists"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:platform-user",
+    "predicate": "CONSUMES",
+    "to": "api:team-directory",
+    "description": "Vérifie les responsabilités d’équipe.",
+    "sources": [
+      {
+        "path": "tp-administration/src/main/java/io/teampulse/administration/application/service/identity/UserLifecycleAdministrationService.java",
+        "line": 105,
+        "symbol": "private void ensureNoActiveResponsibilities"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:platform-user",
+    "predicate": "CONSUMES",
+    "to": "api:user-lifecycle",
+    "description": "Délègue les écritures utilisateur à Identity.",
+    "sources": [
+      {
+        "path": "tp-administration/src/main/java/io/teampulse/administration/application/service/identity/UserLifecycleAdministrationService.java",
+        "line": 41,
+        "symbol": "public UserLifecycleAdministrationResult createInitialUser"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:platform-user",
+    "predicate": "ENFORCES",
+    "to": "rule:platform-guard",
+    "description": "Ce composant contribue à appliquer la règle à son niveau.",
+    "sources": [
+      {
+        "path": "tp-administration/src/main/java/io/teampulse/administration/application/service/identity/UserLifecycleAdministrationService.java",
+        "line": 105,
+        "symbol": "private void ensureNoActiveResponsibilities"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:platform-user",
+    "predicate": "ENFORCES",
+    "to": "rule:platform-provision",
+    "description": "Ce composant contribue à appliquer la règle à son niveau.",
+    "sources": [
+      {
+        "path": "tp-administration/src/main/java/io/teampulse/administration/application/service/identity/UserLifecycleAdministrationService.java",
+        "line": 68,
+        "symbol": "private UserLifecycleAdministrationResult provisionInitialUser"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:platform-user",
+    "predicate": "IMPLEMENTS",
+    "to": "uc:platform-user",
+    "description": "Le service implémente ce port entrant.",
+    "sources": [
+      {
+        "path": "tp-administration/src/main/java/io/teampulse/administration/application/service/identity/UserLifecycleAdministrationService.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:platform-user",
+    "predicate": "MANAGES",
+    "to": "entity:user",
+    "description": "Le service exécute des opérations sur ce type canonique.",
+    "sources": [
+      {
+        "path": "tp-administration/src/main/java/io/teampulse/administration/application/service/identity/UserLifecycleAdministrationService.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:reference-factory",
+    "predicate": "ENFORCES",
+    "to": "rule:reference-format",
+    "description": "Ce composant contribue à appliquer la règle à son niveau.",
+    "sources": [
+      {
+        "path": "tp-common/src/main/java/io/teampulse/common/reference/MonotonicReferenceFactory.java",
+        "line": 154,
+        "symbol": "private GenerationState reserveNextState"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:reference-format",
+    "predicate": "ENFORCES",
+    "to": "rule:reference-format",
+    "description": "Ce composant contribue à appliquer la règle à son niveau.",
+    "sources": [
+      {
+        "path": "tp-common/src/main/java/io/teampulse/common/reference/ReferenceFormat.java",
+        "line": 33,
+        "symbol": "public static boolean matches"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:shared-http-errors",
+    "predicate": "ENFORCES",
+    "to": "rule:validation-ownership",
+    "description": "Ce composant contribue à appliquer la règle à son niveau.",
+    "sources": [
+      {
+        "path": "tp-web-support/src/main/java/io/teampulse/websupport/error/SharedHttpErrorAdvice.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:team-directory",
+    "predicate": "IMPLEMENTS",
+    "to": "api:team-directory",
+    "description": "Le service implémente le contrat Java public du module.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/service/team/TeamResponsibilityDirectoryService.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:team-http",
+    "predicate": "ENFORCES",
+    "to": "rule:tenant-scope",
+    "description": "Ce composant contribue à appliquer la règle à son niveau.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/infrastructure/web/team/TeamController.java",
+        "line": 35,
+        "symbol": "tenantContextProvider.current()"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:team-http",
+    "predicate": "EXPOSES",
+    "to": "api:team-http",
+    "description": "Le contrôleur porte les mappings de cette surface.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/infrastructure/web/team/TeamController.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:team-jpa",
+    "predicate": "ENFORCES",
+    "to": "rule:audit-concurrency",
+    "description": "Ce composant contribue à appliquer la règle à son niveau.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/infrastructure/persistence/repository/JpaTeamRepositoryAdapter.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:team-jpa",
+    "predicate": "ENFORCES",
+    "to": "rule:tenant-scope",
+    "description": "Ce composant contribue à appliquer la règle à son niveau.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/infrastructure/persistence/repository/JpaTeamRepositoryAdapter.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:team-jpa",
+    "predicate": "PERSISTS",
+    "to": "table:teams",
+    "description": "Accès JPA à la table de l’entité du module.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/infrastructure/persistence/repository/JpaTeamRepositoryAdapter.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:team-lifecycle",
+    "predicate": "DEPENDS_ON",
+    "to": "component:team-jpa",
+    "description": "Dépendance de flux par port, repository ou composant collaborateur.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/service/team/TeamLifecycleService.java"
+      },
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/infrastructure/persistence/repository/JpaTeamRepositoryAdapter.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:team-lifecycle",
+    "predicate": "DEPENDS_ON",
+    "to": "component:team-org-validator",
+    "description": "Dépendance de flux par port, repository ou composant collaborateur.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/service/team/TeamLifecycleService.java"
+      },
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/service/team/TeamOrganizationAvailabilityValidator.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:team-lifecycle",
+    "predicate": "DEPENDS_ON",
+    "to": "component:team-responsibles-validator",
+    "description": "Dépendance de flux par port, repository ou composant collaborateur.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/service/team/TeamLifecycleService.java"
+      },
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/service/team/TeamResponsibleUsersValidator.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:team-lifecycle",
+    "predicate": "ENFORCES",
+    "to": "rule:team-lifecycle",
+    "description": "Ce composant contribue à appliquer la règle à son niveau.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/service/team/TeamLifecycleService.java",
+        "line": 32,
+        "symbol": "public Team create"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:team-lifecycle",
+    "predicate": "IMPLEMENTS",
+    "to": "uc:team-lifecycle",
+    "description": "Le service implémente ce port entrant.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/service/team/TeamLifecycleService.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:team-lifecycle",
+    "predicate": "MANAGES",
+    "to": "entity:team",
+    "description": "Le service exécute des opérations sur ce type canonique.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/service/team/TeamLifecycleService.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:team-member-validator",
+    "predicate": "CONSUMES",
+    "to": "api:user-directory",
+    "description": "Vérifie l’éligibilité d’un utilisateur pour l’appartenance.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/service/teammember/TeamMemberUserAvailabilityValidator.java",
+        "line": 31,
+        "symbol": "private UserAvailability checkAvailability"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:team-member-validator",
+    "predicate": "ENFORCES",
+    "to": "rule:member-open",
+    "description": "Ce composant contribue à appliquer la règle à son niveau.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/service/teammember/TeamMemberUserAvailabilityValidator.java",
+        "line": 40,
+        "symbol": "private static void validateAvailability"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:team-model",
+    "predicate": "ENFORCES",
+    "to": "rule:team-data",
+    "description": "Ce composant contribue à appliquer la règle à son niveau.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/domain/team/model/Team.java",
+        "line": 138,
+        "symbol": "private static String validateName"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:team-model",
+    "predicate": "ENFORCES",
+    "to": "rule:team-lifecycle",
+    "description": "Ce composant contribue à appliquer la règle à son niveau.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/domain/team/model/Team.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:team-model",
+    "predicate": "ENFORCES",
+    "to": "rule:team-replace",
+    "description": "Ce composant contribue à appliquer la règle à son niveau.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/domain/team/model/Team.java",
+        "line": 112,
+        "symbol": "public void validateReplacementAllowed"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:team-org-validator",
+    "predicate": "CONSUMES",
+    "to": "api:org-directory",
+    "description": "Vérifie l’état opérationnel de l’organisation.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/service/team/TeamOrganizationAvailabilityValidator.java",
+        "line": 23,
+        "symbol": "public void validateAvailable"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:team-org-validator",
+    "predicate": "ENFORCES",
+    "to": "rule:member-open",
+    "description": "Ce composant contribue à appliquer la règle à son niveau.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/service/team/TeamOrganizationAvailabilityValidator.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:team-org-validator",
+    "predicate": "ENFORCES",
+    "to": "rule:team-lifecycle",
+    "description": "Ce composant contribue à appliquer la règle à son niveau.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/service/team/TeamOrganizationAvailabilityValidator.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:team-responsibles",
+    "predicate": "DEPENDS_ON",
+    "to": "component:team-jpa",
+    "description": "Dépendance de flux par port, repository ou composant collaborateur.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/service/team/TeamResponsibleUsersService.java"
+      },
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/infrastructure/persistence/repository/JpaTeamRepositoryAdapter.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:team-responsibles",
+    "predicate": "DEPENDS_ON",
+    "to": "component:team-responsibles-validator",
+    "description": "Dépendance de flux par port, repository ou composant collaborateur.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/service/team/TeamResponsibleUsersService.java"
+      },
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/service/team/TeamResponsibleUsersValidator.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:team-responsibles",
+    "predicate": "ENFORCES",
+    "to": "rule:team-replace",
+    "description": "Ce composant contribue à appliquer la règle à son niveau.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/service/team/TeamResponsibleUsersService.java",
+        "line": 28,
+        "symbol": "public Team replaceAdministrator"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:team-responsibles",
+    "predicate": "IMPLEMENTS",
+    "to": "uc:team-responsibles",
+    "description": "Le service implémente ce port entrant.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/service/team/TeamResponsibleUsersService.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:team-responsibles",
+    "predicate": "MANAGES",
+    "to": "entity:team",
+    "description": "Le service exécute des opérations sur ce type canonique.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/service/team/TeamResponsibleUsersService.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:team-responsibles-validator",
+    "predicate": "CONSUMES",
+    "to": "api:user-directory",
+    "description": "Vérifie l’éligibilité d’un responsable d’équipe.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/service/team/TeamResponsibleUsersValidator.java",
+        "line": 54,
+        "symbol": "private UserAvailability checkAvailability"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:team-responsibles-validator",
+    "predicate": "ENFORCES",
+    "to": "rule:team-lifecycle",
+    "description": "Ce composant contribue à appliquer la règle à son niveau.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/service/team/TeamResponsibleUsersValidator.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:team-responsibles-validator",
+    "predicate": "ENFORCES",
+    "to": "rule:team-replace",
+    "description": "Ce composant contribue à appliquer la règle à son niveau.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/service/team/TeamResponsibleUsersValidator.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:user-directory",
+    "predicate": "ENFORCES",
+    "to": "rule:user-availability",
+    "description": "Ce composant contribue à appliquer la règle à son niveau.",
+    "sources": [
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/application/service/user/UserDirectoryService.java",
+        "line": 25,
+        "symbol": "public UserAvailability check"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:user-directory",
+    "predicate": "IMPLEMENTS",
+    "to": "api:user-directory",
+    "description": "Le service implémente le contrat Java public du module.",
+    "sources": [
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/application/service/user/UserDirectoryService.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:user-http",
+    "predicate": "ENFORCES",
+    "to": "rule:tenant-scope",
+    "description": "Ce composant contribue à appliquer la règle à son niveau.",
+    "sources": [
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/infrastructure/web/user/UserController.java",
+        "line": 38,
+        "symbol": "tenantContextProvider.current()"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:user-http",
+    "predicate": "EXPOSES",
+    "to": "api:identity-http",
+    "description": "Le contrôleur porte les mappings de cette surface.",
+    "sources": [
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/infrastructure/web/user/UserController.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:user-jpa",
+    "predicate": "ENFORCES",
+    "to": "rule:audit-concurrency",
+    "description": "Ce composant contribue à appliquer la règle à son niveau.",
+    "sources": [
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/infrastructure/persistence/repository/JpaUserRepositoryAdapter.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:user-jpa",
+    "predicate": "ENFORCES",
+    "to": "rule:tenant-scope",
+    "description": "Ce composant contribue à appliquer la règle à son niveau.",
+    "sources": [
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/infrastructure/persistence/repository/JpaUserRepositoryAdapter.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:user-jpa",
+    "predicate": "PERSISTS",
+    "to": "table:users",
+    "description": "Accès JPA à la table de l’entité du module.",
+    "sources": [
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/infrastructure/persistence/repository/JpaUserRepositoryAdapter.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:user-lifecycle",
+    "predicate": "DEPENDS_ON",
+    "to": "component:invitation-publisher",
+    "description": "Dépendance de flux par port, repository ou composant collaborateur.",
+    "sources": [
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/application/service/user/UserLifecycleService.java"
+      },
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/infrastructure/messaging/IdentityEventPublisherAdapter.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:user-lifecycle",
+    "predicate": "DEPENDS_ON",
+    "to": "component:user-jpa",
+    "description": "Dépendance de flux par port, repository ou composant collaborateur.",
+    "sources": [
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/application/service/user/UserLifecycleService.java"
+      },
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/infrastructure/persistence/repository/JpaUserRepositoryAdapter.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:user-lifecycle",
+    "predicate": "ENFORCES",
+    "to": "rule:user-email-unique",
+    "description": "Ce composant contribue à appliquer la règle à son niveau.",
+    "sources": [
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/application/service/user/UserLifecycleService.java",
+        "line": 89,
+        "symbol": "private User persistIfEmailAvailable"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:user-lifecycle",
+    "predicate": "ENFORCES",
+    "to": "rule:user-invited",
+    "description": "Ce composant contribue à appliquer la règle à son niveau.",
+    "sources": [
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/application/service/user/UserLifecycleService.java",
+        "line": 69,
+        "symbol": "identityEventPublisher.publish"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:user-lifecycle",
+    "predicate": "IMPLEMENTS",
+    "to": "api:user-lifecycle",
+    "description": "Le service implémente le contrat Java public du module.",
+    "sources": [
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/application/service/user/UserLifecycleService.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:user-lifecycle",
+    "predicate": "IMPLEMENTS",
+    "to": "uc:user-lifecycle",
+    "description": "Le service implémente ce port entrant.",
+    "sources": [
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/application/service/user/UserLifecycleService.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:user-lifecycle",
+    "predicate": "MANAGES",
+    "to": "entity:user",
+    "description": "Le service exécute des opérations sur ce type canonique.",
+    "sources": [
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/application/service/user/UserLifecycleService.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:user-list",
+    "predicate": "IMPLEMENTS",
+    "to": "uc:list-users",
+    "description": "Le service implémente ce port entrant.",
+    "sources": [
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/application/service/user/ListUsersService.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:user-list",
+    "predicate": "MANAGES",
+    "to": "entity:user",
+    "description": "Le service exécute des opérations sur ce type canonique.",
+    "sources": [
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/application/service/user/ListUsersService.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:user-model",
+    "predicate": "ENFORCES",
+    "to": "rule:user-lifecycle",
+    "description": "Ce composant contribue à appliquer la règle à son niveau.",
+    "sources": [
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/domain/user/model/User.java",
+        "line": 53,
+        "symbol": "public static User create"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "component:user-model",
+    "predicate": "ENFORCES",
+    "to": "rule:user-profile-data",
+    "description": "Ce composant contribue à appliquer la règle à son niveau.",
+    "sources": [
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/domain/user/model/User.java",
+        "line": 153,
+        "symbol": "private static String validateEmail"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "concept:action",
+    "predicate": "DOCUMENTED_BY",
+    "to": "doc:scenario",
+    "description": "La source documente le concept, parcours ou critère.",
+    "sources": [
+      {
+        "path": "docs/besoins/SCENARIO-METIER-TEAMPULSE.md"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "concept:administrator",
+    "predicate": "SPECIALIZES",
+    "to": "concept:responsibility",
+    "description": "Spécialisation du vocabulaire selon le périmètre et les états définis.",
+    "sources": [
+      {
+        "path": "docs/besoins/SCENARIO-METIER-TEAMPULSE.md",
+        "line": 43,
+        "symbol": "## Roles"
+      }
+    ],
+    "confidence": "INFERRED"
+  },
+  {
+    "from": "concept:ballot",
+    "predicate": "CONTAINS_VOTE",
+    "to": "concept:vote",
+    "description": "Relation du scénario produit Draft.",
+    "sources": [
+      {
+        "path": "docs/besoins/SCENARIO-METIER-TEAMPULSE.md",
+        "line": 123,
+        "symbol": "## Actions et votes"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "properties": {
+      "scope": "product-vision-draft"
+    }
+  },
+  {
+    "from": "concept:ballot",
+    "predicate": "DOCUMENTED_BY",
+    "to": "doc:scenario",
+    "description": "La source documente le concept, parcours ou critère.",
+    "sources": [
+      {
+        "path": "docs/besoins/SCENARIO-METIER-TEAMPULSE.md"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "concept:campaign",
+    "predicate": "DOCUMENTED_BY",
+    "to": "doc:scenario",
+    "description": "La source documente le concept, parcours ou critère.",
+    "sources": [
+      {
+        "path": "docs/besoins/SCENARIO-METIER-TEAMPULSE.md"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "concept:campaign",
+    "predicate": "INCLUDES_RESPONSE",
+    "to": "concept:response",
+    "description": "Relation du scénario produit Draft.",
+    "sources": [
+      {
+        "path": "docs/besoins/SCENARIO-METIER-TEAMPULSE.md",
+        "line": 95,
+        "symbol": "## Campagne hebdomadaire"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "properties": {
+      "scope": "product-vision-draft"
+    }
+  },
+  {
+    "from": "concept:campaign",
+    "predicate": "PRODUCES_RESULT",
+    "to": "concept:result",
+    "description": "Relation du scénario produit Draft.",
+    "sources": [
+      {
+        "path": "docs/besoins/SCENARIO-METIER-TEAMPULSE.md",
+        "line": 95,
+        "symbol": "## Campagne hebdomadaire"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "properties": {
+      "scope": "product-vision-draft"
+    }
+  },
+  {
+    "from": "concept:current-membership",
+    "predicate": "SPECIALIZES",
+    "to": "entity:team-membership",
+    "description": "Spécialisation du vocabulaire selon le périmètre et les états définis.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/resources/db/migration/team/V0.1.1__create_team_members.sql",
+        "line": 46,
+        "symbol": "CREATE UNIQUE INDEX uk_team_members_current"
+      }
+    ],
+    "confidence": "INFERRED"
+  },
+  {
+    "from": "concept:functional-reference",
+    "predicate": "DOCUMENTED_BY",
+    "to": "decision:tech-006",
+    "description": "ADR qui spécifie le principe ou son adoption locale.",
+    "sources": [
+      {
+        "path": "docs/adr/technical/ADR-TECH-006-functional-references-over-persistence-identifiers.md"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "concept:functional-reference",
+    "predicate": "DOCUMENTED_BY",
+    "to": "decision:tech-007",
+    "description": "ADR qui spécifie le principe ou son adoption locale.",
+    "sources": [
+      {
+        "path": "docs/adr/technical/ADR-TECH-007-monotonic-java-reference-generation.md"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "concept:manager",
+    "predicate": "SPECIALIZES",
+    "to": "concept:responsibility",
+    "description": "Spécialisation du vocabulaire selon le périmètre et les états définis.",
+    "sources": [
+      {
+        "path": "docs/besoins/SCENARIO-METIER-TEAMPULSE.md",
+        "line": 43,
+        "symbol": "## Roles"
+      }
+    ],
+    "confidence": "INFERRED"
+  },
+  {
+    "from": "concept:organization-auditor",
+    "predicate": "DOCUMENTED_BY",
+    "to": "doc:scenario",
+    "description": "La source documente le concept, parcours ou critère.",
+    "sources": [
+      {
+        "path": "docs/besoins/SCENARIO-METIER-TEAMPULSE.md"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "concept:platform-administrator",
+    "predicate": "DOCUMENTED_BY",
+    "to": "doc:scenario",
+    "description": "La source documente le concept, parcours ou critère.",
+    "sources": [
+      {
+        "path": "docs/besoins/SCENARIO-METIER-TEAMPULSE.md"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "concept:proposal",
+    "predicate": "ABOUT_RESULT",
+    "to": "concept:result",
+    "description": "Relation du scénario produit Draft.",
+    "sources": [
+      {
+        "path": "docs/besoins/SCENARIO-METIER-TEAMPULSE.md",
+        "line": 123,
+        "symbol": "## Actions et votes"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "properties": {
+      "scope": "product-vision-draft"
+    }
+  },
+  {
+    "from": "concept:proposal",
+    "predicate": "DOCUMENTED_BY",
+    "to": "doc:scenario",
+    "description": "La source documente le concept, parcours ou critère.",
+    "sources": [
+      {
+        "path": "docs/besoins/SCENARIO-METIER-TEAMPULSE.md"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "concept:proposal",
+    "predicate": "HAS_BALLOT",
+    "to": "concept:ballot",
+    "description": "Relation du scénario produit Draft.",
+    "sources": [
+      {
+        "path": "docs/besoins/SCENARIO-METIER-TEAMPULSE.md",
+        "line": 123,
+        "symbol": "## Actions et votes"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "properties": {
+      "scope": "product-vision-draft"
+    }
+  },
+  {
+    "from": "concept:proposal",
+    "predicate": "LEADS_TO_ACTION",
+    "to": "concept:action",
+    "description": "Relation du scénario produit Draft.",
+    "sources": [
+      {
+        "path": "docs/besoins/SCENARIO-METIER-TEAMPULSE.md",
+        "line": 123,
+        "symbol": "## Actions et votes"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "properties": {
+      "scope": "product-vision-draft"
+    }
+  },
+  {
+    "from": "concept:response",
+    "predicate": "DOCUMENTED_BY",
+    "to": "doc:scenario",
+    "description": "La source documente le concept, parcours ou critère.",
+    "sources": [
+      {
+        "path": "docs/besoins/SCENARIO-METIER-TEAMPULSE.md"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "concept:result",
+    "predicate": "DOCUMENTED_BY",
+    "to": "doc:scenario",
+    "description": "La source documente le concept, parcours ou critère.",
+    "sources": [
+      {
+        "path": "docs/besoins/SCENARIO-METIER-TEAMPULSE.md"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "concept:tenant",
+    "predicate": "DOCUMENTED_BY",
+    "to": "decision:tech-008",
+    "description": "ADR qui spécifie le principe ou son adoption locale.",
+    "sources": [
+      {
+        "path": "docs/adr/technical/ADR-TECH-008-explicit-tenant-context-and-tenant-scoped-persistence.md"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "concept:tenant",
+    "predicate": "DOCUMENTED_BY",
+    "to": "decision:w001-t04",
+    "description": "ADR qui spécifie le principe ou son adoption locale.",
+    "sources": [
+      {
+        "path": "docs/adr/W001/ADR-W001-T04-multi-tenancy-organization-reference.md"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "concept:tenant",
+    "predicate": "USES_ORGANIZATION_REFERENCE",
+    "to": "entity:organization",
+    "description": "Une référence du tenant local peut être dépourvue de correspondance persistée.",
+    "sources": [
+      {
+        "path": "tp-app/src/main/java/io/teampulse/context/LocalTenantContextProvider.java",
+        "line": 29,
+        "symbol": "public TenantContext current"
+      },
+      {
+        "path": "docs/adr/W001/ADR-W001-T05-api-metiers-et-administration-plateforme.md",
+        "line": 95,
+        "symbol": "### 3. Garder le tenant"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "properties": {
+      "cardinality": "1 référence, résolution 0..1"
+    }
+  },
+  {
+    "from": "concept:vote",
+    "predicate": "DOCUMENTED_BY",
+    "to": "doc:scenario",
+    "description": "La source documente le concept, parcours ou critère.",
+    "sources": [
+      {
+        "path": "docs/besoins/SCENARIO-METIER-TEAMPULSE.md"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "conflict:organization-role-cardinality",
+    "predicate": "RELATES_TO",
+    "to": "doc:scenario",
+    "description": "Le constat qualifie le périmètre ou les garanties de ce nœud.",
+    "sources": [
+      {
+        "path": "docs/besoins/SCENARIO-METIER-TEAMPULSE.md",
+        "line": 63,
+        "symbol": "Chaque organisation possede"
+      }
+    ],
+    "confidence": "CONFLICTING"
+  },
+  {
+    "from": "conflict:organization-role-cardinality",
+    "predicate": "RELATES_TO",
+    "to": "rule:org-responsibility-shape",
+    "description": "Le constat qualifie le périmètre ou les garanties de ce nœud.",
+    "sources": [
+      {
+        "path": "docs/besoins/SCENARIO-METIER-TEAMPULSE.md",
+        "line": 63,
+        "symbol": "Chaque organisation possede"
+      }
+    ],
+    "confidence": "CONFLICTING"
+  },
+  {
+    "from": "conflict:organization-timezone",
+    "predicate": "RELATES_TO",
+    "to": "decision:w001-t04",
+    "description": "Le constat qualifie le périmètre ou les garanties de ce nœud.",
+    "sources": [
+      {
+        "path": "docs/adr/W001/ADR-W001-T04-multi-tenancy-organization-reference.md",
+        "line": 190,
+        "symbol": "identifiant IANA"
+      }
+    ],
+    "confidence": "CONFLICTING"
+  },
+  {
+    "from": "conflict:organization-timezone",
+    "predicate": "RELATES_TO",
+    "to": "rule:org-data",
+    "description": "Le constat qualifie le périmètre ou les garanties de ce nœud.",
+    "sources": [
+      {
+        "path": "docs/adr/W001/ADR-W001-T04-multi-tenancy-organization-reference.md",
+        "line": 190,
+        "symbol": "identifiant IANA"
+      }
+    ],
+    "confidence": "CONFLICTING"
+  },
+  {
+    "from": "decision:w001-t05",
+    "predicate": "ADOPTS",
+    "to": "decision:tech-013",
+    "description": "L’ADR local documente l’adoption ou sa progression dans le périmètre T05.",
+    "sources": [
+      {
+        "path": "docs/adr/W001/ADR-W001-T05-api-metiers-et-administration-plateforme.md",
+        "line": 12,
+        "symbol": "## ADR techniques de référence"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "decision:w001-t05",
+    "predicate": "ADOPTS",
+    "to": "decision:tech-014",
+    "description": "L’ADR local documente l’adoption ou sa progression dans le périmètre T05.",
+    "sources": [
+      {
+        "path": "docs/adr/W001/ADR-W001-T05-api-metiers-et-administration-plateforme.md",
+        "line": 12,
+        "symbol": "## ADR techniques de référence"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "decision:w001-t05",
+    "predicate": "ADOPTS",
+    "to": "decision:tech-015",
+    "description": "L’ADR local documente l’adoption ou sa progression dans le périmètre T05.",
+    "sources": [
+      {
+        "path": "docs/adr/W001/ADR-W001-T05-api-metiers-et-administration-plateforme.md",
+        "line": 12,
+        "symbol": "## ADR techniques de référence"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "decision:w001-t05",
+    "predicate": "DOCUMENTED_BY",
+    "to": "decision:tech-016",
+    "description": "T05 prend le principe pour référence et diffère le registre durable et ses consommateurs.",
+    "sources": [
+      {
+        "path": "docs/adr/W001/ADR-W001-T05-api-metiers-et-administration-plateforme.md",
+        "line": 208,
+        "symbol": "aucun listener de notification"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "decision:w001-t05",
+    "predicate": "DOCUMENTED_BY",
+    "to": "doc:need-t05",
+    "description": "La source documente le concept, parcours ou critère.",
+    "sources": [
+      {
+        "path": "docs/besoins/W001/W001-T05-api-metiers-et-administration-plateforme.md"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "entity:organization",
+    "predicate": "BELONGS_TO",
+    "to": "domain:organization",
+    "description": "Ownership du type de données canonique.",
+    "sources": [
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/domain/organization/model/Organization.java",
+        "line": 13,
+        "symbol": "public final class Organization"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "entity:organization",
+    "predicate": "HAS_ADMINISTRATOR",
+    "to": "entity:user",
+    "description": "L’organisation désigne un administrateur selon son état.",
+    "sources": [
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/domain/organization/model/Organization.java",
+        "line": 344,
+        "symbol": "private void validateResponsibleStructure"
+      },
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/application/service/organization/OrganizationResponsibleUsersValidator.java",
+        "line": 237,
+        "symbol": "private UserAvailability checkAvailability"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "properties": {
+      "cardinality": "0..1"
+    }
+  },
+  {
+    "from": "entity:organization",
+    "predicate": "HAS_MANAGER",
+    "to": "entity:user",
+    "description": "L’organisation désigne un manager selon son état.",
+    "sources": [
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/domain/organization/model/Organization.java",
+        "line": 344,
+        "symbol": "private void validateResponsibleStructure"
+      },
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/application/service/organization/OrganizationResponsibleUsersValidator.java",
+        "line": 237,
+        "symbol": "private UserAvailability checkAvailability"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "properties": {
+      "cardinality": "0..1"
+    }
+  },
+  {
+    "from": "entity:organization",
+    "predicate": "PROJECTS_AVAILABILITY",
+    "to": "concept:organization-availability",
+    "description": "Le statut organisation alimente le verdict de l’annuaire.",
+    "sources": [
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/application/service/organization/OrganizationDirectoryService.java",
+        "line": 81,
+        "symbol": "private static OrganizationAvailability toAvailability"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "properties": {
+      "cardinality": "1 par consultation réussie"
+    }
+  },
+  {
+    "from": "entity:team",
+    "predicate": "BELONGS_TO",
+    "to": "domain:team",
+    "description": "Ownership du type de données canonique.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/domain/team/model/Team.java",
+        "line": 11,
+        "symbol": "public final class Team"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "entity:team",
+    "predicate": "HAS_ADMINISTRATOR",
+    "to": "entity:user",
+    "description": "Équipe avec administrateur obligatoire.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/resources/db/migration/team/V0.1.0__create_teams.sql",
+        "line": 14,
+        "symbol": "admin_reference"
+      },
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/service/team/TeamResponsibleUsersValidator.java",
+        "line": 26,
+        "symbol": "public void validateOperationalAdministrator"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "properties": {
+      "cardinality": "1"
+    }
+  },
+  {
+    "from": "entity:team",
+    "predicate": "HAS_MANAGER",
+    "to": "entity:user",
+    "description": "Équipe avec manager obligatoire.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/resources/db/migration/team/V0.1.0__create_teams.sql",
+        "line": 15,
+        "symbol": "manager_reference"
+      },
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/service/team/TeamResponsibleUsersValidator.java",
+        "line": 34,
+        "symbol": "public void validateOperationalManager"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "properties": {
+      "cardinality": "1"
+    }
+  },
+  {
+    "from": "entity:team",
+    "predicate": "IN_ORGANIZATION",
+    "to": "entity:organization",
+    "description": "Équipe créée dans le périmètre du tenant courant.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/domain/team/model/Team.java",
+        "line": 20,
+        "symbol": "private final String organizationReference"
+      },
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/service/team/TeamLifecycleService.java",
+        "line": 32,
+        "symbol": "public Team create"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "properties": {
+      "cardinality": "1 référence"
+    }
+  },
+  {
+    "from": "entity:team-membership",
+    "predicate": "BELONGS_TO",
+    "to": "domain:team",
+    "description": "Ownership du type de données canonique.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/domain/team/model/TeamMember.java",
+        "line": 12,
+        "symbol": "public final class TeamMember"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "entity:team-membership",
+    "predicate": "MEMBERSHIP_FOR",
+    "to": "entity:user",
+    "description": "Le bénéficiaire est identifié par la référence utilisateur.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/domain/team/model/TeamMember.java",
+        "line": 20,
+        "symbol": "private final String userReference"
+      },
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/service/teammember/TeamMembershipService.java",
+        "line": 126,
+        "symbol": "private TeamMember findCurrentMembership"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "properties": {
+      "cardinality": "1 référence"
+    }
+  },
+  {
+    "from": "entity:team-membership",
+    "predicate": "MEMBERSHIP_OF",
+    "to": "entity:team",
+    "description": "La FK impose l’équipe et le même tenant.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/resources/db/migration/team/V0.1.1__create_team_members.sql",
+        "line": 24,
+        "symbol": "CONSTRAINT fk_team_members_team"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "properties": {
+      "cardinality": "1"
+    }
+  },
+  {
+    "from": "entity:user",
+    "predicate": "BELONGS_TO",
+    "to": "domain:identity",
+    "description": "Ownership du type de données canonique.",
+    "sources": [
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/domain/user/model/User.java",
+        "line": 13,
+        "symbol": "public final class User"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "entity:user",
+    "predicate": "IN_ORGANIZATION",
+    "to": "entity:organization",
+    "description": "La référence utilisateur porte le tenant.",
+    "sources": [
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/domain/user/model/User.java",
+        "line": 26,
+        "symbol": "private final String organizationReference"
+      },
+      {
+        "path": "tp-identity/src/main/resources/db/migration/identity/V0.1.0__create_users.sql",
+        "line": 11,
+        "symbol": "organization_reference"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "properties": {
+      "cardinality": "1 référence"
+    }
+  },
+  {
+    "from": "entity:user",
+    "predicate": "PROJECTS_AVAILABILITY",
+    "to": "concept:user-availability",
+    "description": "Le statut utilisateur alimente le verdict de l’annuaire.",
+    "sources": [
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/application/service/user/UserDirectoryService.java",
+        "line": 44,
+        "symbol": "private UserAvailability toAvailability"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "properties": {
+      "cardinality": "1 par consultation réussie"
+    }
+  },
+  {
+    "from": "event:user-invited",
+    "predicate": "DOCUMENTED_BY",
+    "to": "decision:w001-t05",
+    "description": "ADR qui spécifie le principe ou son adoption locale.",
+    "sources": [
+      {
+        "path": "docs/adr/W001/ADR-W001-T05-api-metiers-et-administration-plateforme.md"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "event:user-invited",
+    "predicate": "INVITES_USER",
+    "to": "entity:user",
+    "description": "Le fait contient la référence de l’utilisateur invité.",
+    "sources": [
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/events/UserInvited.java",
+        "line": 8,
+        "symbol": "public record"
+      },
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/application/service/user/UserLifecycleService.java",
+        "line": 69,
+        "symbol": "identityEventPublisher.publish"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "properties": {
+      "cardinality": "1 référence"
+    }
+  },
+  {
+    "from": "event:user-invited",
+    "predicate": "TESTED_BY",
+    "to": "test:user-lifecycle-unit",
+    "description": "Vérifie le fait produit avec deux références.",
+    "sources": [
+      {
+        "path": "tp-identity/src/test/java/io/teampulse/identity/application/service/user/UserLifecycleServiceTest.java",
+        "line": 242,
+        "symbol": "void persistsAnInvitedUserAndPublishesOnlyReferencesAfterPersistence"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "gap:cross-module-consistency",
+    "predicate": "RELATES_TO",
+    "to": "rule:audit-concurrency",
+    "description": "Le constat qualifie le périmètre ou les garanties de ce nœud.",
+    "sources": [
+      {
+        "path": "tp-administration/src/main/java/io/teampulse/administration/application/service/identity/UserLifecycleAdministrationService.java",
+        "line": 105,
+        "symbol": "private void ensureNoActiveResponsibilities"
+      }
+    ],
+    "confidence": "UNKNOWN"
+  },
+  {
+    "from": "gap:cross-module-consistency",
+    "predicate": "RELATES_TO",
+    "to": "rule:platform-guard",
+    "description": "Le constat qualifie le périmètre ou les garanties de ce nœud.",
+    "sources": [
+      {
+        "path": "tp-administration/src/main/java/io/teampulse/administration/application/service/identity/UserLifecycleAdministrationService.java",
+        "line": 105,
+        "symbol": "private void ensureNoActiveResponsibilities"
+      }
+    ],
+    "confidence": "UNKNOWN"
+  },
+  {
+    "from": "gap:non-local-tenant-provider",
+    "predicate": "RELATES_TO",
+    "to": "api:platform-http",
+    "description": "Le constat qualifie le périmètre ou les garanties de ce nœud.",
+    "sources": [
+      {
+        "path": "tp-administration/src/main/java/io/teampulse/administration/infrastructure/web/identity/UserLifecycleAdministrationController.java",
+        "line": 30,
+        "symbol": "TenantContextProvider requis par le contrôleur"
+      },
+      {
+        "path": "tp-app/src/main/java/io/teampulse/context/LocalTenantConfiguration.java",
+        "line": 13,
+        "symbol": "Fournisseur actif sous local"
+      }
+    ],
+    "confidence": "INFERRED"
+  },
+  {
+    "from": "gap:non-local-tenant-provider",
+    "predicate": "RELATES_TO",
+    "to": "component:local-tenant",
+    "description": "Le constat qualifie le périmètre ou les garanties de ce nœud.",
+    "sources": [
+      {
+        "path": "tp-app/src/main/java/io/teampulse/context/LocalTenantConfiguration.java",
+        "line": 13,
+        "symbol": "Fournisseur actif sous local"
+      }
+    ],
+    "confidence": "INFERRED"
+  },
+  {
+    "from": "gap:event-delivery",
+    "predicate": "RELATES_TO",
+    "to": "decision:tech-016",
+    "description": "Le constat qualifie le périmètre ou les garanties de ce nœud.",
+    "sources": [
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/infrastructure/messaging/IdentityEventPublisherAdapter.java",
+        "line": 16,
+        "symbol": "applicationEventPublisher.publishEvent"
+      }
+    ],
+    "confidence": "UNKNOWN"
+  },
+  {
+    "from": "gap:event-delivery",
+    "predicate": "RELATES_TO",
+    "to": "event:user-invited",
+    "description": "Le constat qualifie le périmètre ou les garanties de ce nœud.",
+    "sources": [
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/infrastructure/messaging/IdentityEventPublisherAdapter.java",
+        "line": 16,
+        "symbol": "applicationEventPublisher.publishEvent"
+      }
+    ],
+    "confidence": "UNKNOWN"
+  },
+  {
+    "from": "gap:historical-membership-key",
+    "predicate": "RELATES_TO",
+    "to": "entity:team-membership",
+    "description": "Le constat qualifie le périmètre ou les garanties de ce nœud.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/infrastructure/web/teammember/TeamMemberController.java",
+        "line": 20,
+        "symbol": "@RequestMapping"
+      }
+    ],
+    "confidence": "UNKNOWN"
+  },
+  {
+    "from": "gap:historical-membership-key",
+    "predicate": "RELATES_TO",
+    "to": "rule:member-unique",
+    "description": "Le constat qualifie le périmètre ou les garanties de ce nœud.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/infrastructure/web/teammember/TeamMemberController.java",
+        "line": 20,
+        "symbol": "@RequestMapping"
+      }
+    ],
+    "confidence": "UNKNOWN"
+  },
+  {
+    "from": "gap:initial-user",
+    "predicate": "RELATES_TO",
+    "to": "concept:initial-user",
+    "description": "Le constat qualifie le périmètre ou les garanties de ce nœud.",
+    "sources": [
+      {
+        "path": "docs/adr/W001/ADR-W001-T05-api-metiers-et-administration-plateforme.md",
+        "line": 66,
+        "symbol": "son premier utilisateur"
+      }
+    ],
+    "confidence": "AMBIGUOUS"
+  },
+  {
+    "from": "gap:initial-user",
+    "predicate": "RELATES_TO",
+    "to": "rule:platform-provision",
+    "description": "Le constat qualifie le périmètre ou les garanties de ce nœud.",
+    "sources": [
+      {
+        "path": "docs/adr/W001/ADR-W001-T05-api-metiers-et-administration-plateforme.md",
+        "line": 66,
+        "symbol": "son premier utilisateur"
+      }
+    ],
+    "confidence": "AMBIGUOUS"
+  },
+  {
+    "from": "gap:local-bootstrap",
+    "predicate": "RELATES_TO",
+    "to": "rule:local-bootstrap",
+    "description": "Le constat qualifie le périmètre ou les garanties de ce nœud.",
+    "sources": [
+      {
+        "path": "tp-app/src/main/java/io/teampulse/context/LocalTenantContextProvider.java",
+        "line": 29,
+        "symbol": "public TenantContext current"
+      }
+    ],
+    "confidence": "INFERRED"
+  },
+  {
+    "from": "gap:local-bootstrap",
+    "predicate": "RELATES_TO",
+    "to": "rule:platform-provision",
+    "description": "Le constat qualifie le périmètre ou les garanties de ce nœud.",
+    "sources": [
+      {
+        "path": "tp-app/src/main/java/io/teampulse/context/LocalTenantContextProvider.java",
+        "line": 29,
+        "symbol": "public TenantContext current"
+      }
+    ],
+    "confidence": "INFERRED"
+  },
+  {
+    "from": "gap:product-implementation",
+    "predicate": "RELATES_TO",
+    "to": "doc:roadmap",
+    "description": "Le constat qualifie le périmètre ou les garanties de ce nœud.",
+    "sources": [
+      {
+        "path": "docs/besoins/SCENARIO-METIER-TEAMPULSE.md",
+        "line": 178,
+        "symbol": "## Progression dans la roadmap"
+      }
+    ],
+    "confidence": "UNKNOWN"
+  },
+  {
+    "from": "gap:product-implementation",
+    "predicate": "RELATES_TO",
+    "to": "process:pulse",
+    "description": "Le constat qualifie le périmètre ou les garanties de ce nœud.",
+    "sources": [
+      {
+        "path": "docs/besoins/SCENARIO-METIER-TEAMPULSE.md",
+        "line": 178,
+        "symbol": "## Progression dans la roadmap"
+      }
+    ],
+    "confidence": "UNKNOWN"
+  },
+  {
+    "from": "module:administration",
+    "predicate": "BELONGS_TO",
+    "to": "domain:administration",
+    "description": "Correspondance de responsabilité entre module et domaine.",
+    "sources": [
+      {
+        "path": "tp-administration/pom.xml"
+      }
+    ],
+    "confidence": "INFERRED"
+  },
+  {
+    "from": "module:administration",
+    "predicate": "CONTAINS",
+    "to": "component:platform-http",
+    "description": "Le code source de ce composant est détenu par ce module.",
+    "sources": [
+      {
+        "path": "tp-administration/src/main/java/io/teampulse/administration/infrastructure/web/identity/UserLifecycleAdministrationController.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "module:administration",
+    "predicate": "CONTAINS",
+    "to": "component:platform-user",
+    "description": "Le code source de ce composant est détenu par ce module.",
+    "sources": [
+      {
+        "path": "tp-administration/src/main/java/io/teampulse/administration/application/service/identity/UserLifecycleAdministrationService.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "module:administration",
+    "predicate": "DEPENDS_ON",
+    "to": "module:common",
+    "description": "Dépendance interne déclarée par le reactor Maven.",
+    "sources": [
+      {
+        "path": "tp-administration/pom.xml",
+        "line": 47,
+        "symbol": "<artifactId>tp-common</artifactId>"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "module:administration",
+    "predicate": "DEPENDS_ON",
+    "to": "module:identity",
+    "description": "Dépendance interne déclarée par le reactor Maven.",
+    "sources": [
+      {
+        "path": "tp-administration/pom.xml",
+        "line": 52,
+        "symbol": "<artifactId>tp-identity</artifactId>"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "module:administration",
+    "predicate": "DEPENDS_ON",
+    "to": "module:organization",
+    "description": "Dépendance interne déclarée par le reactor Maven.",
+    "sources": [
+      {
+        "path": "tp-administration/pom.xml",
+        "line": 57,
+        "symbol": "<artifactId>tp-organization</artifactId>"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "module:administration",
+    "predicate": "DEPENDS_ON",
+    "to": "module:team",
+    "description": "Dépendance interne déclarée par le reactor Maven.",
+    "sources": [
+      {
+        "path": "tp-administration/pom.xml",
+        "line": 62,
+        "symbol": "<artifactId>tp-team</artifactId>"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "module:administration",
+    "predicate": "DEPENDS_ON",
+    "to": "module:test-support",
+    "description": "Dépendance de test.",
+    "sources": [
+      {
+        "path": "tp-administration/pom.xml",
+        "line": 85,
+        "symbol": "<artifactId>tp-test-support</artifactId>"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "properties": {
+      "scope": "test"
+    }
+  },
+  {
+    "from": "module:app",
+    "predicate": "CONTAINS",
+    "to": "component:actor-audit",
+    "description": "Le code source de ce composant est détenu par ce module.",
+    "sources": [
+      {
+        "path": "tp-app/src/main/java/io/teampulse/config/JpaAuditingConfiguration.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "module:app",
+    "predicate": "CONTAINS",
+    "to": "component:local-tenant",
+    "description": "Le code source de ce composant est détenu par ce module.",
+    "sources": [
+      {
+        "path": "tp-app/src/main/java/io/teampulse/context/LocalTenantContextProvider.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "module:app",
+    "predicate": "DEPENDS_ON",
+    "to": "module:administration",
+    "description": "Dépendance interne déclarée par le reactor Maven.",
+    "sources": [
+      {
+        "path": "tp-app/pom.xml",
+        "line": 49,
+        "symbol": "<artifactId>tp-administration</artifactId>"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "module:app",
+    "predicate": "DEPENDS_ON",
+    "to": "module:common",
+    "description": "Dépendance interne déclarée par le reactor Maven.",
+    "sources": [
+      {
+        "path": "tp-app/pom.xml",
+        "line": 54,
+        "symbol": "<artifactId>tp-common</artifactId>"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "module:app",
+    "predicate": "DEPENDS_ON",
+    "to": "module:identity",
+    "description": "Dépendance interne déclarée par le reactor Maven.",
+    "sources": [
+      {
+        "path": "tp-app/pom.xml",
+        "line": 39,
+        "symbol": "<artifactId>tp-identity</artifactId>"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "module:app",
+    "predicate": "DEPENDS_ON",
+    "to": "module:organization",
+    "description": "Dépendance interne déclarée par le reactor Maven.",
+    "sources": [
+      {
+        "path": "tp-app/pom.xml",
+        "line": 34,
+        "symbol": "<artifactId>tp-organization</artifactId>"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "module:app",
+    "predicate": "DEPENDS_ON",
+    "to": "module:team",
+    "description": "Dépendance interne déclarée par le reactor Maven.",
+    "sources": [
+      {
+        "path": "tp-app/pom.xml",
+        "line": 44,
+        "symbol": "<artifactId>tp-team</artifactId>"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "module:app",
+    "predicate": "DEPENDS_ON",
+    "to": "module:test-support",
+    "description": "Dépendance de test.",
+    "sources": [
+      {
+        "path": "tp-app/pom.xml",
+        "line": 78,
+        "symbol": "<artifactId>tp-test-support</artifactId>"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "properties": {
+      "scope": "test"
+    }
+  },
+  {
+    "from": "module:app",
+    "predicate": "DOCUMENTED_BY",
+    "to": "decision:tech-001",
+    "description": "ADR qui spécifie le principe ou son adoption locale.",
+    "sources": [
+      {
+        "path": "docs/adr/technical/ADR-TECH-001-maven-spring-modulith-modular-monolith.md"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "module:app",
+    "predicate": "DOCUMENTED_BY",
+    "to": "decision:tech-002",
+    "description": "ADR qui spécifie le principe ou son adoption locale.",
+    "sources": [
+      {
+        "path": "docs/adr/technical/ADR-TECH-002-shared-postgresql-with-module-owned-flyway.md"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "module:app",
+    "predicate": "DOCUMENTED_BY",
+    "to": "decision:tech-004",
+    "description": "ADR qui spécifie le principe ou son adoption locale.",
+    "sources": [
+      {
+        "path": "docs/adr/technical/ADR-TECH-004-hexagonal-business-module-boundaries.md"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "module:app",
+    "predicate": "DOCUMENTED_BY",
+    "to": "decision:tech-005",
+    "description": "ADR qui spécifie le principe ou son adoption locale.",
+    "sources": [
+      {
+        "path": "docs/adr/technical/ADR-TECH-005-executable-architecture-rules-with-archunit.md"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "module:app",
+    "predicate": "DOCUMENTED_BY",
+    "to": "decision:w001-t01",
+    "description": "ADR qui spécifie le principe ou son adoption locale.",
+    "sources": [
+      {
+        "path": "docs/adr/W001/ADR-W001-T01-backend-multi-module.md"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "module:app",
+    "predicate": "DOCUMENTED_BY",
+    "to": "decision:w001-t02",
+    "description": "ADR qui spécifie le principe ou son adoption locale.",
+    "sources": [
+      {
+        "path": "docs/adr/W001/ADR-W001-T02-docker-compose-local.md"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "module:app",
+    "predicate": "DOCUMENTED_BY",
+    "to": "decision:w001-t03",
+    "description": "ADR qui spécifie le principe ou son adoption locale.",
+    "sources": [
+      {
+        "path": "docs/adr/W001/ADR-W001-T03-regles-architecture-archunit.md"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "module:app",
+    "predicate": "TESTED_BY",
+    "to": "test:archunit",
+    "description": "Vérifie les dépendances de couches internes.",
+    "sources": [
+      {
+        "path": "tp-app/src/test/java/io/teampulse/architecture/InternalArchitectureTests.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "module:app",
+    "predicate": "TESTED_BY",
+    "to": "test:modulith",
+    "description": "Vérifie les interfaces et frontières Modulith.",
+    "sources": [
+      {
+        "path": "tp-app/src/test/java/io/teampulse/architecture/ModulithArchitectureTests.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "module:common",
+    "predicate": "CONTAINS",
+    "to": "component:reference-factory",
+    "description": "Le code source de ce composant est détenu par ce module.",
+    "sources": [
+      {
+        "path": "tp-common/src/main/java/io/teampulse/common/reference/MonotonicReferenceFactory.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "module:common",
+    "predicate": "CONTAINS",
+    "to": "component:reference-format",
+    "description": "Le code source de ce composant est détenu par ce module.",
+    "sources": [
+      {
+        "path": "tp-common/src/main/java/io/teampulse/common/reference/ReferenceFormat.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "module:identity",
+    "predicate": "BELONGS_TO",
+    "to": "domain:identity",
+    "description": "Correspondance de responsabilité entre module et domaine.",
+    "sources": [
+      {
+        "path": "tp-identity/pom.xml"
+      }
+    ],
+    "confidence": "INFERRED"
+  },
+  {
+    "from": "module:identity",
+    "predicate": "CONTAINS",
+    "to": "component:invitation-publisher",
+    "description": "Le code source de ce composant est détenu par ce module.",
+    "sources": [
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/infrastructure/messaging/IdentityEventPublisherAdapter.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "module:identity",
+    "predicate": "CONTAINS",
+    "to": "component:user-directory",
+    "description": "Le code source de ce composant est détenu par ce module.",
+    "sources": [
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/application/service/user/UserDirectoryService.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "module:identity",
+    "predicate": "CONTAINS",
+    "to": "component:user-http",
+    "description": "Le code source de ce composant est détenu par ce module.",
+    "sources": [
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/infrastructure/web/user/UserController.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "module:identity",
+    "predicate": "CONTAINS",
+    "to": "component:user-jpa",
+    "description": "Le code source de ce composant est détenu par ce module.",
+    "sources": [
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/infrastructure/persistence/repository/JpaUserRepositoryAdapter.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "module:identity",
+    "predicate": "CONTAINS",
+    "to": "component:user-lifecycle",
+    "description": "Le code source de ce composant est détenu par ce module.",
+    "sources": [
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/application/service/user/UserLifecycleService.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "module:identity",
+    "predicate": "CONTAINS",
+    "to": "component:user-list",
+    "description": "Le code source de ce composant est détenu par ce module.",
+    "sources": [
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/application/service/user/ListUsersService.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "module:identity",
+    "predicate": "CONTAINS",
+    "to": "component:user-model",
+    "description": "Le code source de ce composant est détenu par ce module.",
+    "sources": [
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/domain/user/model/User.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "module:identity",
+    "predicate": "CONTAINS",
+    "to": "table:users",
+    "description": "Migration détenue et exécutée par le module.",
+    "sources": [
+      {
+        "path": "tp-identity/src/main/resources/db/migration/identity/V0.1.0__create_users.sql",
+        "line": 8,
+        "symbol": "CREATE TABLE"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "module:identity",
+    "predicate": "DEPENDS_ON",
+    "to": "module:common",
+    "description": "Dépendance interne déclarée par le reactor Maven.",
+    "sources": [
+      {
+        "path": "tp-identity/pom.xml",
+        "line": 62,
+        "symbol": "<artifactId>tp-common</artifactId>"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "module:identity",
+    "predicate": "DEPENDS_ON",
+    "to": "module:test-support",
+    "description": "Dépendance de test.",
+    "sources": [
+      {
+        "path": "tp-identity/pom.xml",
+        "line": 96,
+        "symbol": "<artifactId>tp-test-support</artifactId>"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "properties": {
+      "scope": "test"
+    }
+  },
+  {
+    "from": "module:identity",
+    "predicate": "DEPENDS_ON",
+    "to": "module:web-support",
+    "description": "Dépendance interne déclarée par le reactor Maven.",
+    "sources": [
+      {
+        "path": "tp-identity/pom.xml",
+        "line": 67,
+        "symbol": "<artifactId>tp-web-support</artifactId>"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "module:organization",
+    "predicate": "BELONGS_TO",
+    "to": "domain:organization",
+    "description": "Correspondance de responsabilité entre module et domaine.",
+    "sources": [
+      {
+        "path": "tp-organization/pom.xml"
+      }
+    ],
+    "confidence": "INFERRED"
+  },
+  {
+    "from": "module:organization",
+    "predicate": "CONTAINS",
+    "to": "component:org-directory",
+    "description": "Le code source de ce composant est détenu par ce module.",
+    "sources": [
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/application/service/organization/OrganizationDirectoryService.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "module:organization",
+    "predicate": "CONTAINS",
+    "to": "component:org-http",
+    "description": "Le code source de ce composant est détenu par ce module.",
+    "sources": [
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/infrastructure/web/organization/OrganizationController.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "module:organization",
+    "predicate": "CONTAINS",
+    "to": "component:org-jpa",
+    "description": "Le code source de ce composant est détenu par ce module.",
+    "sources": [
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/infrastructure/persistence/repository/JpaOrganizationRepositoryAdapter.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "module:organization",
+    "predicate": "CONTAINS",
+    "to": "component:org-lifecycle",
+    "description": "Le code source de ce composant est détenu par ce module.",
+    "sources": [
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/application/service/organization/OrganizationLifecycleService.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "module:organization",
+    "predicate": "CONTAINS",
+    "to": "component:org-model",
+    "description": "Le code source de ce composant est détenu par ce module.",
+    "sources": [
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/domain/organization/model/Organization.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "module:organization",
+    "predicate": "CONTAINS",
+    "to": "component:org-responsibles",
+    "description": "Le code source de ce composant est détenu par ce module.",
+    "sources": [
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/application/service/organization/OrganizationResponsibleUsersService.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "module:organization",
+    "predicate": "CONTAINS",
+    "to": "component:org-responsibles-validator",
+    "description": "Le code source de ce composant est détenu par ce module.",
+    "sources": [
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/application/service/organization/OrganizationResponsibleUsersValidator.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "module:organization",
+    "predicate": "CONTAINS",
+    "to": "table:organizations",
+    "description": "Migration détenue et exécutée par le module.",
+    "sources": [
+      {
+        "path": "tp-organization/src/main/resources/db/migration/organization/V0.1.0__create_organizations.sql",
+        "line": 8,
+        "symbol": "CREATE TABLE"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "module:organization",
+    "predicate": "DEPENDS_ON",
+    "to": "module:common",
+    "description": "Dépendance interne déclarée par le reactor Maven.",
+    "sources": [
+      {
+        "path": "tp-organization/pom.xml",
+        "line": 62,
+        "symbol": "<artifactId>tp-common</artifactId>"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "module:organization",
+    "predicate": "DEPENDS_ON",
+    "to": "module:identity",
+    "description": "Dépendance interne déclarée par le reactor Maven.",
+    "sources": [
+      {
+        "path": "tp-organization/pom.xml",
+        "line": 72,
+        "symbol": "<artifactId>tp-identity</artifactId>"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "module:organization",
+    "predicate": "DEPENDS_ON",
+    "to": "module:test-support",
+    "description": "Dépendance de test.",
+    "sources": [
+      {
+        "path": "tp-organization/pom.xml",
+        "line": 101,
+        "symbol": "<artifactId>tp-test-support</artifactId>"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "properties": {
+      "scope": "test"
+    }
+  },
+  {
+    "from": "module:organization",
+    "predicate": "DEPENDS_ON",
+    "to": "module:web-support",
+    "description": "Dépendance interne déclarée par le reactor Maven.",
+    "sources": [
+      {
+        "path": "tp-organization/pom.xml",
+        "line": 67,
+        "symbol": "<artifactId>tp-web-support</artifactId>"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "module:team",
+    "predicate": "BELONGS_TO",
+    "to": "domain:team",
+    "description": "Correspondance de responsabilité entre module et domaine.",
+    "sources": [
+      {
+        "path": "tp-team/pom.xml"
+      }
+    ],
+    "confidence": "INFERRED"
+  },
+  {
+    "from": "module:team",
+    "predicate": "CONTAINS",
+    "to": "component:member-http",
+    "description": "Le code source de ce composant est détenu par ce module.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/infrastructure/web/teammember/TeamMemberController.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "module:team",
+    "predicate": "CONTAINS",
+    "to": "component:member-jpa",
+    "description": "Le code source de ce composant est détenu par ce module.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/infrastructure/persistence/repository/JpaTeamMemberRepositoryAdapter.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "module:team",
+    "predicate": "CONTAINS",
+    "to": "component:member-model",
+    "description": "Le code source de ce composant est détenu par ce module.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/domain/team/model/TeamMember.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "module:team",
+    "predicate": "CONTAINS",
+    "to": "component:membership",
+    "description": "Le code source de ce composant est détenu par ce module.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/service/teammember/TeamMembershipService.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "module:team",
+    "predicate": "CONTAINS",
+    "to": "component:team-directory",
+    "description": "Le code source de ce composant est détenu par ce module.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/service/team/TeamResponsibilityDirectoryService.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "module:team",
+    "predicate": "CONTAINS",
+    "to": "component:team-http",
+    "description": "Le code source de ce composant est détenu par ce module.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/infrastructure/web/team/TeamController.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "module:team",
+    "predicate": "CONTAINS",
+    "to": "component:team-jpa",
+    "description": "Le code source de ce composant est détenu par ce module.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/infrastructure/persistence/repository/JpaTeamRepositoryAdapter.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "module:team",
+    "predicate": "CONTAINS",
+    "to": "component:team-lifecycle",
+    "description": "Le code source de ce composant est détenu par ce module.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/service/team/TeamLifecycleService.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "module:team",
+    "predicate": "CONTAINS",
+    "to": "component:team-member-validator",
+    "description": "Le code source de ce composant est détenu par ce module.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/service/teammember/TeamMemberUserAvailabilityValidator.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "module:team",
+    "predicate": "CONTAINS",
+    "to": "component:team-model",
+    "description": "Le code source de ce composant est détenu par ce module.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/domain/team/model/Team.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "module:team",
+    "predicate": "CONTAINS",
+    "to": "component:team-org-validator",
+    "description": "Le code source de ce composant est détenu par ce module.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/service/team/TeamOrganizationAvailabilityValidator.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "module:team",
+    "predicate": "CONTAINS",
+    "to": "component:team-responsibles",
+    "description": "Le code source de ce composant est détenu par ce module.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/service/team/TeamResponsibleUsersService.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "module:team",
+    "predicate": "CONTAINS",
+    "to": "component:team-responsibles-validator",
+    "description": "Le code source de ce composant est détenu par ce module.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/service/team/TeamResponsibleUsersValidator.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "module:team",
+    "predicate": "CONTAINS",
+    "to": "table:team-members",
+    "description": "Migration détenue et exécutée par le module.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/resources/db/migration/team/V0.1.1__create_team_members.sql",
+        "line": 8,
+        "symbol": "CREATE TABLE"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "module:team",
+    "predicate": "CONTAINS",
+    "to": "table:teams",
+    "description": "Migration détenue et exécutée par le module.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/resources/db/migration/team/V0.1.0__create_teams.sql",
+        "line": 8,
+        "symbol": "CREATE TABLE"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "module:team",
+    "predicate": "DEPENDS_ON",
+    "to": "module:common",
+    "description": "Dépendance interne déclarée par le reactor Maven.",
+    "sources": [
+      {
+        "path": "tp-team/pom.xml",
+        "line": 62,
+        "symbol": "<artifactId>tp-common</artifactId>"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "module:team",
+    "predicate": "DEPENDS_ON",
+    "to": "module:identity",
+    "description": "Dépendance interne déclarée par le reactor Maven.",
+    "sources": [
+      {
+        "path": "tp-team/pom.xml",
+        "line": 72,
+        "symbol": "<artifactId>tp-identity</artifactId>"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "module:team",
+    "predicate": "DEPENDS_ON",
+    "to": "module:organization",
+    "description": "Dépendance interne déclarée par le reactor Maven.",
+    "sources": [
+      {
+        "path": "tp-team/pom.xml",
+        "line": 77,
+        "symbol": "<artifactId>tp-organization</artifactId>"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "module:team",
+    "predicate": "DEPENDS_ON",
+    "to": "module:test-support",
+    "description": "Dépendance de test.",
+    "sources": [
+      {
+        "path": "tp-team/pom.xml",
+        "line": 106,
+        "symbol": "<artifactId>tp-test-support</artifactId>"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "properties": {
+      "scope": "test"
+    }
+  },
+  {
+    "from": "module:team",
+    "predicate": "DEPENDS_ON",
+    "to": "module:web-support",
+    "description": "Dépendance interne déclarée par le reactor Maven.",
+    "sources": [
+      {
+        "path": "tp-team/pom.xml",
+        "line": 67,
+        "symbol": "<artifactId>tp-web-support</artifactId>"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "module:test-support",
+    "predicate": "CONTAINS",
+    "to": "component:postgres-tests",
+    "description": "Le code source de ce composant est détenu par ce module.",
+    "sources": [
+      {
+        "path": "tp-test-support/src/main/java/io/teampulse/testsupport/persistence/PersistenceIntegrationTestConfiguration.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "module:test-support",
+    "predicate": "DOCUMENTED_BY",
+    "to": "decision:tech-003",
+    "description": "ADR qui spécifie le principe ou son adoption locale.",
+    "sources": [
+      {
+        "path": "docs/adr/technical/ADR-TECH-003-postgresql-integration-tests-with-testcontainers.md"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "module:test-support",
+    "predicate": "DOCUMENTED_BY",
+    "to": "decision:tech-014",
+    "description": "ADR qui spécifie le principe ou son adoption locale.",
+    "sources": [
+      {
+        "path": "docs/adr/technical/ADR-TECH-014-http-boundary-integration-tests.md"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "module:web-support",
+    "predicate": "CONTAINS",
+    "to": "component:shared-http-errors",
+    "description": "Le code source de ce composant est détenu par ce module.",
+    "sources": [
+      {
+        "path": "tp-web-support/src/main/java/io/teampulse/websupport/error/SharedHttpErrorAdvice.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "module:web-support",
+    "predicate": "DEPENDS_ON",
+    "to": "module:common",
+    "description": "Dépendance interne déclarée par le reactor Maven.",
+    "sources": [
+      {
+        "path": "tp-web-support/pom.xml",
+        "line": 33,
+        "symbol": "<artifactId>tp-common</artifactId>"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "process:membership",
+    "predicate": "CONTAINS",
+    "to": "uc:team-membership",
+    "description": "Capacité qui matérialise le cycle des épisodes.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/port/in/teammember/TeamMembershipUseCase.java",
+        "line": 8,
+        "symbol": "public interface"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "process:platform-provision",
+    "predicate": "CONTAINS",
+    "to": "uc:org-lifecycle",
+    "description": "Étape du provisionnement.",
+    "sources": [
+      {
+        "path": "docs/adr/W001/ADR-W001-T05-api-metiers-et-administration-plateforme.md",
+        "line": 66,
+        "symbol": "La création d'une organisation"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "process:platform-provision",
+    "predicate": "CONTAINS",
+    "to": "uc:platform-user",
+    "description": "Étape du provisionnement.",
+    "sources": [
+      {
+        "path": "docs/adr/W001/ADR-W001-T05-api-metiers-et-administration-plateforme.md",
+        "line": 66,
+        "symbol": "La création d'une organisation"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "process:platform-provision",
+    "predicate": "DOCUMENTED_BY",
+    "to": "decision:w001-t05",
+    "description": "ADR qui spécifie le principe ou son adoption locale.",
+    "sources": [
+      {
+        "path": "docs/adr/W001/ADR-W001-T05-api-metiers-et-administration-plateforme.md"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "process:platform-provision",
+    "predicate": "DOCUMENTED_BY",
+    "to": "doc:need-t05",
+    "description": "La source documente le concept, parcours ou critère.",
+    "sources": [
+      {
+        "path": "docs/besoins/W001/W001-T05-api-metiers-et-administration-plateforme.md"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "process:pulse",
+    "predicate": "CONTAINS",
+    "to": "concept:action",
+    "description": "Concept présent dans le scénario Draft.",
+    "sources": [
+      {
+        "path": "docs/besoins/SCENARIO-METIER-TEAMPULSE.md",
+        "line": 6,
+        "symbol": "## Finalite du produit"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "properties": {
+      "scope": "product-vision-draft"
+    }
+  },
+  {
+    "from": "process:pulse",
+    "predicate": "CONTAINS",
+    "to": "concept:ballot",
+    "description": "Concept présent dans le scénario Draft.",
+    "sources": [
+      {
+        "path": "docs/besoins/SCENARIO-METIER-TEAMPULSE.md",
+        "line": 6,
+        "symbol": "## Finalite du produit"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "properties": {
+      "scope": "product-vision-draft"
+    }
+  },
+  {
+    "from": "process:pulse",
+    "predicate": "CONTAINS",
+    "to": "concept:campaign",
+    "description": "Concept présent dans le scénario Draft.",
+    "sources": [
+      {
+        "path": "docs/besoins/SCENARIO-METIER-TEAMPULSE.md",
+        "line": 6,
+        "symbol": "## Finalite du produit"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "properties": {
+      "scope": "product-vision-draft"
+    }
+  },
+  {
+    "from": "process:pulse",
+    "predicate": "CONTAINS",
+    "to": "concept:proposal",
+    "description": "Concept présent dans le scénario Draft.",
+    "sources": [
+      {
+        "path": "docs/besoins/SCENARIO-METIER-TEAMPULSE.md",
+        "line": 6,
+        "symbol": "## Finalite du produit"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "properties": {
+      "scope": "product-vision-draft"
+    }
+  },
+  {
+    "from": "process:pulse",
+    "predicate": "CONTAINS",
+    "to": "concept:response",
+    "description": "Concept présent dans le scénario Draft.",
+    "sources": [
+      {
+        "path": "docs/besoins/SCENARIO-METIER-TEAMPULSE.md",
+        "line": 6,
+        "symbol": "## Finalite du produit"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "properties": {
+      "scope": "product-vision-draft"
+    }
+  },
+  {
+    "from": "process:pulse",
+    "predicate": "CONTAINS",
+    "to": "concept:result",
+    "description": "Concept présent dans le scénario Draft.",
+    "sources": [
+      {
+        "path": "docs/besoins/SCENARIO-METIER-TEAMPULSE.md",
+        "line": 6,
+        "symbol": "## Finalite du produit"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "properties": {
+      "scope": "product-vision-draft"
+    }
+  },
+  {
+    "from": "process:pulse",
+    "predicate": "CONTAINS",
+    "to": "concept:vote",
+    "description": "Concept présent dans le scénario Draft.",
+    "sources": [
+      {
+        "path": "docs/besoins/SCENARIO-METIER-TEAMPULSE.md",
+        "line": 6,
+        "symbol": "## Finalite du produit"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "properties": {
+      "scope": "product-vision-draft"
+    }
+  },
+  {
+    "from": "process:pulse",
+    "predicate": "DOCUMENTED_BY",
+    "to": "doc:roadmap",
+    "description": "La source documente le concept, parcours ou critère.",
+    "sources": [
+      {
+        "path": "ROADMAP.md"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "process:pulse",
+    "predicate": "DOCUMENTED_BY",
+    "to": "doc:scenario",
+    "description": "La source documente le concept, parcours ou critère.",
+    "sources": [
+      {
+        "path": "docs/besoins/SCENARIO-METIER-TEAMPULSE.md"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:audit-concurrency",
+    "predicate": "APPLIES_TO",
+    "to": "concept:actor",
+    "description": "La règle porte sur ce concept, cette entité ou ce fait.",
+    "sources": [
+      {
+        "path": "tp-app/src/main/java/io/teampulse/config/JpaAuditingConfiguration.java",
+        "line": 19,
+        "symbol": "actorContextProvider.current()"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:audit-concurrency",
+    "predicate": "DOCUMENTED_BY",
+    "to": "decision:tech-010",
+    "description": "ADR qui spécifie le principe ou son adoption locale.",
+    "sources": [
+      {
+        "path": "docs/adr/technical/ADR-TECH-010-jpa-managed-technical-state-and-optimistic-locking.md"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:audit-concurrency",
+    "predicate": "DOCUMENTED_BY",
+    "to": "decision:w001-t05",
+    "description": "ADR qui spécifie le principe ou son adoption locale.",
+    "sources": [
+      {
+        "path": "docs/adr/W001/ADR-W001-T05-api-metiers-et-administration-plateforme.md"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:audit-concurrency",
+    "predicate": "TESTED_BY",
+    "to": "test:actor-audit",
+    "description": "Vérifie l’utilisation de l’acteur courant dans l’audit.",
+    "sources": [
+      {
+        "path": "tp-app/src/test/java/io/teampulse/config/ActorContextAuditConfigurationTest.java",
+        "line": 20,
+        "symbol": "void suppliesTheCurrentActorReferenceToJpaAuditing"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:audit-concurrency",
+    "predicate": "TESTED_BY",
+    "to": "test:user-persistence-it",
+    "description": "Vérifie la détection et la traduction du conflit concurrent.",
+    "sources": [
+      {
+        "path": "tp-identity/src/test/java/io/teampulse/identity/infrastructure/persistence/repository/JpaUserRepositoryAdapterIdentityJpaIT.java",
+        "line": 309,
+        "symbol": "void translatesAnOptimisticLockConflictWithoutOverwritingTheCommittedUpdate"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:local-bootstrap",
+    "predicate": "APPLIES_TO",
+    "to": "concept:tenant",
+    "description": "La règle porte sur ce concept, cette entité ou ce fait.",
+    "sources": [
+      {
+        "path": "tp-app/src/main/java/io/teampulse/context/LocalTenantConfiguration.java",
+        "line": 13,
+        "symbol": "@Profile"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:local-tenant",
+    "predicate": "APPLIES_TO",
+    "to": "concept:tenant",
+    "description": "La règle porte sur ce concept, cette entité ou ce fait.",
+    "sources": [
+      {
+        "path": "tp-app/src/main/java/io/teampulse/context/LocalTenantContextProvider.java",
+        "line": 29,
+        "symbol": "public TenantContext current"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:local-tenant",
+    "predicate": "DOCUMENTED_BY",
+    "to": "decision:w001-t04",
+    "description": "ADR qui spécifie le principe ou son adoption locale.",
+    "sources": [
+      {
+        "path": "docs/adr/W001/ADR-W001-T04-multi-tenancy-organization-reference.md"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:local-tenant",
+    "predicate": "DOCUMENTED_BY",
+    "to": "decision:w001-t05",
+    "description": "ADR qui spécifie le principe ou son adoption locale.",
+    "sources": [
+      {
+        "path": "docs/adr/W001/ADR-W001-T05-api-metiers-et-administration-plateforme.md"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:local-tenant",
+    "predicate": "TESTED_BY",
+    "to": "test:tenant-local",
+    "description": "Réessaie la résolution après un échec.",
+    "sources": [
+      {
+        "path": "tp-app/src/test/java/io/teampulse/context/LocalTenantContextProviderTest.java",
+        "line": 146,
+        "symbol": "void retriesResolutionAfterGenerationFailure"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:member-close",
+    "predicate": "APPLIES_TO",
+    "to": "entity:team-membership",
+    "description": "La règle porte sur ce concept, cette entité ou ce fait.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/service/teammember/TeamMembershipService.java",
+        "line": 74,
+        "symbol": "public TeamMember suspendMember"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:member-close",
+    "predicate": "TESTED_BY",
+    "to": "test:membership-it",
+    "description": "Vérifie le retrait possible si l’équipe est suspendue.",
+    "sources": [
+      {
+        "path": "tp-team/src/test/java/io/teampulse/team/application/service/teammember/TeamMembershipServiceIT.java",
+        "line": 335,
+        "symbol": "void allowsRemovingAMemberWhenTheTeamIsSuspended"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:member-dates",
+    "predicate": "APPLIES_TO",
+    "to": "concept:membership-period",
+    "description": "La règle définit ou utilise ce terme du vocabulaire.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/domain/team/model/TeamMember.java",
+        "line": 110,
+        "symbol": "private void validateTemporalState"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:member-dates",
+    "predicate": "APPLIES_TO",
+    "to": "entity:team-membership",
+    "description": "La règle porte sur ce concept, cette entité ou ce fait.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/domain/team/model/TeamMember.java",
+        "line": 110,
+        "symbol": "private void validateTemporalState"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:member-dates",
+    "predicate": "TESTED_BY",
+    "to": "test:member-model",
+    "description": "Vérifie l’ordre des instants et le retrait avant activation.",
+    "sources": [
+      {
+        "path": "tp-team/src/test/java/io/teampulse/team/domain/team/model/TeamMemberTest.java",
+        "line": 112,
+        "symbol": "void rejectsAnEndDateBeforeTheStartDate"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:member-lifecycle",
+    "predicate": "APPLIES_TO",
+    "to": "entity:team-membership",
+    "description": "La règle porte sur ce concept, cette entité ou ce fait.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/domain/team/model/TeamMember.java",
+        "line": 47,
+        "symbol": "public static TeamMember invite"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:member-lifecycle",
+    "predicate": "DOCUMENTED_BY",
+    "to": "decision:w001-t04",
+    "description": "ADR qui spécifie le principe ou son adoption locale.",
+    "sources": [
+      {
+        "path": "docs/adr/W001/ADR-W001-T04-multi-tenancy-organization-reference.md"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:member-lifecycle",
+    "predicate": "TESTED_BY",
+    "to": "test:member-http-it",
+    "description": "Vérifie l’activation et sa date de début via le contrat HTTP.",
+    "sources": [
+      {
+        "path": "tp-team/src/test/java/io/teampulse/team/infrastructure/web/teammember/TeamMemberControllerIT.java",
+        "line": 185,
+        "symbol": "void activatesAnInvitationAndPersistsItsStartTime"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:member-open",
+    "predicate": "APPLIES_TO",
+    "to": "concept:team-invitation",
+    "description": "La règle définit ou utilise ce terme du vocabulaire.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/service/teammember/TeamMembershipService.java",
+        "line": 37,
+        "symbol": "public TeamMember addMember"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:member-open",
+    "predicate": "APPLIES_TO",
+    "to": "entity:team-membership",
+    "description": "La règle porte sur ce concept, cette entité ou ce fait.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/service/teammember/TeamMembershipService.java",
+        "line": 37,
+        "symbol": "public TeamMember addMember"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:member-open",
+    "predicate": "TESTED_BY",
+    "to": "test:membership-it",
+    "description": "Vérifie l’admission de PENDING pour l’invitation.",
+    "sources": [
+      {
+        "path": "tp-team/src/test/java/io/teampulse/team/application/service/teammember/TeamMembershipServiceIT.java",
+        "line": 156,
+        "symbol": "void createsAndPersistsAnInvitationForAPendingUser"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:member-tenant-fk",
+    "predicate": "APPLIES_TO",
+    "to": "entity:team-membership",
+    "description": "La règle porte sur ce concept, cette entité ou ce fait.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/resources/db/migration/team/V0.1.1__create_team_members.sql",
+        "line": 24,
+        "symbol": "CONSTRAINT fk_team_members_team"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:member-tenant-fk",
+    "predicate": "TESTED_BY",
+    "to": "test:member-persistence-it",
+    "description": "Vérifie les violations de clé étrangère comme erreur technique.",
+    "sources": [
+      {
+        "path": "tp-team/src/test/java/io/teampulse/team/infrastructure/persistence/repository/JpaTeamMemberRepositoryAdapterIT.java",
+        "line": 128,
+        "symbol": "void keepsForeignKeyViolationsAsTechnicalFailures"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:member-unique",
+    "predicate": "APPLIES_TO",
+    "to": "concept:current-membership",
+    "description": "La règle porte sur ce concept, cette entité ou ce fait.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/service/teammember/TeamMembershipService.java",
+        "line": 132,
+        "symbol": "private void ensureNoCurrentMembership"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:member-unique",
+    "predicate": "APPLIES_TO",
+    "to": "entity:team-membership",
+    "description": "La règle porte sur ce concept, cette entité ou ce fait.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/service/teammember/TeamMembershipService.java",
+        "line": 132,
+        "symbol": "private void ensureNoCurrentMembership"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:member-unique",
+    "predicate": "TESTED_BY",
+    "to": "test:member-persistence-it",
+    "description": "Vérifie la collision de clé courante et a un cas dédié pour l’historique.",
+    "sources": [
+      {
+        "path": "tp-team/src/test/java/io/teampulse/team/infrastructure/persistence/repository/JpaTeamMemberRepositoryAdapterIT.java",
+        "line": 115,
+        "symbol": "void translatesCurrentMembershipCollision"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:member-unique",
+    "predicate": "TESTED_BY",
+    "to": "test:membership-it",
+    "description": "Vérifie le refus d’un second épisode courant.",
+    "sources": [
+      {
+        "path": "tp-team/src/test/java/io/teampulse/team/application/service/teammember/TeamMembershipServiceIT.java",
+        "line": 176,
+        "symbol": "void rejectsAnInvitationWhenTheUserAlreadyHasACurrentMembership"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:org-activation-deferred",
+    "predicate": "APPLIES_TO",
+    "to": "entity:organization",
+    "description": "La règle porte sur ce concept, cette entité ou ce fait.",
+    "sources": [
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/application/service/organization/OrganizationResponsibleUsersService.java",
+        "line": 176,
+        "symbol": "private void rejectDeferredTransition"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:org-activation-deferred",
+    "predicate": "DOCUMENTED_BY",
+    "to": "decision:w001-t05",
+    "description": "ADR qui spécifie le principe ou son adoption locale.",
+    "sources": [
+      {
+        "path": "docs/adr/W001/ADR-W001-T05-api-metiers-et-administration-plateforme.md"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:org-activation-deferred",
+    "predicate": "TESTED_BY",
+    "to": "test:org-responsibles-it",
+    "description": "Vérifie le refus de la dernière affectation opérationnelle.",
+    "sources": [
+      {
+        "path": "tp-organization/src/test/java/io/teampulse/organization/application/service/organization/OrganizationResponsibleUsersServiceIT.java",
+        "line": 54,
+        "symbol": "void refusesTheFinalAvailableAssignmentAndPersistsNoActiveTransition"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:org-assign",
+    "predicate": "APPLIES_TO",
+    "to": "entity:organization",
+    "description": "La règle porte sur ce concept, cette entité ou ce fait.",
+    "sources": [
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/domain/organization/model/Organization.java",
+        "line": 134,
+        "symbol": "public void assignAdministrator"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:org-assign",
+    "predicate": "DOCUMENTED_BY",
+    "to": "decision:w001-t05",
+    "description": "ADR qui spécifie le principe ou son adoption locale.",
+    "sources": [
+      {
+        "path": "docs/adr/W001/ADR-W001-T05-api-metiers-et-administration-plateforme.md"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:org-assign",
+    "predicate": "TESTED_BY",
+    "to": "test:org-responsibles-it",
+    "description": "Vérifie le refus de PENDING avant mutation.",
+    "sources": [
+      {
+        "path": "tp-organization/src/test/java/io/teampulse/organization/application/service/organization/OrganizationResponsibleUsersServiceIT.java",
+        "line": 116,
+        "symbol": "void refusesPendingManagerWithoutChangingThePersistedOrganization"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:org-availability",
+    "predicate": "APPLIES_TO",
+    "to": "entity:organization",
+    "description": "La règle porte sur ce concept, cette entité ou ce fait.",
+    "sources": [
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/application/service/organization/OrganizationDirectoryService.java",
+        "line": 49,
+        "symbol": "public Optional<OrganizationResponsibilities> findByOrganizationReference"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:org-availability",
+    "predicate": "TESTED_BY",
+    "to": "test:org-directory-it",
+    "description": "Vérifie la projection des états persistés.",
+    "sources": [
+      {
+        "path": "tp-organization/src/test/java/io/teampulse/organization/application/service/organization/OrganizationDirectoryServiceIT.java",
+        "line": 58,
+        "symbol": "void mapsPersistedStatusToPublicAvailability"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:org-data",
+    "predicate": "APPLIES_TO",
+    "to": "entity:organization",
+    "description": "La règle porte sur ce concept, cette entité ou ce fait.",
+    "sources": [
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/domain/organization/model/Organization.java",
+        "line": 439,
+        "symbol": "private static String validateName"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:org-data",
+    "predicate": "TESTED_BY",
+    "to": "test:org-model",
+    "description": "Vérifie le refus d’un fuseau invalide.",
+    "sources": [
+      {
+        "path": "tp-organization/src/test/java/io/teampulse/organization/domain/organization/model/OrganizationTest.java",
+        "line": 128,
+        "symbol": "void rejectsInvalidTimezone"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:org-lifecycle",
+    "predicate": "APPLIES_TO",
+    "to": "entity:organization",
+    "description": "La règle porte sur ce concept, cette entité ou ce fait.",
+    "sources": [
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/domain/organization/model/Organization.java",
+        "line": 78,
+        "symbol": "public static Organization create"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:org-lifecycle",
+    "predicate": "TESTED_BY",
+    "to": "test:org-lifecycle-it",
+    "description": "Vérifie l’archivage terminal d’une organisation en création.",
+    "sources": [
+      {
+        "path": "tp-organization/src/test/java/io/teampulse/organization/application/service/organization/OrganizationLifecycleServiceIT.java",
+        "line": 95,
+        "symbol": "void archivesACreatingOrganizationAndPersistsTheTerminalState"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:org-remove-manager",
+    "predicate": "APPLIES_TO",
+    "to": "entity:organization",
+    "description": "La règle porte sur ce concept, cette entité ou ce fait.",
+    "sources": [
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/domain/organization/model/Organization.java",
+        "line": 264,
+        "symbol": "public void removeManager"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:org-remove-manager",
+    "predicate": "TESTED_BY",
+    "to": "test:org-responsibles-it",
+    "description": "Vérifie la suspension lors du retrait du manager.",
+    "sources": [
+      {
+        "path": "tp-organization/src/test/java/io/teampulse/organization/application/service/organization/OrganizationResponsibleUsersServiceIT.java",
+        "line": 155,
+        "symbol": "void removesManagerAndSuspendsTheOrganization"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:org-replace",
+    "predicate": "APPLIES_TO",
+    "to": "entity:organization",
+    "description": "La règle porte sur ce concept, cette entité ou ce fait.",
+    "sources": [
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/domain/organization/model/Organization.java",
+        "line": 209,
+        "symbol": "public void replaceAdministrator"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:org-replace",
+    "predicate": "TESTED_BY",
+    "to": "test:org-responsibles-it",
+    "description": "Vérifie le remplacement sans changement d’état.",
+    "sources": [
+      {
+        "path": "tp-organization/src/test/java/io/teampulse/organization/application/service/organization/OrganizationResponsibleUsersServiceIT.java",
+        "line": 137,
+        "symbol": "void replacesManagerWithoutChangingTheOrganizationStatus"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:org-responsibility-shape",
+    "predicate": "APPLIES_TO",
+    "to": "concept:responsibility",
+    "description": "La règle porte sur ce concept, cette entité ou ce fait.",
+    "sources": [
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/domain/organization/model/Organization.java",
+        "line": 344,
+        "symbol": "private void validateResponsibleStructure"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:org-responsibility-shape",
+    "predicate": "APPLIES_TO",
+    "to": "entity:organization",
+    "description": "La règle porte sur ce concept, cette entité ou ce fait.",
+    "sources": [
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/domain/organization/model/Organization.java",
+        "line": 344,
+        "symbol": "private void validateResponsibleStructure"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:org-responsibility-shape",
+    "predicate": "TESTED_BY",
+    "to": "test:org-model",
+    "description": "Vérifie les états structurellement valides des responsables.",
+    "sources": [
+      {
+        "path": "tp-organization/src/test/java/io/teampulse/organization/domain/organization/model/OrganizationTest.java",
+        "line": 234,
+        "symbol": "void restoresEveryStructurallyValidState"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:platform-guard",
+    "predicate": "APPLIES_TO",
+    "to": "concept:blocking-responsibility",
+    "description": "La règle définit ou utilise ce terme du vocabulaire.",
+    "sources": [
+      {
+        "path": "tp-administration/src/main/java/io/teampulse/administration/application/service/identity/UserLifecycleAdministrationService.java",
+        "line": 105,
+        "symbol": "private void ensureNoActiveResponsibilities"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:platform-guard",
+    "predicate": "APPLIES_TO",
+    "to": "concept:responsibility",
+    "description": "La règle porte sur ce concept, cette entité ou ce fait.",
+    "sources": [
+      {
+        "path": "tp-administration/src/main/java/io/teampulse/administration/application/service/identity/UserLifecycleAdministrationService.java",
+        "line": 105,
+        "symbol": "private void ensureNoActiveResponsibilities"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:platform-guard",
+    "predicate": "APPLIES_TO",
+    "to": "entity:organization",
+    "description": "La règle porte sur ce concept, cette entité ou ce fait.",
+    "sources": [
+      {
+        "path": "tp-administration/src/main/java/io/teampulse/administration/application/service/identity/UserLifecycleAdministrationService.java",
+        "line": 105,
+        "symbol": "private void ensureNoActiveResponsibilities"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:platform-guard",
+    "predicate": "APPLIES_TO",
+    "to": "entity:user",
+    "description": "La règle porte sur ce concept, cette entité ou ce fait.",
+    "sources": [
+      {
+        "path": "tp-administration/src/main/java/io/teampulse/administration/application/service/identity/UserLifecycleAdministrationService.java",
+        "line": 105,
+        "symbol": "private void ensureNoActiveResponsibilities"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:platform-guard",
+    "predicate": "DOCUMENTED_BY",
+    "to": "decision:w001-t04",
+    "description": "ADR qui spécifie le principe ou son adoption locale.",
+    "sources": [
+      {
+        "path": "docs/adr/W001/ADR-W001-T04-multi-tenancy-organization-reference.md"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:platform-guard",
+    "predicate": "DOCUMENTED_BY",
+    "to": "decision:w001-t05",
+    "description": "ADR qui spécifie le principe ou son adoption locale.",
+    "sources": [
+      {
+        "path": "docs/adr/W001/ADR-W001-T05-api-metiers-et-administration-plateforme.md"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:platform-guard",
+    "predicate": "TESTED_BY",
+    "to": "test:platform-it",
+    "description": "Vérifie le refus de désactivation pour les responsabilités d’équipe bloquantes.",
+    "sources": [
+      {
+        "path": "tp-administration/src/test/java/io/teampulse/administration/application/service/identity/UserLifecycleAdministrationServiceIT.java",
+        "line": 158,
+        "symbol": "void blocksDeactivationForActiveAndSuspendedTeamResponsibilities"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:platform-guard",
+    "predicate": "TESTED_BY",
+    "to": "test:team-directory-it",
+    "description": "Vérifie le filtrage des responsabilités, distinct des appartenances.",
+    "sources": [
+      {
+        "path": "tp-team/src/test/java/io/teampulse/team/application/service/team/TeamResponsibilityDirectoryServiceIT.java",
+        "line": 59,
+        "symbol": "void returnsTenantScopedTeamResponsibilitiesAndExcludesMemberships"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:platform-provision",
+    "predicate": "APPLIES_TO",
+    "to": "concept:initial-user",
+    "description": "La règle définit ou utilise ce terme du vocabulaire.",
+    "sources": [
+      {
+        "path": "tp-administration/src/main/java/io/teampulse/administration/application/service/identity/UserLifecycleAdministrationService.java",
+        "line": 68,
+        "symbol": "private UserLifecycleAdministrationResult provisionInitialUser"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:platform-provision",
+    "predicate": "APPLIES_TO",
+    "to": "entity:organization",
+    "description": "La règle porte sur ce concept, cette entité ou ce fait.",
+    "sources": [
+      {
+        "path": "tp-administration/src/main/java/io/teampulse/administration/application/service/identity/UserLifecycleAdministrationService.java",
+        "line": 68,
+        "symbol": "private UserLifecycleAdministrationResult provisionInitialUser"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:platform-provision",
+    "predicate": "APPLIES_TO",
+    "to": "entity:user",
+    "description": "La règle porte sur ce concept, cette entité ou ce fait.",
+    "sources": [
+      {
+        "path": "tp-administration/src/main/java/io/teampulse/administration/application/service/identity/UserLifecycleAdministrationService.java",
+        "line": 68,
+        "symbol": "private UserLifecycleAdministrationResult provisionInitialUser"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:platform-provision",
+    "predicate": "DOCUMENTED_BY",
+    "to": "decision:w001-t05",
+    "description": "ADR qui spécifie le principe ou son adoption locale.",
+    "sources": [
+      {
+        "path": "docs/adr/W001/ADR-W001-T05-api-metiers-et-administration-plateforme.md"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:platform-provision",
+    "predicate": "TESTED_BY",
+    "to": "test:platform-it",
+    "description": "Vérifie que l’échec du provisioning préserve l’organisation.",
+    "sources": [
+      {
+        "path": "tp-administration/src/test/java/io/teampulse/administration/application/service/identity/UserLifecycleAdministrationServiceIT.java",
+        "line": 102,
+        "symbol": "void leavesTheExistingOrganizationInPlaceWhenInitialUserCreationFails"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:product-actor-boundary",
+    "predicate": "APPLIES_TO",
+    "to": "concept:actor",
+    "description": "La règle porte sur ce concept, cette entité ou ce fait.",
+    "sources": [
+      {
+        "path": "docs/besoins/SCENARIO-METIER-TEAMPULSE.md",
+        "line": 27,
+        "symbol": "## Frontiere des organisations"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:product-actor-boundary",
+    "predicate": "DOCUMENTED_BY",
+    "to": "doc:scenario",
+    "description": "La source documente le concept, parcours ou critère.",
+    "sources": [
+      {
+        "path": "docs/besoins/SCENARIO-METIER-TEAMPULSE.md"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:product-removal",
+    "predicate": "APPLIES_TO",
+    "to": "concept:response",
+    "description": "La règle porte sur ce concept, cette entité ou ce fait.",
+    "sources": [
+      {
+        "path": "docs/besoins/SCENARIO-METIER-TEAMPULSE.md",
+        "line": 142,
+        "symbol": "## Retrait d'un membre"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:product-removal",
+    "predicate": "APPLIES_TO",
+    "to": "concept:vote",
+    "description": "La règle porte sur ce concept, cette entité ou ce fait.",
+    "sources": [
+      {
+        "path": "docs/besoins/SCENARIO-METIER-TEAMPULSE.md",
+        "line": 142,
+        "symbol": "## Retrait d'un membre"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:product-removal",
+    "predicate": "APPLIES_TO",
+    "to": "entity:team-membership",
+    "description": "La règle porte sur ce concept, cette entité ou ce fait.",
+    "sources": [
+      {
+        "path": "docs/besoins/SCENARIO-METIER-TEAMPULSE.md",
+        "line": 142,
+        "symbol": "## Retrait d'un membre"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:product-removal",
+    "predicate": "DOCUMENTED_BY",
+    "to": "doc:scenario",
+    "description": "La source documente le concept, parcours ou critère.",
+    "sources": [
+      {
+        "path": "docs/besoins/SCENARIO-METIER-TEAMPULSE.md"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:product-response",
+    "predicate": "APPLIES_TO",
+    "to": "concept:response",
+    "description": "La règle porte sur ce concept, cette entité ou ce fait.",
+    "sources": [
+      {
+        "path": "docs/besoins/SCENARIO-METIER-TEAMPULSE.md",
+        "line": 95,
+        "symbol": "## Campagne hebdomadaire"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:product-response",
+    "predicate": "APPLIES_TO",
+    "to": "concept:result",
+    "description": "La règle porte sur ce concept, cette entité ou ce fait.",
+    "sources": [
+      {
+        "path": "docs/besoins/SCENARIO-METIER-TEAMPULSE.md",
+        "line": 95,
+        "symbol": "## Campagne hebdomadaire"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:product-response",
+    "predicate": "DOCUMENTED_BY",
+    "to": "doc:scenario",
+    "description": "La source documente le concept, parcours ou critère.",
+    "sources": [
+      {
+        "path": "docs/besoins/SCENARIO-METIER-TEAMPULSE.md"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:product-vote",
+    "predicate": "APPLIES_TO",
+    "to": "concept:vote",
+    "description": "La règle porte sur ce concept, cette entité ou ce fait.",
+    "sources": [
+      {
+        "path": "docs/besoins/SCENARIO-METIER-TEAMPULSE.md",
+        "line": 123,
+        "symbol": "## Actions et votes"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:product-vote",
+    "predicate": "DOCUMENTED_BY",
+    "to": "doc:scenario",
+    "description": "La source documente le concept, parcours ou critère.",
+    "sources": [
+      {
+        "path": "docs/besoins/SCENARIO-METIER-TEAMPULSE.md"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:reference-format",
+    "predicate": "APPLIES_TO",
+    "to": "concept:functional-reference",
+    "description": "La règle porte sur ce concept, cette entité ou ce fait.",
+    "sources": [
+      {
+        "path": "tp-common/src/main/java/io/teampulse/common/reference/ReferenceFormat.java",
+        "line": 33,
+        "symbol": "public static boolean matches"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:reference-format",
+    "predicate": "TESTED_BY",
+    "to": "test:reference-factory",
+    "description": "Vérifie les propriétés de la fabrique de références.",
+    "sources": [
+      {
+        "path": "tp-common/src/test/java/io/teampulse/common/reference/MonotonicReferenceFactoryTest.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:reference-format",
+    "predicate": "TESTED_BY",
+    "to": "test:reference-format",
+    "description": "Vérifie la syntaxe et le préfixe.",
+    "sources": [
+      {
+        "path": "tp-common/src/test/java/io/teampulse/common/reference/ReferenceFormatTest.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:team-data",
+    "predicate": "APPLIES_TO",
+    "to": "entity:team",
+    "description": "La règle porte sur ce concept, cette entité ou ce fait.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/domain/team/model/Team.java",
+        "line": 138,
+        "symbol": "private static String validateName"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:team-data",
+    "predicate": "TESTED_BY",
+    "to": "test:team-lifecycle-it",
+    "description": "Vérifie la limite de nom du domaine.",
+    "sources": [
+      {
+        "path": "tp-team/src/test/java/io/teampulse/team/application/service/team/TeamLifecycleServiceIT.java",
+        "line": 139,
+        "symbol": "void rejectsANameLongerThanTheDomainLimitWithoutPersisting"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:team-lifecycle",
+    "predicate": "APPLIES_TO",
+    "to": "entity:team",
+    "description": "La règle porte sur ce concept, cette entité ou ce fait.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/service/team/TeamLifecycleService.java",
+        "line": 32,
+        "symbol": "public Team create"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:team-lifecycle",
+    "predicate": "TESTED_BY",
+    "to": "test:team-lifecycle-it",
+    "description": "Vérifie le refus de réactivation si l’organisation est indisponible.",
+    "sources": [
+      {
+        "path": "tp-team/src/test/java/io/teampulse/team/application/service/team/TeamLifecycleServiceIT.java",
+        "line": 402,
+        "symbol": "void doesNotReactivateWhenTheOrganizationIsNotOperational"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:team-replace",
+    "predicate": "APPLIES_TO",
+    "to": "concept:responsibility",
+    "description": "La règle porte sur ce concept, cette entité ou ce fait.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/service/team/TeamResponsibleUsersService.java",
+        "line": 28,
+        "symbol": "public Team replaceAdministrator"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:team-replace",
+    "predicate": "APPLIES_TO",
+    "to": "entity:team",
+    "description": "La règle porte sur ce concept, cette entité ou ce fait.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/service/team/TeamResponsibleUsersService.java",
+        "line": 28,
+        "symbol": "public Team replaceAdministrator"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:team-replace",
+    "predicate": "TESTED_BY",
+    "to": "test:team-responsibles-it",
+    "description": "Vérifie le remplacement effectif et l’état d’équipe préservé.",
+    "sources": [
+      {
+        "path": "tp-team/src/test/java/io/teampulse/team/application/service/team/TeamResponsibleUsersServiceIT.java",
+        "line": 71,
+        "symbol": "void replacesAndPersistsAnAvailableAdministratorWithoutChangingTeamStatus"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:team-replace",
+    "predicate": "TESTED_BY",
+    "to": "test:team-responsibles-unit",
+    "description": "Vérifie le remplacement identique sans lecture du directory.",
+    "sources": [
+      {
+        "path": "tp-team/src/test/java/io/teampulse/team/application/service/team/TeamResponsibleUsersServiceTest.java",
+        "line": 90,
+        "symbol": "void returnsTheSameTeamWithoutDirectoryLookupWhenTheAdministratorIsUnchanged"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:tenant-scope",
+    "predicate": "APPLIES_TO",
+    "to": "concept:tenant",
+    "description": "La règle porte sur ce concept, cette entité ou ce fait.",
+    "sources": [
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/infrastructure/web/user/UserController.java",
+        "line": 38,
+        "symbol": "tenantContextProvider.current()"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:tenant-scope",
+    "predicate": "APPLIES_TO",
+    "to": "entity:team",
+    "description": "La règle porte sur ce concept, cette entité ou ce fait.",
+    "sources": [
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/infrastructure/web/user/UserController.java",
+        "line": 38,
+        "symbol": "tenantContextProvider.current()"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:tenant-scope",
+    "predicate": "APPLIES_TO",
+    "to": "entity:user",
+    "description": "La règle porte sur ce concept, cette entité ou ce fait.",
+    "sources": [
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/infrastructure/web/user/UserController.java",
+        "line": 38,
+        "symbol": "tenantContextProvider.current()"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:tenant-scope",
+    "predicate": "DOCUMENTED_BY",
+    "to": "decision:tech-008",
+    "description": "ADR qui spécifie le principe ou son adoption locale.",
+    "sources": [
+      {
+        "path": "docs/adr/technical/ADR-TECH-008-explicit-tenant-context-and-tenant-scoped-persistence.md"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:tenant-scope",
+    "predicate": "DOCUMENTED_BY",
+    "to": "decision:w001-t04",
+    "description": "ADR qui spécifie le principe ou son adoption locale.",
+    "sources": [
+      {
+        "path": "docs/adr/W001/ADR-W001-T04-multi-tenancy-organization-reference.md"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:tenant-scope",
+    "predicate": "TESTED_BY",
+    "to": "test:tenant-query",
+    "description": "Vérifie le filtrage tenant des requêtes Identity.",
+    "sources": [
+      {
+        "path": "tp-identity/src/test/java/io/teampulse/identity/infrastructure/persistence/repository/JpaUserRepositoryQueryArchitectureTest.java",
+        "line": 12,
+        "symbol": "void everyDeclaredQueryIsTenantScoped"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:tenant-scope",
+    "predicate": "TESTED_BY",
+    "to": "test:user-http-it",
+    "description": "Vérifie la liste tenantée issue du fournisseur de contexte.",
+    "sources": [
+      {
+        "path": "tp-identity/src/test/java/io/teampulse/identity/infrastructure/web/user/UserControllerIT.java",
+        "line": 115,
+        "symbol": "void listsOnlyUsersInTheTenantResolvedByTheProvider"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:user-availability",
+    "predicate": "APPLIES_TO",
+    "to": "entity:user",
+    "description": "La règle porte sur ce concept, cette entité ou ce fait.",
+    "sources": [
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/application/service/user/UserDirectoryService.java",
+        "line": 25,
+        "symbol": "public UserAvailability check"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:user-availability",
+    "predicate": "TESTED_BY",
+    "to": "test:user-directory-it",
+    "description": "Vérifie qu’un utilisateur d’un autre tenant n’est pas trouvé.",
+    "sources": [
+      {
+        "path": "tp-identity/src/test/java/io/teampulse/identity/application/service/user/UserDirectoryServiceIdentityJpaIT.java",
+        "line": 69,
+        "symbol": "void doesNotDiscloseUserFromAnotherOrganization"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:user-email-unique",
+    "predicate": "APPLIES_TO",
+    "to": "entity:user",
+    "description": "La règle porte sur ce concept, cette entité ou ce fait.",
+    "sources": [
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/application/service/user/UserLifecycleService.java",
+        "line": 89,
+        "symbol": "private User persistIfEmailAvailable"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:user-email-unique",
+    "predicate": "TESTED_BY",
+    "to": "test:user-lifecycle-it",
+    "description": "Vérifie le doublon dans le tenant et l’usage du même email dans un autre.",
+    "sources": [
+      {
+        "path": "tp-identity/src/test/java/io/teampulse/identity/application/service/user/UserLifecycleServiceIdentityJpaIT.java",
+        "line": 131,
+        "symbol": "void rejectsCanonicalEmailAlreadyUsedInTheSameOrganization"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:user-email-unique",
+    "predicate": "TESTED_BY",
+    "to": "test:user-persistence-it",
+    "description": "Vérifie la contrainte SQL d’unicité tenantée.",
+    "sources": [
+      {
+        "path": "tp-identity/src/test/java/io/teampulse/identity/infrastructure/persistence/repository/JpaUserRepositoryAdapterIdentityJpaIT.java",
+        "line": 103,
+        "symbol": "void enforcesCanonicalEmailUniquenessWithinOneOrganizationOnly"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:user-invited",
+    "predicate": "APPLIES_TO",
+    "to": "concept:user-invitation",
+    "description": "La règle définit ou utilise ce terme du vocabulaire.",
+    "sources": [
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/application/service/user/UserLifecycleService.java",
+        "line": 69,
+        "symbol": "identityEventPublisher.publish"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:user-invited",
+    "predicate": "APPLIES_TO",
+    "to": "event:user-invited",
+    "description": "La règle porte sur ce concept, cette entité ou ce fait.",
+    "sources": [
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/application/service/user/UserLifecycleService.java",
+        "line": 69,
+        "symbol": "identityEventPublisher.publish"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:user-invited",
+    "predicate": "TESTED_BY",
+    "to": "test:user-lifecycle-unit",
+    "description": "Vérifie l’ordre persistance-publication et le payload de références.",
+    "sources": [
+      {
+        "path": "tp-identity/src/test/java/io/teampulse/identity/application/service/user/UserLifecycleServiceTest.java",
+        "line": 242,
+        "symbol": "void persistsAnInvitedUserAndPublishesOnlyReferencesAfterPersistence"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:user-lifecycle",
+    "predicate": "APPLIES_TO",
+    "to": "concept:lifecycle-state",
+    "description": "La règle définit ou utilise ce terme du vocabulaire.",
+    "sources": [
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/domain/user/model/User.java",
+        "line": 53,
+        "symbol": "public static User create"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:user-lifecycle",
+    "predicate": "APPLIES_TO",
+    "to": "entity:user",
+    "description": "La règle porte sur ce concept, cette entité ou ce fait.",
+    "sources": [
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/domain/user/model/User.java",
+        "line": 53,
+        "symbol": "public static User create"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:user-lifecycle",
+    "predicate": "TESTED_BY",
+    "to": "test:user-lifecycle-it",
+    "description": "Vérifie la suspension persistée dans le tenant courant.",
+    "sources": [
+      {
+        "path": "tp-identity/src/test/java/io/teampulse/identity/application/service/user/UserLifecycleServiceIdentityJpaIT.java",
+        "line": 168,
+        "symbol": "void suspendsAnActiveUserWithinTheProvidedTenant"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:user-lifecycle",
+    "predicate": "TESTED_BY",
+    "to": "test:user-status",
+    "description": "Vérifie le graphe des transitions du domaine.",
+    "sources": [
+      {
+        "path": "tp-identity/src/test/java/io/teampulse/identity/domain/user/model/UserStatusTest.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:user-profile-data",
+    "predicate": "APPLIES_TO",
+    "to": "entity:user",
+    "description": "La règle porte sur ce concept, cette entité ou ce fait.",
+    "sources": [
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/domain/user/model/User.java",
+        "line": 153,
+        "symbol": "private static String validateEmail"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:user-profile-data",
+    "predicate": "TESTED_BY",
+    "to": "test:user-model",
+    "description": "Vérifie la normalisation des données utilisateur.",
+    "sources": [
+      {
+        "path": "tp-identity/src/test/java/io/teampulse/identity/domain/user/model/UserTest.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:validation-ownership",
+    "predicate": "DOCUMENTED_BY",
+    "to": "decision:tech-011",
+    "description": "ADR qui spécifie le principe ou son adoption locale.",
+    "sources": [
+      {
+        "path": "docs/adr/technical/ADR-TECH-011-spring-application-services-and-layer-owned-validation.md"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:validation-ownership",
+    "predicate": "DOCUMENTED_BY",
+    "to": "decision:tech-012",
+    "description": "ADR qui spécifie le principe ou son adoption locale.",
+    "sources": [
+      {
+        "path": "docs/adr/technical/ADR-TECH-012-module-owned-error-vocabularies-and-boundary-translation.md"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:validation-ownership",
+    "predicate": "DOCUMENTED_BY",
+    "to": "decision:tech-015",
+    "description": "ADR qui spécifie le principe ou son adoption locale.",
+    "sources": [
+      {
+        "path": "docs/adr/technical/ADR-TECH-015-shared-spring-http-error-support.md"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:validation-ownership",
+    "predicate": "DOCUMENTED_BY",
+    "to": "doc:architecture",
+    "description": "La source documente le concept, parcours ou critère.",
+    "sources": [
+      {
+        "path": "AGENTS.md"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "rule:validation-ownership",
+    "predicate": "TESTED_BY",
+    "to": "test:user-http-it",
+    "description": "Vérifie la traduction des erreurs structurelles du transport.",
+    "sources": [
+      {
+        "path": "tp-identity/src/test/java/io/teampulse/identity/infrastructure/web/user/UserControllerIT.java",
+        "line": 184,
+        "symbol": "void returnsSanitizedSharedTransportErrorsForInvalidRequestStructure"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "table:organizations",
+    "predicate": "ENFORCES",
+    "to": "rule:org-responsibility-shape",
+    "description": "Le CHECK impose les responsables requis par état.",
+    "sources": [
+      {
+        "path": "tp-organization/src/main/resources/db/migration/organization/V0.1.0__create_organizations.sql",
+        "line": 28,
+        "symbol": "ck_organizations_responsibles_by_status"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "table:organizations",
+    "predicate": "STORES",
+    "to": "entity:organization",
+    "description": "La table représente la structure persistée du type canonique.",
+    "sources": [
+      {
+        "path": "tp-organization/src/main/resources/db/migration/organization/V0.1.0__create_organizations.sql",
+        "line": 8,
+        "symbol": "CREATE TABLE"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "table:team-members",
+    "predicate": "ENFORCES",
+    "to": "rule:member-dates",
+    "description": "Le CHECK impose les dates en fonction du statut.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/resources/db/migration/team/V0.1.1__create_team_members.sql",
+        "line": 27,
+        "symbol": "ck_team_members_dates_by_status"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "table:team-members",
+    "predicate": "ENFORCES",
+    "to": "rule:member-tenant-fk",
+    "description": "La FK englobe l’identifiant d’équipe et la référence de tenant.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/resources/db/migration/team/V0.1.1__create_team_members.sql",
+        "line": 24,
+        "symbol": "CONSTRAINT fk_team_members_team"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "table:team-members",
+    "predicate": "ENFORCES",
+    "to": "rule:member-unique",
+    "description": "L’index partiel réserve le triplet aux états courants.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/resources/db/migration/team/V0.1.1__create_team_members.sql",
+        "line": 46,
+        "symbol": "CREATE UNIQUE INDEX uk_team_members_current"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "table:team-members",
+    "predicate": "STORES",
+    "to": "entity:team-membership",
+    "description": "La table représente la structure persistée du type canonique.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/resources/db/migration/team/V0.1.1__create_team_members.sql",
+        "line": 8,
+        "symbol": "CREATE TABLE"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "table:teams",
+    "predicate": "ENFORCES",
+    "to": "rule:team-data",
+    "description": "Les deux rôles sont NOT NULL et le nom est borné.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/resources/db/migration/team/V0.1.0__create_teams.sql",
+        "line": 8,
+        "symbol": "CREATE TABLE"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "table:teams",
+    "predicate": "STORES",
+    "to": "entity:team",
+    "description": "La table représente la structure persistée du type canonique.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/resources/db/migration/team/V0.1.0__create_teams.sql",
+        "line": 8,
+        "symbol": "CREATE TABLE"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "table:users",
+    "predicate": "ENFORCES",
+    "to": "rule:user-email-unique",
+    "description": "La contrainte unique n’est pas filtrée par statut.",
+    "sources": [
+      {
+        "path": "tp-identity/src/main/resources/db/migration/identity/V0.1.0__create_users.sql",
+        "line": 24,
+        "symbol": "uk_users_organization_email"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "table:users",
+    "predicate": "STORES",
+    "to": "entity:user",
+    "description": "La table représente la structure persistée du type canonique.",
+    "sources": [
+      {
+        "path": "tp-identity/src/main/resources/db/migration/identity/V0.1.0__create_users.sql",
+        "line": 8,
+        "symbol": "CREATE TABLE"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "uc:list-users",
+    "predicate": "BELONGS_TO",
+    "to": "domain:identity",
+    "description": "Capacité portée par ce domaine.",
+    "sources": [
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/application/port/in/user/ListUsersUseCase.java",
+        "line": 9,
+        "symbol": "public interface"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "uc:list-users",
+    "predicate": "MANAGES",
+    "to": "entity:user",
+    "description": "La capacité agit sur ce type canonique.",
+    "sources": [
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/application/port/in/user/ListUsersUseCase.java",
+        "line": 9,
+        "symbol": "public interface"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "uc:org-lifecycle",
+    "predicate": "BELONGS_TO",
+    "to": "domain:organization",
+    "description": "Capacité portée par ce domaine.",
+    "sources": [
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/api/lifecycle/OrganizationLifecycle.java",
+        "line": 8,
+        "symbol": "public interface"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "uc:org-lifecycle",
+    "predicate": "MANAGES",
+    "to": "entity:organization",
+    "description": "La capacité agit sur ce type canonique.",
+    "sources": [
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/api/lifecycle/OrganizationLifecycle.java",
+        "line": 8,
+        "symbol": "public interface"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "uc:org-responsibles",
+    "predicate": "BELONGS_TO",
+    "to": "domain:organization",
+    "description": "Capacité portée par ce domaine.",
+    "sources": [
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/application/port/in/organization/OrganizationResponsibleUsersUseCase.java",
+        "line": 8,
+        "symbol": "public interface"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "uc:org-responsibles",
+    "predicate": "MANAGES",
+    "to": "entity:organization",
+    "description": "La capacité agit sur ce type canonique.",
+    "sources": [
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/application/port/in/organization/OrganizationResponsibleUsersUseCase.java",
+        "line": 8,
+        "symbol": "public interface"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "uc:platform-user",
+    "predicate": "BELONGS_TO",
+    "to": "domain:administration",
+    "description": "Capacité portée par ce domaine.",
+    "sources": [
+      {
+        "path": "tp-administration/src/main/java/io/teampulse/administration/application/port/in/identity/UserLifecycleAdministrationUseCase.java",
+        "line": 10,
+        "symbol": "public interface"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "uc:platform-user",
+    "predicate": "MANAGES",
+    "to": "entity:user",
+    "description": "La capacité agit sur ce type canonique.",
+    "sources": [
+      {
+        "path": "tp-administration/src/main/java/io/teampulse/administration/application/port/in/identity/UserLifecycleAdministrationUseCase.java",
+        "line": 10,
+        "symbol": "public interface"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "uc:team-lifecycle",
+    "predicate": "BELONGS_TO",
+    "to": "domain:team",
+    "description": "Capacité portée par ce domaine.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/port/in/team/TeamLifecycleUseCase.java",
+        "line": 9,
+        "symbol": "public interface"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "uc:team-lifecycle",
+    "predicate": "MANAGES",
+    "to": "entity:team",
+    "description": "La capacité agit sur ce type canonique.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/port/in/team/TeamLifecycleUseCase.java",
+        "line": 9,
+        "symbol": "public interface"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "uc:team-membership",
+    "predicate": "BELONGS_TO",
+    "to": "domain:team",
+    "description": "Capacité portée par ce domaine.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/port/in/teammember/TeamMembershipUseCase.java",
+        "line": 8,
+        "symbol": "public interface"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "uc:team-membership",
+    "predicate": "MANAGES",
+    "to": "entity:team-membership",
+    "description": "La capacité agit sur ce type canonique.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/port/in/teammember/TeamMembershipUseCase.java",
+        "line": 8,
+        "symbol": "public interface"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "uc:team-responsibles",
+    "predicate": "BELONGS_TO",
+    "to": "domain:team",
+    "description": "Capacité portée par ce domaine.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/port/in/team/TeamResponsibleUsersUseCase.java",
+        "line": 8,
+        "symbol": "public interface"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "uc:team-responsibles",
+    "predicate": "MANAGES",
+    "to": "entity:team",
+    "description": "La capacité agit sur ce type canonique.",
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/port/in/team/TeamResponsibleUsersUseCase.java",
+        "line": 8,
+        "symbol": "public interface"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "uc:user-lifecycle",
+    "predicate": "BELONGS_TO",
+    "to": "domain:identity",
+    "description": "Capacité portée par ce domaine.",
+    "sources": [
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/api/lifecycle/UserLifecycle.java",
+        "line": 12,
+        "symbol": "public interface"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "uc:user-lifecycle",
+    "predicate": "MANAGES",
+    "to": "entity:user",
+    "description": "La capacité agit sur ce type canonique.",
+    "sources": [
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/api/lifecycle/UserLifecycle.java",
+        "line": 12,
+        "symbol": "public interface"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "from": "uc:user-lifecycle",
+    "predicate": "PRODUCES",
+    "to": "event:user-invited",
+    "description": "Le sous-parcours invite produit le fait après le retour de l’écriture.",
+    "sources": [
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/application/service/user/UserLifecycleService.java",
+        "line": 69,
+        "symbol": "identityEventPublisher.publish"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "properties": {
+      "operation": "invite"
+    }
+  }
+]

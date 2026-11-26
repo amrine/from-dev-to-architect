@@ -1,9 +1,9 @@
-package io.teampulse.administration.application.service;
+package io.teampulse.administration.application.service.identity;
 
 import io.teampulse.administration.application.error.PlatformAdministrationErrorCode;
 import io.teampulse.administration.application.error.PlatformAdministrationException;
-import io.teampulse.administration.application.port.in.PlatformProvisioningResult;
-import io.teampulse.administration.application.port.in.UserLifecycleAdministrationUseCase;
+import io.teampulse.administration.application.port.in.identity.UserLifecycleAdministrationResult;
+import io.teampulse.administration.application.port.in.identity.UserLifecycleAdministrationUseCase;
 import io.teampulse.common.context.TenantContext;
 import io.teampulse.identity.api.lifecycle.UserLifecycle;
 import io.teampulse.identity.api.lifecycle.UserLifecycleException;
@@ -38,7 +38,7 @@ public class UserLifecycleAdministrationService implements UserLifecycleAdminist
     private final TeamResponsibilityDirectory teamResponsibilityDirectory;
 
     @Override
-    public PlatformProvisioningResult createInitialUser(
+    public UserLifecycleAdministrationResult createInitialUser(
         TenantContext tenantContext,
         UserProvisioningCommand initialUser
     ) {
@@ -46,7 +46,7 @@ public class UserLifecycleAdministrationService implements UserLifecycleAdminist
     }
 
     @Override
-    public PlatformProvisioningResult inviteInitialUser(
+    public UserLifecycleAdministrationResult inviteInitialUser(
         TenantContext tenantContext,
         UserProvisioningCommand initialUser
     ) {
@@ -65,14 +65,14 @@ public class UserLifecycleAdministrationService implements UserLifecycleAdminist
         executeUserLifecycle(() -> userLifecycle.deactivate(tenantContext, userReference));
     }
 
-    private PlatformProvisioningResult provisionInitialUser(
+    private UserLifecycleAdministrationResult provisionInitialUser(
         TenantContext tenantContext,
         UserProvisioningCommand initialUser,
         BiFunction<TenantContext, UserProvisioningCommand, UserLifecycleResult> userOperation
     ) {
         ensureOrganizationExists(tenantContext);
         UserLifecycleResult user = runUserOperation(tenantContext, initialUser, userOperation);
-        return new PlatformProvisioningResult(tenantContext.tenantReference(), user.userReference());
+        return new UserLifecycleAdministrationResult(tenantContext.tenantReference(), user.userReference());
     }
 
     private void ensureOrganizationExists(TenantContext tenantContext) {
