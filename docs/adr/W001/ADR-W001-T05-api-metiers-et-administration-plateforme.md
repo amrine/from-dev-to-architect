@@ -94,7 +94,7 @@ de notification : `tp-notification` et sa livraison relèvent de T10.
 
 ### 3. Garder le tenant local en mémoire, sans organisation persistée
 
-Le profil `local` ne crée pas d'organisation de démonstration persistée. Le
+L'exécution locale ne crée pas d'organisation de démonstration persistée. Le
 `LocalTenantContextProvider` existant génère paresseusement une référence `ORG`
 en mémoire et conserve le `TenantContext` pendant la durée de vie du processus.
 Cette référence peut changer après un redémarrage et ne correspond pas
@@ -102,9 +102,8 @@ nécessairement à une `Organization` persistée. T05 ne provisionne donc pas de
 racine tenant locale ni de mécanisme pour sélectionner une organisation créée
 par ailleurs. Les cas d'usage qui vérifient cette référence avec
 `OrganizationDirectory` la trouvent donc absente. Les opérations exigeant une
-organisation `ACTIVE` attendent W008. T05 n'ajoute pas de restriction d'accès
-par profil aux API exposées. Les contrôles d'identité et d'autorisation restent
-reportés à W008.
+organisation `ACTIVE` attendent W008. Les contrôles d'identité et
+d'autorisation restent reportés à W008.
 
 ### 4. Publier des faits sans inclure les notifications
 
@@ -130,11 +129,10 @@ reportés à W008.
   consignée dans le contrat local ci-dessous.
 - Les erreurs métier restent codées et traduites par leur module propriétaire.
 - Les tests de contrôleur gardent l'application et la vraie persistance
-  PostgreSQL. Identité, organisation et équipe utilisent le contexte complet
-  avec `MockMvc`. Le test HTTP d'administration, à ajouter avec son module,
-  utilisera un serveur réel conformément à l'acceptation T05. Les tests
-  `AbstractIdentityJpaIT` existants sans serveur restent inchangés ; les bases
-  Web dédiées réutilisent leur support.
+  PostgreSQL. Identité, organisation, équipe et administration utilisent le
+  contexte complet avec `MockMvc`. Les tests d'administration assemblent les
+  vrais modules concernés et réutilisent le support MVC partagé. Les tests
+  `AbstractIdentityJpaIT` existants sans serveur restent inchangés.
 - Les applications de test métier importent depuis `tp-test-support` les
   configurations partagées du `ReferenceFactory` et du
   `DeterministicTenantContextProvider`. Chaque module conserve sa valeur de
@@ -159,7 +157,7 @@ ADR ni celui des ADR techniques de référence.
   servie par SpringDoc sur `/v3/api-docs.yaml` ; une configuration locale fixe
   les métadonnées de chaque propriétaire.
   Les endpoints OpenAPI sont désactivés par défaut, activés uniquement dans les
-  tests et le profil local.
+  tests et la configuration de lancement locale.
 - Pour identité et organisation, le POM parent transmet `${project.version}`
   comme propriété système `teampulse.openapi.info-version` au processus
   `spring-boot:start` utilisé pour l'export OpenAPI, ainsi qu'à Surefire.
@@ -185,15 +183,16 @@ ADR ni celui des ADR techniques de référence.
   relative `/` pour ne pas figer hôte ou port.
 - Les changements du générateur qui modifient ces classes doivent être relus
   comme des changements de l'API Java publiée par le module.
-- Tests MVC retenus pour identité, organisation et équipe : `@SpringBootTest` avec
-  `WebEnvironment.MOCK` et `@AutoConfigureMockMvc`, l'application complète,
+- Tests MVC retenus pour identité, organisation, équipe et administration :
+  `@SpringBootTest` avec `WebEnvironment.MOCK` et `@AutoConfigureMockMvc`,
+  l'application complète,
   Flyway et PostgreSQL Testcontainers. Aucun cas d'usage interne n'est mocké et
   aucun `@WebMvcTest` n'est utilisé. Cette adoption vérifie le dispatch Spring
   MVC, le mapping, le chemin applicatif et les effets persistés ; elle ne prouve
   ni le démarrage du serveur embarqué, ni le transport réseau, ni le client
   généré. Les clients OpenAPI restent générés et compilés dans le build, sans
-  être utilisés par ces suites MVC. L'API d'administration à venir utilisera
-  un serveur réel à port aléatoire. Les bases
+  être utilisés par ces suites MVC. L'API d'administration utilise également
+  cette frontière MVC, avec les modules métier réels. Les bases
   `AbstractIdentityJpaIT` et `AbstractOrganizationJpaIT` non-Web restent en
   `WebEnvironment.NONE`. Les tests autonomes remplacent uniquement les contrats
   publics externes ; les tests d'administration assemblent les vrais modules
@@ -248,13 +247,12 @@ report des notifications évite d'ajouter leur persistance et leur exploitation
 - Le bootstrap garde un résultat synchrone sans couplage à un broker.
 - Les responsabilités métier et l'autorisation sont explicitement séparées.
 - Les tests prouvent le comportement MVC et applicatif avec les modules et
-  PostgreSQL réels ; le test à port aléatoire de l'administration prouvera aussi
-  le démarrage du serveur et le transport réseau.
+  PostgreSQL réels, y compris l'orchestration d'administration entre modules.
 - `tp-notification` pourra évoluer dans le besoin envisagé en T10 sans faire
   connaître ses mécanismes aux modèles métier ni à `tp-administration`.
 
 ## Conséquences négatives / compromis
-- Le profil local ne crée pas d'organisation persistée ; son contexte tenant
+- L'exécution locale ne crée pas d'organisation persistée ; son contexte tenant
   référence une organisation absente et les opérations qui consultent
   `OrganizationDirectory` sont refusées. Une organisation persistée créée par
   API reste `CREATING` jusqu'à W008 ; les parcours exigeant `ACTIVE` ne sont pas
@@ -281,12 +279,12 @@ report des notifications évite d'ajouter leur persistance et leur exploitation
   l'orchestration de plateforme ; fait `UserInvited` en T05 et
   `OrganizationActivated` à partir de W008, avec références seulement.
 - Tests : PostgreSQL Testcontainers pour les propriétaires HTTP ; identité,
-  organisation et équipe utilisent `MockMvc` avec l'application complète.
-  L'API d'administration à venir utilisera un serveur réel sur port aléatoire.
-  Les DSL métier éventuelles restent locales à chaque module.
-- Sécurité : T05 ne restreint pas les API à un profil particulier et
-  n'introduit aucun rôle, permission, mécanisme d'authentification ou JWT ; ces
-  contrôles relèvent de W008.
+  organisation, équipe et administration utilisent `MockMvc` avec l'application
+  complète. Les tests d'administration assemblent les implémentations réelles
+  des contrats inter-modules concernés. Les DSL métier éventuelles restent
+  locales à chaque module.
+- Sécurité : T05 n'introduit aucun rôle, permission, mécanisme
+  d'authentification ou JWT ; ces contrôles relèvent de W008.
 - Hors impact T05 : module de notification, persistance/livraison email, SMS et
   endpoints de lecture d'inbox.
 
@@ -308,8 +306,6 @@ report des notifications évite d'ajouter leur persistance et leur exploitation
   T10.
 
 ## Risques
-- Les endpoints sans autorisation ne doivent pas être exposés hors des profils
-  locaux/de développement avant W008.
 - Les consommateurs d'événements sont au moins une fois et doivent être
   idempotents ; une défaillance de listener n'est pas un échec de la commande
   HTTP initiale.
@@ -326,10 +322,11 @@ report des notifications évite d'ajouter leur persistance et leur exploitation
 - Les documents Draft T08-T14 de `ztmp` ne sont pas officialisés par cet ADR.
 - L'implémentation de `W001-T05-http-test-support` centralise les bases JPA et
   MVC dans `tp-test-support`, avec `MockMvc`, Jackson et le nettoyage des
-  écritures PostgreSQL. Identité, organisation et équipe utilisent `MockMvc` en
-  contexte Spring complet. Le module d'administration n'est pas encore présent
-  dans cette branche ; sa future suite suivra le contrat à port aléatoire. Cette
-  adoption ne prétend pas prouver l'écoute réseau pour ces trois modules. Les bases
+  écritures PostgreSQL. Identité, organisation, équipe et administration
+  utilisent `MockMvc` en contexte Spring complet. L'administration assemble
+  les implémentations réelles des contrats inter-modules concernés. Ces suites
+  vérifient le dispatch MVC, le chemin applicatif et les effets persistés ; elles
+  ne prétendent pas prouver l'écoute réseau. Les bases
   `AbstractIdentityJpaIT` existantes en `NONE` restent inchangées.
   Le statut de cet ADR reste `Draft`.
 - L'implémentation de `W001-T05-shared-http-errors` ajoute `ApiError` avec les
@@ -544,6 +541,21 @@ report des notifications évite d'ajouter leur persistance et leur exploitation
   par défaut fournit `SYSTEM` en W001 et n'authentifie ni n'autorise. Cet ADR
   reste `Draft`. La commande de validation complète est
   `./mvnw --batch-mode --no-transfer-progress clean install`.
+- L'API HTTP d'administration expose `POST /api/platform/users` pour créer
+  l'utilisateur initial et `POST /api/platform/users/invitations` pour
+  l'inviter. Le tenant provient de `TenantContextProvider.current()` ; le corps
+  contient seulement l'email, le prénom et le nom, car l'organisation existe
+  déjà avant cette orchestration. Les deux opérations retournent `201 Created`
+  avec les références de l'organisation et de l'utilisateur.
+- Le contrat Java public `identity::lifecycle` fournit à `tp-administration`
+  les commandes synchrones de création, invitation, suspension et
+  désactivation avec des types de contrat sans modèle domaine identité.
+  L'administration reste responsable des vérifications de responsabilités T04
+  avant les deux transitions de fermeture. Aucun endpoint HTTP identité ne
+  contourne cette orchestration. Le mapping métier identité prévaut sur l'advice
+  partagé ; les erreurs de transport restent génériques et masquées. Les tests
+  HTTP/PostgreSQL et `./mvnw --batch-mode --no-transfer-progress -pl tp-identity
+  -am verify` passent. Cet ADR reste `Draft`.
 
 ### Harmonisation des tests de la verticale organisation
 

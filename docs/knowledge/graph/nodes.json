@@ -1,0 +1,3647 @@
+[
+  {
+    "id": "api:identity-http",
+    "type": "API",
+    "name": "Identité HTTP",
+    "description": "Créer, inviter et lister les utilisateurs du tenant.",
+    "properties": {
+      "protocol": "HTTP",
+      "operations": 3
+    },
+    "sources": [
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/infrastructure/web/user/UserController.java",
+        "line": 24,
+        "symbol": "@RequestMapping"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "api:org-directory",
+    "type": "API",
+    "name": "OrganizationDirectory",
+    "description": "Lecture inter-module de disponibilité et de responsabilités d’organisation.",
+    "properties": {
+      "protocol": "Java",
+      "operations": 2
+    },
+    "sources": [
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/api/organization/OrganizationDirectory.java",
+        "line": 10,
+        "symbol": "public interface"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "api:org-lifecycle",
+    "type": "API",
+    "name": "OrganizationLifecycle",
+    "description": "Contrat public de création, suspension et archivage d’organisation.",
+    "properties": {
+      "protocol": "Java",
+      "operations": 3
+    },
+    "sources": [
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/api/lifecycle/OrganizationLifecycle.java",
+        "line": 8,
+        "symbol": "public interface"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "api:organization-http",
+    "type": "API",
+    "name": "Organisation HTTP",
+    "description": "Créer, suspendre, archiver, lire et affecter les responsabilités.",
+    "properties": {
+      "protocol": "HTTP",
+      "operations": 9
+    },
+    "sources": [
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/infrastructure/web/organization/OrganizationController.java",
+        "line": 27,
+        "symbol": "@RequestMapping"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "api:platform-http",
+    "type": "API",
+    "name": "Administration HTTP",
+    "description": "Provisionner, suspendre et désactiver un utilisateur depuis le contexte tenant.",
+    "properties": {
+      "protocol": "HTTP",
+      "operations": 4
+    },
+    "sources": [
+      {
+        "path": "tp-administration/src/main/java/io/teampulse/administration/infrastructure/web/identity/UserLifecycleAdministrationController.java",
+        "line": 25,
+        "symbol": "@RequestMapping"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "api:team-directory",
+    "type": "API",
+    "name": "TeamResponsibilityDirectory",
+    "description": "Lecture tenantée des équipes où un utilisateur occupe une responsabilité.",
+    "properties": {
+      "protocol": "Java",
+      "operations": 1
+    },
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/api/TeamResponsibilityDirectory.java",
+        "line": 10,
+        "symbol": "public interface"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "api:team-http",
+    "type": "API",
+    "name": "Équipe HTTP",
+    "description": "Cycle et responsabilités d’équipe, cycle d’appartenance.",
+    "properties": {
+      "protocol": "HTTP",
+      "operations": 12
+    },
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/infrastructure/web/team/TeamController.java",
+        "line": 22,
+        "symbol": "@RequestMapping"
+      },
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/infrastructure/web/teammember/TeamMemberController.java",
+        "line": 20,
+        "symbol": "@RequestMapping"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "api:user-directory",
+    "type": "API",
+    "name": "UserDirectory",
+    "description": "Lecture inter-module de disponibilité par tenant et référence utilisateur.",
+    "properties": {
+      "protocol": "Java",
+      "operations": 1
+    },
+    "sources": [
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/api/user/UserDirectory.java",
+        "line": 8,
+        "symbol": "public interface"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "api:user-lifecycle",
+    "type": "API",
+    "name": "UserLifecycle",
+    "description": "Contrat public de création, invitation, suspension et désactivation.",
+    "properties": {
+      "protocol": "Java",
+      "operations": 4
+    },
+    "sources": [
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/api/lifecycle/UserLifecycle.java",
+        "line": 12,
+        "symbol": "public interface"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "component:actor-audit",
+    "type": "Component",
+    "name": "JpaAuditingConfiguration",
+    "description": "Relie le fournisseur d’acteur à l’audit JPA.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-app/src/main/java/io/teampulse/config/JpaAuditingConfiguration.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "component:invitation-publisher",
+    "type": "Component",
+    "name": "IdentityEventPublisherAdapter",
+    "description": "Publie le fait dans le contexte Spring.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/infrastructure/messaging/IdentityEventPublisherAdapter.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "component:local-tenant",
+    "type": "Component",
+    "name": "LocalTenantContextProvider",
+    "description": "Fabrique un contexte de référence ORG en mémoire pour le processus.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-app/src/main/java/io/teampulse/context/LocalTenantContextProvider.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "component:member-http",
+    "type": "Component",
+    "name": "TeamMemberController",
+    "description": "Expose les opérations concernant l’appartenance.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/infrastructure/web/teammember/TeamMemberController.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "component:member-jpa",
+    "type": "Component",
+    "name": "JpaTeamMemberRepositoryAdapter",
+    "description": "Persiste l’historique et traduit les collisions d’épisode courant.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/infrastructure/persistence/repository/JpaTeamMemberRepositoryAdapter.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "component:member-model",
+    "type": "Component",
+    "name": "TeamMember",
+    "description": "Porte le cycle et les dates d’une occurrence d’appartenance.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/domain/team/model/TeamMember.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "component:membership",
+    "type": "Component",
+    "name": "TeamMembershipService",
+    "description": "Applique les commandes sur une équipe et son appartenance courante.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/service/teammember/TeamMembershipService.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "component:org-directory",
+    "type": "Component",
+    "name": "OrganizationDirectoryService",
+    "description": "Expose disponibilité et responsabilités de l’organisation.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/application/service/organization/OrganizationDirectoryService.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "component:org-http",
+    "type": "Component",
+    "name": "OrganizationController",
+    "description": "Adapte l’administration d’une organisation cible et la lecture de ses responsabilités.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/infrastructure/web/organization/OrganizationController.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "component:org-jpa",
+    "type": "Component",
+    "name": "JpaOrganizationRepositoryAdapter",
+    "description": "Stocke et rapproche les données à la référence d’organisation.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/infrastructure/persistence/repository/JpaOrganizationRepositoryAdapter.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "component:org-lifecycle",
+    "type": "Component",
+    "name": "OrganizationLifecycleService",
+    "description": "Implémente la création, la suspension et l’archivage.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/application/service/organization/OrganizationLifecycleService.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "component:org-model",
+    "type": "Component",
+    "name": "Organization",
+    "description": "Porte données, états et structure des responsabilités.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/domain/organization/model/Organization.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "component:org-responsibles",
+    "type": "Component",
+    "name": "OrganizationResponsibleUsersService",
+    "description": "Orchestre les décisions et écritures de responsables.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/application/service/organization/OrganizationResponsibleUsersService.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "component:org-responsibles-validator",
+    "type": "Component",
+    "name": "OrganizationResponsibleUsersValidator",
+    "description": "Vérifie la disponibilité dans le tenant.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/application/service/organization/OrganizationResponsibleUsersValidator.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "component:platform-http",
+    "type": "Component",
+    "name": "UserLifecycleAdministrationController",
+    "description": "Expose quatre commandes de plateforme.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-administration/src/main/java/io/teampulse/administration/infrastructure/web/identity/UserLifecycleAdministrationController.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "component:platform-user",
+    "type": "Component",
+    "name": "UserLifecycleAdministrationService",
+    "description": "Vérifie organisation et responsabilités avant délégation à l’identité.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-administration/src/main/java/io/teampulse/administration/application/service/identity/UserLifecycleAdministrationService.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "component:postgres-tests",
+    "type": "Component",
+    "name": "PersistenceIntegrationTestConfiguration",
+    "description": "Configure le support de persistance des tests PostgreSQL.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-test-support/src/main/java/io/teampulse/testsupport/persistence/PersistenceIntegrationTestConfiguration.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "component:reference-factory",
+    "type": "Component",
+    "name": "MonotonicReferenceFactory",
+    "description": "Génère des références monotones dans l’instance.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-common/src/main/java/io/teampulse/common/reference/MonotonicReferenceFactory.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "component:reference-format",
+    "type": "Component",
+    "name": "ReferenceFormat",
+    "description": "Vérifie la syntaxe et la famille d’une référence.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-common/src/main/java/io/teampulse/common/reference/ReferenceFormat.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "component:shared-http-errors",
+    "type": "Component",
+    "name": "SharedHttpErrorAdvice",
+    "description": "Normalise les erreurs de transport vers ApiError.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-web-support/src/main/java/io/teampulse/websupport/error/SharedHttpErrorAdvice.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "component:team-directory",
+    "type": "Component",
+    "name": "TeamResponsibilityDirectoryService",
+    "description": "Projette les équipes où un utilisateur est responsable.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/service/team/TeamResponsibilityDirectoryService.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "component:team-http",
+    "type": "Component",
+    "name": "TeamController",
+    "description": "Expose les opérations concernant l’équipe.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/infrastructure/web/team/TeamController.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "component:team-jpa",
+    "type": "Component",
+    "name": "JpaTeamRepositoryAdapter",
+    "description": "Accède au stockage d’équipe par tenant et gère les écritures.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/infrastructure/persistence/repository/JpaTeamRepositoryAdapter.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "component:team-lifecycle",
+    "type": "Component",
+    "name": "TeamLifecycleService",
+    "description": "Orchestre le cycle d’équipe et valide les préconditions d’ouverture.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/service/team/TeamLifecycleService.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "component:team-member-validator",
+    "type": "Component",
+    "name": "TeamMemberUserAvailabilityValidator",
+    "description": "Admet PENDING pour l’invitation et requiert AVAILABLE pour les autres ouvertures.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/service/teammember/TeamMemberUserAvailabilityValidator.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "component:team-model",
+    "type": "Component",
+    "name": "Team",
+    "description": "Porte le modèle équipe et ses transitions.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/domain/team/model/Team.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "component:team-org-validator",
+    "type": "Component",
+    "name": "TeamOrganizationAvailabilityValidator",
+    "description": "Requiert une organisation disponible pour ouvrir les parcours prévus.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/service/team/TeamOrganizationAvailabilityValidator.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "component:team-responsibles",
+    "type": "Component",
+    "name": "TeamResponsibleUsersService",
+    "description": "Orchestre les remplacements de responsables équipe.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/service/team/TeamResponsibleUsersService.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "component:team-responsibles-validator",
+    "type": "Component",
+    "name": "TeamResponsibleUsersValidator",
+    "description": "Requiert un utilisateur disponible dans le tenant pour le rôle.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/service/team/TeamResponsibleUsersValidator.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "component:user-directory",
+    "type": "Component",
+    "name": "UserDirectoryService",
+    "description": "Projette l’état d’un utilisateur en résultat public tenanté.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/application/service/user/UserDirectoryService.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "component:user-http",
+    "type": "Component",
+    "name": "UserController",
+    "description": "Adapte le cycle exposé et la liste au transport HTTP.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/infrastructure/web/user/UserController.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "component:user-jpa",
+    "type": "Component",
+    "name": "JpaUserRepositoryAdapter",
+    "description": "Stocke, recherche et traduit les violations connues.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/infrastructure/persistence/repository/JpaUserRepositoryAdapter.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "component:user-lifecycle",
+    "type": "Component",
+    "name": "UserLifecycleService",
+    "description": "Persiste les nouveaux utilisateurs, produit le fait d’invitation et applique les transitions.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/application/service/user/UserLifecycleService.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "component:user-list",
+    "type": "Component",
+    "name": "ListUsersService",
+    "description": "Délègue la liste tenantée au repository.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/application/service/user/ListUsersService.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "component:user-model",
+    "type": "Component",
+    "name": "User",
+    "description": "Porte les invariants du modèle et les transitions locales.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/domain/user/model/User.java"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "concept:action",
+    "type": "Concept",
+    "name": "Action d'amélioration",
+    "description": "Travail issu d'une proposition acceptée, suivi jusqu'à son évaluation.",
+    "properties": {
+      "context": "Vision produit",
+      "scope": "product-vision-draft"
+    },
+    "sources": [
+      {
+        "path": "docs/besoins/SCENARIO-METIER-TEAMPULSE.md",
+        "line": 134,
+        "symbol": "Une proposition acceptee devient une action"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "ref": "../ontology.md#concept-action"
+  },
+  {
+    "id": "concept:actor",
+    "type": "Concept",
+    "name": "Acteur d'audit",
+    "description": "Référence de l'initiateur utilisée pour tracer une écriture. L'implémentation par défaut représente le système.",
+    "properties": {
+      "context": "Transverse"
+    },
+    "sources": [
+      {
+        "path": "tp-common/src/main/java/io/teampulse/common/context/ActorContext.java",
+        "line": 11,
+        "symbol": "public record"
+      },
+      {
+        "path": "tp-app/src/main/java/io/teampulse/config/ActorContextConfiguration.java",
+        "line": 15,
+        "symbol": "return ActorContext::system"
+      },
+      {
+        "path": "tp-app/src/main/java/io/teampulse/config/JpaAuditingConfiguration.java",
+        "line": 19,
+        "symbol": "actorContextProvider.current()"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "ref": "../ontology.md#concept-actor"
+  },
+  {
+    "id": "concept:administrator",
+    "type": "Concept",
+    "name": "Administrateur",
+    "description": "Responsable du contenant dans le scénario. Le titulaire est désigné par une référence utilisateur dans le modèle.",
+    "properties": {
+      "context": "Organisation, équipe"
+    },
+    "sources": [
+      {
+        "path": "docs/besoins/SCENARIO-METIER-TEAMPULSE.md",
+        "line": 43,
+        "symbol": "## Roles"
+      },
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/domain/organization/model/Organization.java",
+        "line": 22,
+        "symbol": "private String adminReference"
+      },
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/domain/team/model/Team.java",
+        "line": 22,
+        "symbol": "private String adminReference"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "ref": "../ontology.md#concept-administrator"
+  },
+  {
+    "id": "concept:ballot",
+    "type": "Concept",
+    "name": "Scrutin",
+    "description": "Dispositif de décision sur une proposition par un ensemble de membres éligibles.",
+    "properties": {
+      "context": "Vision produit",
+      "scope": "product-vision-draft"
+    },
+    "sources": [
+      {
+        "path": "docs/besoins/SCENARIO-METIER-TEAMPULSE.md",
+        "line": 161,
+        "symbol": "Les participants eligibles sont figes"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "ref": "../ontology.md#concept-ballot"
+  },
+  {
+    "id": "concept:blocking-responsibility",
+    "type": "Concept",
+    "name": "Responsabilité bloquante",
+    "description": "Affectation à une organisation non archivée ou à une équipe active/suspendue, dans le tenant demandé. Empêche la suspension ou désactivation via la plateforme.",
+    "properties": {
+      "context": "Administration"
+    },
+    "sources": [
+      {
+        "path": "tp-administration/src/main/java/io/teampulse/administration/application/service/identity/UserLifecycleAdministrationService.java",
+        "line": 127,
+        "symbol": "private static boolean hasActiveOrganizationResponsibility"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "ref": "../ontology.md#concept-blocking-responsibility"
+  },
+  {
+    "id": "concept:campaign",
+    "type": "Concept",
+    "name": "Campagne",
+    "description": "Collecte périodique de signaux auprès d'une équipe.",
+    "properties": {
+      "context": "Vision produit",
+      "scope": "product-vision-draft"
+    },
+    "sources": [
+      {
+        "path": "docs/besoins/SCENARIO-METIER-TEAMPULSE.md",
+        "line": 95,
+        "symbol": "## Campagne hebdomadaire"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "ref": "../ontology.md#concept-campaign"
+  },
+  {
+    "id": "concept:current-membership",
+    "type": "Concept",
+    "name": "Appartenance courante",
+    "description": "Appartenance dont l'état est INVITED, ACTIVE ou SUSPENDED. Elle est adressable par équipe et utilisateur dans le tenant.",
+    "properties": {
+      "context": "Équipe"
+    },
+    "sources": [
+      {
+        "path": "tp-team/src/main/resources/db/migration/team/V0.1.1__create_team_members.sql",
+        "line": 46,
+        "symbol": "CREATE UNIQUE INDEX uk_team_members_current"
+      },
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/service/teammember/TeamMembershipService.java",
+        "line": 126,
+        "symbol": "private TeamMember findCurrentMembership"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "ref": "../ontology.md#concept-current-membership"
+  },
+  {
+    "id": "concept:functional-reference",
+    "type": "Concept",
+    "name": "Référence fonctionnelle",
+    "description": "Identifiant canonique d'organisation, d'utilisateur ou d'équipe, avec famille ORG, USR, TEM.",
+    "properties": {
+      "context": "Transverse"
+    },
+    "sources": [
+      {
+        "path": "tp-common/src/main/java/io/teampulse/common/reference/ReferenceFormat.java",
+        "line": 33,
+        "symbol": "public static boolean matches"
+      },
+      {
+        "path": "docs/adr/technical/ADR-TECH-006-functional-references-over-persistence-identifiers.md"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "ref": "../ontology.md#concept-functional-reference"
+  },
+  {
+    "id": "concept:initial-user",
+    "type": "Concept",
+    "name": "Utilisateur initial",
+    "description": "Nom du parcours de création ou d'invitation dans une organisation existante. La notion « premier » peut décrire l'ordre attendu ou une unicité métier. Le service vérifie l'existence de l'organisation et applique les contraintes ordinaires d'identité.",
+    "properties": {
+      "context": "Administration"
+    },
+    "sources": [
+      {
+        "path": "docs/adr/W001/ADR-W001-T05-api-metiers-et-administration-plateforme.md",
+        "line": 66,
+        "symbol": "La création d'une organisation"
+      },
+      {
+        "path": "tp-administration/src/main/java/io/teampulse/administration/application/service/identity/UserLifecycleAdministrationService.java",
+        "line": 68,
+        "symbol": "private UserLifecycleAdministrationResult provisionInitialUser"
+      }
+    ],
+    "confidence": "AMBIGUOUS",
+    "ref": "../ontology.md#concept-initial-user"
+  },
+  {
+    "id": "concept:lifecycle-state",
+    "type": "Concept",
+    "name": "État de cycle",
+    "description": "Classe de valeurs conceptuelle. Chaque entité possède son propre ensemble fermé et son graphe de transitions. ACTIVE s'interprète dans le contexte de l'entité.",
+    "properties": {
+      "context": "Transverse"
+    },
+    "sources": [
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/domain/organization/model/OrganizationStatus.java",
+        "line": 15,
+        "symbol": "ALLOWED_TRANSITIONS"
+      },
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/domain/user/model/UserStatus.java",
+        "line": 16,
+        "symbol": "ALLOWED_TRANSITIONS"
+      },
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/domain/team/model/TeamStatus.java",
+        "line": 14,
+        "symbol": "ALLOWED_TRANSITIONS"
+      },
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/domain/team/model/TeamMemberStatus.java",
+        "line": 15,
+        "symbol": "ALLOWED_TRANSITIONS"
+      }
+    ],
+    "confidence": "INFERRED",
+    "ref": "../ontology.md#concept-lifecycle-state"
+  },
+  {
+    "id": "concept:manager",
+    "type": "Concept",
+    "name": "Manager",
+    "description": "Responsable de l'exploitation du contenu dans le scénario. Le titulaire peut cumuler les responsabilités d'administrateur et de manager.",
+    "properties": {
+      "context": "Organisation, équipe"
+    },
+    "sources": [
+      {
+        "path": "docs/besoins/SCENARIO-METIER-TEAMPULSE.md",
+        "line": 43,
+        "symbol": "## Roles"
+      },
+      {
+        "path": "tp-organization/src/test/java/io/teampulse/organization/domain/organization/model/OrganizationTest.java",
+        "line": 282,
+        "symbol": "void acceptsSameUserAsAdministratorAndManager"
+      },
+      {
+        "path": "tp-team/src/test/java/io/teampulse/team/application/service/team/TeamLifecycleServiceIT.java",
+        "line": 105,
+        "symbol": "void checksTheDirectoryOnlyOnceWhenAdministratorAndManagerAreTheSameUser"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "ref": "../ontology.md#concept-manager"
+  },
+  {
+    "id": "concept:membership-period",
+    "type": "Concept",
+    "name": "Période d'appartenance",
+    "description": "Intervalle décrit par startedAt / endedAt. Une invitation retirée avant activation conserve une fin sans début.",
+    "properties": {
+      "context": "Équipe"
+    },
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/domain/team/model/TeamMember.java",
+        "line": 110,
+        "symbol": "private void validateTemporalState"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "ref": "../ontology.md#concept-membership-period"
+  },
+  {
+    "id": "concept:organization-auditor",
+    "type": "Concept",
+    "name": "Auditeur d'organisation",
+    "description": "Rôle envisagé de lecture des traces administratives et de sécurité.",
+    "properties": {
+      "context": "Vision produit",
+      "scope": "product-vision-draft"
+    },
+    "sources": [
+      {
+        "path": "docs/besoins/SCENARIO-METIER-TEAMPULSE.md",
+        "line": 61,
+        "symbol": "Auditeur d'organisation"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "ref": "../ontology.md#concept-organization-auditor"
+  },
+  {
+    "id": "concept:organization-availability",
+    "type": "Concept",
+    "name": "Disponibilité organisation",
+    "description": "Verdict d'existence et d'état opérationnel. Une organisation existante peut demeurer indisponible.",
+    "properties": {
+      "context": "Organisation"
+    },
+    "sources": [
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/application/service/organization/OrganizationDirectoryService.java",
+        "line": 81,
+        "symbol": "private static OrganizationAvailability toAvailability"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "ref": "../ontology.md#concept-organization-availability"
+  },
+  {
+    "id": "concept:platform-administrator",
+    "type": "Concept",
+    "name": "Administrateur plateforme",
+    "description": "Rôle global distinct d'un compte tenant dans le scénario. La classe d'identité et sa relation au contexte d'exécution restent **UNKNOWN**.",
+    "properties": {
+      "context": "Vision produit",
+      "scope": "product-vision-draft"
+    },
+    "sources": [
+      {
+        "path": "docs/besoins/SCENARIO-METIER-TEAMPULSE.md",
+        "line": 27,
+        "symbol": "## Frontiere des organisations"
+      }
+    ],
+    "confidence": "UNKNOWN",
+    "ref": "../ontology.md#concept-platform-administrator"
+  },
+  {
+    "id": "concept:proposal",
+    "type": "Concept",
+    "name": "Proposition d'action",
+    "description": "Proposition du manager d'équipe reliée à un résultat ou une alerte.",
+    "properties": {
+      "context": "Vision produit",
+      "scope": "product-vision-draft"
+    },
+    "sources": [
+      {
+        "path": "docs/besoins/SCENARIO-METIER-TEAMPULSE.md",
+        "line": 123,
+        "symbol": "## Actions et votes"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "ref": "../ontology.md#concept-proposal"
+  },
+  {
+    "id": "concept:response",
+    "type": "Concept",
+    "name": "Réponse",
+    "description": "Signal individuel pour une campagne. Le scénario cite l'humeur, la charge, les blocages, les risques et un commentaire éventuel.",
+    "properties": {
+      "context": "Vision produit",
+      "scope": "product-vision-draft"
+    },
+    "sources": [
+      {
+        "path": "docs/besoins/SCENARIO-METIER-TEAMPULSE.md",
+        "line": 95,
+        "symbol": "## Campagne hebdomadaire"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "ref": "../ontology.md#concept-response"
+  },
+  {
+    "id": "concept:responsibility",
+    "type": "Concept",
+    "name": "Responsabilité métier",
+    "description": "Position d'administrateur ou de manager dans un périmètre. Elle correspond actuellement à une référence dans son agrégat. Les vues de responsabilité lisent les affectations et l'état du périmètre.",
+    "properties": {
+      "context": "Organisation, équipe"
+    },
+    "sources": [
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/api/organization/OrganizationResponsibilities.java",
+        "line": 13,
+        "symbol": "public record"
+      },
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/api/TeamResponsibility.java",
+        "line": 6,
+        "symbol": "public record"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "ref": "../ontology.md#concept-responsibility"
+  },
+  {
+    "id": "concept:result",
+    "type": "Concept",
+    "name": "Résultat agrégé",
+    "description": "Restitution collective d'une campagne sous conditions de confidentialité.",
+    "properties": {
+      "context": "Vision produit",
+      "scope": "product-vision-draft"
+    },
+    "sources": [
+      {
+        "path": "docs/besoins/SCENARIO-METIER-TEAMPULSE.md",
+        "line": 107,
+        "symbol": "## Resultats et confidentialite"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "ref": "../ontology.md#concept-result"
+  },
+  {
+    "id": "concept:team-invitation",
+    "type": "Concept",
+    "name": "Invitation dans une équipe",
+    "description": "Création d'une appartenance INVITED pour un utilisateur déjà connu du tenant, éligible s'il est AVAILABLE ou PENDING.",
+    "properties": {
+      "context": "Équipe"
+    },
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/service/teammember/TeamMembershipService.java",
+        "line": 49,
+        "symbol": "public TeamMember inviteMember"
+      },
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/service/teammember/TeamMemberUserAvailabilityValidator.java",
+        "line": 27,
+        "symbol": "public void validateAvailableOrPending"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "ref": "../ontology.md#concept-team-invitation"
+  },
+  {
+    "id": "concept:tenant",
+    "type": "Concept",
+    "name": "Tenant",
+    "description": "Partition d'exécution identifiée par une référence ORG. Une organisation persistée peut porter cette référence. Le contexte local possède sa propre référence en mémoire.",
+    "properties": {
+      "context": "Transverse"
+    },
+    "sources": [
+      {
+        "path": "tp-common/src/main/java/io/teampulse/common/context/TenantContext.java",
+        "line": 12,
+        "symbol": "public record"
+      },
+      {
+        "path": "tp-app/src/main/java/io/teampulse/context/LocalTenantContextProvider.java",
+        "line": 29,
+        "symbol": "public TenantContext current"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "ref": "../ontology.md#concept-tenant"
+  },
+  {
+    "id": "concept:user-availability",
+    "type": "Concept",
+    "name": "Disponibilité utilisateur",
+    "description": "Verdict de consultation par couple organisation-utilisateur, utile aux décisions d'éligibilité.",
+    "properties": {
+      "context": "Identité"
+    },
+    "sources": [
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/application/service/user/UserDirectoryService.java",
+        "line": 44,
+        "symbol": "private UserAvailability toAvailability"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "ref": "../ontology.md#concept-user-availability"
+  },
+  {
+    "id": "concept:user-invitation",
+    "type": "Concept",
+    "name": "Invitation d'utilisateur",
+    "description": "Création d'un utilisateur en INVITED avec publication du fait event:user-invited.",
+    "properties": {
+      "context": "Identité"
+    },
+    "sources": [
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/application/service/user/UserLifecycleService.java",
+        "line": 57,
+        "symbol": "public UserLifecycleResult invite"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "ref": "../ontology.md#concept-user-invitation"
+  },
+  {
+    "id": "concept:vote",
+    "type": "Concept",
+    "name": "Vote",
+    "description": "Expression individuelle secrète dans un scrutin.",
+    "properties": {
+      "context": "Vision produit",
+      "scope": "product-vision-draft"
+    },
+    "sources": [
+      {
+        "path": "docs/besoins/SCENARIO-METIER-TEAMPULSE.md",
+        "line": 130,
+        "symbol": "Les votes sont secrets"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "ref": "../ontology.md#concept-vote"
+  },
+  {
+    "id": "conflict:organization-role-cardinality",
+    "type": "Finding",
+    "name": "Cardinalité des responsables",
+    "description": "Le scénario Draft annonce exactement un administrateur et un manager par organisation « à un instant donné ». Le modèle et le SQL l'exigent seulement en ACTIVE, et autorisent notamment un manager absent en SUSPENDED et des rôles absents en CREATING.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "docs/besoins/SCENARIO-METIER-TEAMPULSE.md",
+        "line": 63,
+        "symbol": "Chaque organisation possede"
+      },
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/domain/organization/model/Organization.java",
+        "line": 344,
+        "symbol": "private void validateResponsibleStructure"
+      },
+      {
+        "path": "tp-organization/src/main/resources/db/migration/organization/V0.1.0__create_organizations.sql",
+        "line": 28,
+        "symbol": "ck_organizations_responsibles_by_status"
+      }
+    ],
+    "confidence": "CONFLICTING"
+  },
+  {
+    "id": "conflict:organization-timezone",
+    "type": "Finding",
+    "name": "Format du fuseau d’organisation",
+    "description": "T04 décrit un identifiant IANA. La garde de domaine délègue à ZoneId.of, qui admet aussi des décalages numériques, vérifiés par un appel Java isolé. Les contrats et migrations consultés ne restreignent pas le fuseau à une région IANA.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "docs/adr/W001/ADR-W001-T04-multi-tenancy-organization-reference.md",
+        "line": 190,
+        "symbol": "identifiant IANA"
+      },
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/domain/organization/model/Organization.java",
+        "line": 477,
+        "symbol": "return ZoneId.of(timezone)"
+      },
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/api/lifecycle/OrganizationProvisioningCommand.java",
+        "line": 11,
+        "symbol": "public record"
+      },
+      {
+        "path": "tp-organization/src/main/resources/db/migration/organization/V0.1.0__create_organizations.sql",
+        "line": 12,
+        "symbol": "timezone"
+      }
+    ],
+    "confidence": "CONFLICTING"
+  },
+  {
+    "id": "decision:tech-001",
+    "type": "Decision",
+    "name": "ADR-TECH-001",
+    "description": "ADR-TECH-001 - Maven and Spring Modulith modular monolith",
+    "properties": {
+      "status": "Accepted"
+    },
+    "sources": [
+      {
+        "path": "docs/adr/technical/ADR-TECH-001-maven-spring-modulith-modular-monolith.md",
+        "line": 5,
+        "symbol": "Accepted"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "decision:tech-002",
+    "type": "Decision",
+    "name": "ADR-TECH-002",
+    "description": "ADR-TECH-002 - Shared PostgreSQL with module-owned Flyway migrations",
+    "properties": {
+      "status": "Accepted"
+    },
+    "sources": [
+      {
+        "path": "docs/adr/technical/ADR-TECH-002-shared-postgresql-with-module-owned-flyway.md",
+        "line": 5,
+        "symbol": "Accepted"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "decision:tech-003",
+    "type": "Decision",
+    "name": "ADR-TECH-003",
+    "description": "ADR-TECH-003 - PostgreSQL integration tests with Testcontainers",
+    "properties": {
+      "status": "Accepted"
+    },
+    "sources": [
+      {
+        "path": "docs/adr/technical/ADR-TECH-003-postgresql-integration-tests-with-testcontainers.md",
+        "line": 5,
+        "symbol": "Accepted"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "decision:tech-004",
+    "type": "Decision",
+    "name": "ADR-TECH-004",
+    "description": "ADR-TECH-004 - Hexagonal boundaries inside business modules",
+    "properties": {
+      "status": "Accepted"
+    },
+    "sources": [
+      {
+        "path": "docs/adr/technical/ADR-TECH-004-hexagonal-business-module-boundaries.md",
+        "line": 5,
+        "symbol": "Accepted"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "decision:tech-005",
+    "type": "Decision",
+    "name": "ADR-TECH-005",
+    "description": "ADR-TECH-005 - Executable architecture rules with ArchUnit",
+    "properties": {
+      "status": "Accepted"
+    },
+    "sources": [
+      {
+        "path": "docs/adr/technical/ADR-TECH-005-executable-architecture-rules-with-archunit.md",
+        "line": 5,
+        "symbol": "Accepted"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "decision:tech-006",
+    "type": "Decision",
+    "name": "ADR-TECH-006",
+    "description": "ADR-TECH-006 - Functional references over persistence identifiers",
+    "properties": {
+      "status": "Accepted"
+    },
+    "sources": [
+      {
+        "path": "docs/adr/technical/ADR-TECH-006-functional-references-over-persistence-identifiers.md",
+        "line": 5,
+        "symbol": "Accepted"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "decision:tech-007",
+    "type": "Decision",
+    "name": "ADR-TECH-007",
+    "description": "ADR-TECH-007 - Monotonic Java reference generation",
+    "properties": {
+      "status": "Accepted"
+    },
+    "sources": [
+      {
+        "path": "docs/adr/technical/ADR-TECH-007-monotonic-java-reference-generation.md",
+        "line": 5,
+        "symbol": "Accepted"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "decision:tech-008",
+    "type": "Decision",
+    "name": "ADR-TECH-008",
+    "description": "ADR-TECH-008 - Explicit tenant context and tenant-scoped persistence",
+    "properties": {
+      "status": "Accepted"
+    },
+    "sources": [
+      {
+        "path": "docs/adr/technical/ADR-TECH-008-explicit-tenant-context-and-tenant-scoped-persistence.md",
+        "line": 5,
+        "symbol": "Accepted"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "decision:tech-009",
+    "type": "Decision",
+    "name": "ADR-TECH-009",
+    "description": "ADR-TECH-009 - Module-owned directory contracts and error translation",
+    "properties": {
+      "status": "Accepted"
+    },
+    "sources": [
+      {
+        "path": "docs/adr/technical/ADR-TECH-009-module-owned-directory-contracts-and-error-translation.md",
+        "line": 5,
+        "symbol": "Accepted"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "decision:tech-010",
+    "type": "Decision",
+    "name": "ADR-TECH-010",
+    "description": "ADR-TECH-010 - JPA-managed technical state and optimistic locking",
+    "properties": {
+      "status": "Accepted"
+    },
+    "sources": [
+      {
+        "path": "docs/adr/technical/ADR-TECH-010-jpa-managed-technical-state-and-optimistic-locking.md",
+        "line": 5,
+        "symbol": "Accepted"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "decision:tech-011",
+    "type": "Decision",
+    "name": "ADR-TECH-011",
+    "description": "ADR-TECH-011 - Spring application services and layer-owned validation",
+    "properties": {
+      "status": "Accepted"
+    },
+    "sources": [
+      {
+        "path": "docs/adr/technical/ADR-TECH-011-spring-application-services-and-layer-owned-validation.md",
+        "line": 5,
+        "symbol": "Accepted"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "decision:tech-012",
+    "type": "Decision",
+    "name": "ADR-TECH-012",
+    "description": "ADR-TECH-012 - Module-owned error vocabularies and boundary translation",
+    "properties": {
+      "status": "Accepted"
+    },
+    "sources": [
+      {
+        "path": "docs/adr/technical/ADR-TECH-012-module-owned-error-vocabularies-and-boundary-translation.md",
+        "line": 5,
+        "symbol": "Accepted"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "decision:tech-013",
+    "type": "Decision",
+    "name": "ADR-TECH-013",
+    "description": "ADR-TECH-013 — OpenAPI contracts and generated clients",
+    "properties": {
+      "status": "Accepted"
+    },
+    "sources": [
+      {
+        "path": "docs/adr/technical/ADR-TECH-013-openapi-contracts-and-generated-test-clients.md",
+        "line": 5,
+        "symbol": "Accepted"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "decision:tech-014",
+    "type": "Decision",
+    "name": "ADR-TECH-014",
+    "description": "ADR-TECH-014 — Spring Boot HTTP boundary integration tests",
+    "properties": {
+      "status": "Accepted"
+    },
+    "sources": [
+      {
+        "path": "docs/adr/technical/ADR-TECH-014-http-boundary-integration-tests.md",
+        "line": 5,
+        "symbol": "Accepted"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "decision:tech-015",
+    "type": "Decision",
+    "name": "ADR-TECH-015",
+    "description": "ADR-TECH-015 — Shared Spring HTTP error support",
+    "properties": {
+      "status": "Accepted"
+    },
+    "sources": [
+      {
+        "path": "docs/adr/technical/ADR-TECH-015-shared-spring-http-error-support.md",
+        "line": 5,
+        "symbol": "Accepted"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "decision:tech-016",
+    "type": "Decision",
+    "name": "ADR-TECH-016",
+    "description": "ADR-TECH-016 — In-process application events with Spring Modulith",
+    "properties": {
+      "status": "Accepted"
+    },
+    "sources": [
+      {
+        "path": "docs/adr/technical/ADR-TECH-016-durable-in-process-events-with-spring-modulith.md",
+        "line": 5,
+        "symbol": "Accepted"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "decision:w001-t01",
+    "type": "Decision",
+    "name": "ADR-W001-T01",
+    "description": "ADR-W001-T01 - Adopter un monolithe modulaire pour TeamPulse",
+    "properties": {
+      "status": "Accepted"
+    },
+    "sources": [
+      {
+        "path": "docs/adr/W001/ADR-W001-T01-backend-multi-module.md",
+        "line": 5,
+        "symbol": "Accepted"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "decision:w001-t02",
+    "type": "Decision",
+    "name": "ADR-W001-T02",
+    "description": "ADR-W001-T02 - PostgreSQL local et schémas Flyway par module",
+    "properties": {
+      "status": "Accepted"
+    },
+    "sources": [
+      {
+        "path": "docs/adr/W001/ADR-W001-T02-docker-compose-local.md",
+        "line": 5,
+        "symbol": "Accepted"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "decision:w001-t03",
+    "type": "Decision",
+    "name": "ADR-W001-T03",
+    "description": "ADR-W001-T03 - Règles d'architecture exécutables avec ArchUnit",
+    "properties": {
+      "status": "Accepted"
+    },
+    "sources": [
+      {
+        "path": "docs/adr/W001/ADR-W001-T03-regles-architecture-archunit.md",
+        "line": 5,
+        "symbol": "Accepted"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "decision:w001-t04",
+    "type": "Decision",
+    "name": "ADR-W001-T04",
+    "description": "ADR-W001-T04 - Multi-tenancy par référence d'organisation",
+    "properties": {
+      "status": "Accepted"
+    },
+    "sources": [
+      {
+        "path": "docs/adr/W001/ADR-W001-T04-multi-tenancy-organization-reference.md",
+        "line": 5,
+        "symbol": "Accepted"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "decision:w001-t05",
+    "type": "Decision",
+    "name": "ADR-W001-T05",
+    "description": "ADR-W001-T05 — APIs métier et administration de plateforme",
+    "properties": {
+      "status": "Draft"
+    },
+    "sources": [
+      {
+        "path": "docs/adr/W001/ADR-W001-T05-api-metiers-et-administration-plateforme.md",
+        "line": 4,
+        "symbol": "Draft"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "doc:architecture",
+    "type": "Document",
+    "name": "Règles du projet",
+    "description": "Conventions d’organisation modulaire et de validation locale.",
+    "properties": {
+      "status": "source"
+    },
+    "sources": [
+      {
+        "path": "AGENTS.md",
+        "line": 45,
+        "symbol": "## Vue d'ensemble"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "doc:need-t05",
+    "type": "Document",
+    "name": "Besoin W001-T05",
+    "description": "Périmètre attendu des API métier, du provisioning et des tests.",
+    "properties": {
+      "status": "source"
+    },
+    "sources": [
+      {
+        "path": "docs/besoins/W001/W001-T05-api-metiers-et-administration-plateforme.md"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "doc:roadmap",
+    "type": "Document",
+    "name": "Roadmap",
+    "description": "Étapes de réalisation et d’évolution de l’architecture.",
+    "properties": {
+      "status": "source"
+    },
+    "sources": [
+      {
+        "path": "ROADMAP.md",
+        "line": 35,
+        "symbol": "## Current status"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "doc:scenario",
+    "type": "Document",
+    "name": "Scénario métier TeamPulse",
+    "description": "Vision fonctionnelle de la boucle de feedback.",
+    "properties": {
+      "status": "Draft"
+    },
+    "sources": [
+      {
+        "path": "docs/besoins/SCENARIO-METIER-TEAMPULSE.md",
+        "line": 3,
+        "symbol": "## Statut"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "domain:administration",
+    "type": "Domain",
+    "name": "Administration de plateforme",
+    "description": "Provisionnement d'utilisateur d'une organisation existante et garde de responsabilités.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-administration/src/main/java/io/teampulse/administration/application/port/in/identity/UserLifecycleAdministrationUseCase.java"
+      },
+      {
+        "path": "docs/adr/W001/ADR-W001-T05-api-metiers-et-administration-plateforme.md",
+        "line": 60,
+        "symbol": "### 2. Orchestrer"
+      }
+    ],
+    "confidence": "INFERRED",
+    "ref": "../ontology.md#domain-administration"
+  },
+  {
+    "id": "domain:identity",
+    "type": "Domain",
+    "name": "Identité",
+    "description": "Compte utilisateur d'organisation, provisioning et disponibilité.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/api/lifecycle/UserLifecycle.java"
+      },
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/api/user/UserDirectory.java"
+      }
+    ],
+    "confidence": "INFERRED",
+    "ref": "../ontology.md#domain-identity"
+  },
+  {
+    "id": "domain:organization",
+    "type": "Domain",
+    "name": "Organisation",
+    "description": "Racine tenant, cycle et responsables d'organisation.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/domain/organization/model/Organization.java",
+        "line": 13,
+        "symbol": "public final class Organization"
+      },
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/api/lifecycle/OrganizationLifecycle.java"
+      }
+    ],
+    "confidence": "INFERRED",
+    "ref": "../ontology.md#domain-organization"
+  },
+  {
+    "id": "domain:team",
+    "type": "Domain",
+    "name": "Équipe",
+    "description": "Cycle d'équipe, responsables et participation temporelle des utilisateurs.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/port/in/team/TeamLifecycleUseCase.java"
+      },
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/port/in/teammember/TeamMembershipUseCase.java"
+      }
+    ],
+    "confidence": "INFERRED",
+    "ref": "../ontology.md#domain-team"
+  },
+  {
+    "id": "entity:organization",
+    "type": "Entity",
+    "name": "Organisation",
+    "description": "Racine opérationnelle de partition. Voir organisation et concept:tenant.",
+    "properties": {
+      "context": "Organisation"
+    },
+    "sources": [
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/domain/organization/model/Organization.java",
+        "line": 13,
+        "symbol": "public final class Organization"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "ref": "../cdm.md#entity-organization"
+  },
+  {
+    "id": "entity:team",
+    "type": "Entity",
+    "name": "Équipe",
+    "description": "Unité du tenant, à responsabilités propres. Voir équipe et entity:team-membership.",
+    "properties": {
+      "context": "Équipe"
+    },
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/domain/team/model/Team.java",
+        "line": 11,
+        "symbol": "public final class Team"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "ref": "../cdm.md#entity-team"
+  },
+  {
+    "id": "entity:team-membership",
+    "type": "Entity",
+    "name": "Appartenance",
+    "description": "Occurrence historique équipe-utilisateur. Le membre est l'utilisateur vu au travers de cette relation. Voir appartenance.",
+    "properties": {
+      "context": "Équipe"
+    },
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/domain/team/model/TeamMember.java",
+        "line": 12,
+        "symbol": "public final class TeamMember"
+      },
+      {
+        "path": "docs/besoins/SCENARIO-METIER-TEAMPULSE.md",
+        "line": 142,
+        "symbol": "## Retrait d'un membre"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "ref": "../cdm.md#entity-team-membership"
+  },
+  {
+    "id": "entity:user",
+    "type": "Entity",
+    "name": "Utilisateur d'organisation",
+    "description": "Identité rattachée à une référence d'organisation. Voir utilisateur, concept:user-availability et concept:responsibility.",
+    "properties": {
+      "context": "Identité"
+    },
+    "sources": [
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/domain/user/model/User.java",
+        "line": 13,
+        "symbol": "public final class User"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "ref": "../cdm.md#entity-user"
+  },
+  {
+    "id": "event:user-invited",
+    "type": "Event",
+    "name": "UserInvited",
+    "description": "Fait publié après la persistance par le parcours d’invitation Identity.",
+    "properties": {
+      "payload": [
+        "organizationReference",
+        "userReference"
+      ],
+      "transport": "Spring in-process"
+    },
+    "sources": [
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/events/UserInvited.java",
+        "line": 8,
+        "symbol": "public record"
+      },
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/application/service/user/UserLifecycleService.java",
+        "line": 69,
+        "symbol": "identityEventPublisher.publish"
+      },
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/infrastructure/messaging/IdentityEventPublisherAdapter.java",
+        "line": 16,
+        "symbol": "applicationEventPublisher.publishEvent"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "ref": "../ontology.md#event-user-invited"
+  },
+  {
+    "id": "gap:cross-module-consistency",
+    "type": "Finding",
+    "name": "Concurrence inter-module",
+    "description": "Les contrôles inter-modules consultent l'état courant. Les garanties contre une modification simultanée de plusieurs agrégats (ex. affectation concurrente et désactivation) ne sont pas établies. Les contraintes observées portent sur les lignes ou clés locales.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-administration/src/main/java/io/teampulse/administration/application/service/identity/UserLifecycleAdministrationService.java",
+        "line": 105,
+        "symbol": "private void ensureNoActiveResponsibilities"
+      },
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/service/team/TeamResponsibleUsersService.java",
+        "line": 28,
+        "symbol": "public Team replaceAdministrator"
+      },
+      {
+        "path": "docs/adr/technical/ADR-TECH-010-jpa-managed-technical-state-and-optimistic-locking.md"
+      }
+    ],
+    "confidence": "UNKNOWN"
+  },
+  {
+    "id": "gap:non-local-tenant-provider",
+    "type": "Finding",
+    "name": "Fournisseur tenant hors local",
+    "description": "Le contrôleur est découvert sans restriction de profil et requiert TenantContextProvider. Dans tp-app, le seul bean de ce type observé est fourni par LocalTenantConfiguration sous local. Un démarrage sans ce profil ne dispose donc pas du bean requis, sauf configuration externe absente du checkout analysé.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-administration/src/main/java/io/teampulse/administration/infrastructure/web/identity/UserLifecycleAdministrationController.java",
+        "line": 30,
+        "symbol": "TenantContextProvider requis par le contrôleur"
+      },
+      {
+        "path": "tp-app/src/main/java/io/teampulse/context/LocalTenantConfiguration.java",
+        "line": 13,
+        "symbol": "Fournisseur actif sous local"
+      }
+    ],
+    "confidence": "INFERRED"
+  },
+  {
+    "id": "gap:event-delivery",
+    "type": "Finding",
+    "name": "Livraison de UserInvited",
+    "description": "Consommateur réel, durabilité, livraison et rejeu de UserInvited restent à établir. Le principe réutilisable TECH-016 décrit un registre durable. L'adoption T05 décrit une publication de référence sans ajout de registre ou listener de notification. Aucun contrat AsyncAPI n'a été trouvé.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/infrastructure/messaging/IdentityEventPublisherAdapter.java",
+        "line": 16,
+        "symbol": "applicationEventPublisher.publishEvent"
+      },
+      {
+        "path": "docs/adr/technical/ADR-TECH-016-durable-in-process-events-with-spring-modulith.md"
+      },
+      {
+        "path": "docs/adr/W001/ADR-W001-T05-api-metiers-et-administration-plateforme.md",
+        "line": 208,
+        "symbol": "aucun listener de notification"
+      }
+    ],
+    "confidence": "UNKNOWN"
+  },
+  {
+    "id": "gap:historical-membership-key",
+    "type": "Finding",
+    "name": "Clé d’épisode historique",
+    "description": "Aucun identifiant fonctionnel d'épisode historique ni endpoint de lecture de l'historique observé. La clé courante dépend du prédicat d'état.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/infrastructure/web/teammember/TeamMemberController.java",
+        "line": 20,
+        "symbol": "@RequestMapping"
+      },
+      {
+        "path": "tp-team/src/main/resources/db/migration/team/V0.1.1__create_team_members.sql",
+        "line": 8,
+        "symbol": "CREATE TABLE"
+      },
+      {
+        "path": "tp-team/src/main/resources/db/migration/team/V0.1.1__create_team_members.sql",
+        "line": 46,
+        "symbol": "CREATE UNIQUE INDEX uk_team_members_current"
+      }
+    ],
+    "confidence": "UNKNOWN"
+  },
+  {
+    "id": "gap:initial-user",
+    "type": "Finding",
+    "name": "Portée de « premier utilisateur »",
+    "description": "« Premier utilisateur » peut prescrire un ordre ou une cardinalité. Le service plateforme vérifie l'existence de l'organisation et délègue à Identity, sans décompte ni affectation automatique de responsabilité. Aucun contrat consulté ne tranche cette ambiguïté.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "docs/adr/W001/ADR-W001-T05-api-metiers-et-administration-plateforme.md",
+        "line": 66,
+        "symbol": "son premier utilisateur"
+      },
+      {
+        "path": "tp-administration/src/main/java/io/teampulse/administration/application/service/identity/UserLifecycleAdministrationService.java",
+        "line": 68,
+        "symbol": "private UserLifecycleAdministrationResult provisionInitialUser"
+      }
+    ],
+    "confidence": "AMBIGUOUS"
+  },
+  {
+    "id": "gap:local-bootstrap",
+    "type": "Finding",
+    "name": "Amorçage local",
+    "description": "La référence locale générée en mémoire et celle générée par l'API Organization suivent des créations distinctes. Aucune sélection de tenant ni auto-création correspondante n'est câblée. Le test HTTP plateforme fournit un tenant déterministe et insère explicitement l'organisation. Le fonctionnement du test ne prouve donc pas l'amorçage local de production.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-app/src/main/java/io/teampulse/context/LocalTenantContextProvider.java",
+        "line": 29,
+        "symbol": "public TenantContext current"
+      },
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/application/service/organization/OrganizationLifecycleService.java",
+        "line": 42,
+        "symbol": "public OrganizationLifecycleResult create"
+      },
+      {
+        "path": "tp-administration/src/test/java/io/teampulse/administration/infrastructure/web/identity/UserLifecycleAdministrationControllerIT.java",
+        "line": 55,
+        "symbol": "void createsAndPersistsAnInitialUserInTheProviderTenant"
+      }
+    ],
+    "confidence": "INFERRED"
+  },
+  {
+    "id": "gap:product-implementation",
+    "type": "Finding",
+    "name": "Implémentation de la vision",
+    "description": "Données, API, UI métier et règles exécutables de campagne, confidentialité, résultats, scrutin et actions restent à documenter à partir d'une implémentation. Le scénario donne des intentions sans seuil chiffré. La sélection de tenant et l'autorisation effective sont différées.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "docs/besoins/SCENARIO-METIER-TEAMPULSE.md",
+        "line": 178,
+        "symbol": "## Progression dans la roadmap"
+      },
+      {
+        "path": "docs/adr/W001/ADR-W001-T05-api-metiers-et-administration-plateforme.md",
+        "line": 93,
+        "symbol": "W008 fournit ces capacités"
+      }
+    ],
+    "confidence": "UNKNOWN"
+  },
+  {
+    "id": "module:administration",
+    "type": "Module",
+    "name": "tp-administration",
+    "description": "Orchestration des commandes de plateforme via les contrats publics.",
+    "properties": {
+      "role": "orchestration"
+    },
+    "sources": [
+      {
+        "path": "pom.xml",
+        "line": 20,
+        "symbol": "<modules>"
+      },
+      {
+        "path": "tp-administration/pom.xml"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "module:app",
+    "type": "Module",
+    "name": "tp-app",
+    "description": "Assemblage et configuration du monolithe.",
+    "properties": {
+      "role": "bootstrap"
+    },
+    "sources": [
+      {
+        "path": "pom.xml",
+        "line": 20,
+        "symbol": "<modules>"
+      },
+      {
+        "path": "tp-app/pom.xml"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "module:common",
+    "type": "Module",
+    "name": "tp-common",
+    "description": "Types, références, contextes et utilitaires transverses.",
+    "properties": {
+      "role": "shared"
+    },
+    "sources": [
+      {
+        "path": "pom.xml",
+        "line": 20,
+        "symbol": "<modules>"
+      },
+      {
+        "path": "tp-common/pom.xml"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "module:identity",
+    "type": "Module",
+    "name": "tp-identity",
+    "description": "Propriétaire de l’utilisateur, son annuaire et le fait UserInvited.",
+    "properties": {
+      "role": "business"
+    },
+    "sources": [
+      {
+        "path": "pom.xml",
+        "line": 20,
+        "symbol": "<modules>"
+      },
+      {
+        "path": "tp-identity/pom.xml"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "module:organization",
+    "type": "Module",
+    "name": "tp-organization",
+    "description": "Propriétaire de la racine organisation et des responsables associés.",
+    "properties": {
+      "role": "business"
+    },
+    "sources": [
+      {
+        "path": "pom.xml",
+        "line": 20,
+        "symbol": "<modules>"
+      },
+      {
+        "path": "tp-organization/pom.xml"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "module:team",
+    "type": "Module",
+    "name": "tp-team",
+    "description": "Propriétaire de l’équipe et des épisodes d’appartenance.",
+    "properties": {
+      "role": "business"
+    },
+    "sources": [
+      {
+        "path": "pom.xml",
+        "line": 20,
+        "symbol": "<modules>"
+      },
+      {
+        "path": "tp-team/pom.xml"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "module:test-support",
+    "type": "Module",
+    "name": "tp-test-support",
+    "description": "PostgreSQL, audit, temps et contextes déterministes pour les tests.",
+    "properties": {
+      "role": "test"
+    },
+    "sources": [
+      {
+        "path": "pom.xml",
+        "line": 20,
+        "symbol": "<modules>"
+      },
+      {
+        "path": "tp-test-support/pom.xml"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "module:web-support",
+    "type": "Module",
+    "name": "tp-web-support",
+    "description": "Traduction commune des erreurs HTTP, avec priorité aux advices propriétaires.",
+    "properties": {
+      "role": "shared"
+    },
+    "sources": [
+      {
+        "path": "pom.xml",
+        "line": 20,
+        "symbol": "<modules>"
+      },
+      {
+        "path": "tp-web-support/pom.xml"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "process:membership",
+    "type": "Process",
+    "name": "Accès et historique d’équipe",
+    "description": "Ouvrir, suspendre, réactiver ou terminer une appartenance avec conservation de l’épisode.",
+    "properties": {
+      "scope": "implementation"
+    },
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/port/in/teammember/TeamMembershipUseCase.java",
+        "line": 8,
+        "symbol": "public interface"
+      },
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/domain/team/model/TeamMember.java",
+        "line": 110,
+        "symbol": "private void validateTemporalState"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "process:platform-provision",
+    "type": "Process",
+    "name": "Provisionnement de plateforme",
+    "description": "Créer l’organisation, puis créer ou inviter un utilisateur dans le tenant existant.",
+    "properties": {
+      "scope": "implemented-steps"
+    },
+    "sources": [
+      {
+        "path": "docs/adr/W001/ADR-W001-T05-api-metiers-et-administration-plateforme.md",
+        "line": 66,
+        "symbol": "La création d'une organisation"
+      },
+      {
+        "path": "tp-administration/src/main/java/io/teampulse/administration/application/service/identity/UserLifecycleAdministrationService.java",
+        "line": 68,
+        "symbol": "private UserLifecycleAdministrationResult provisionInitialUser"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "process:pulse",
+    "type": "Process",
+    "name": "Boucle de feedback et d’amélioration",
+    "description": "Campagne, réponses, résultats, propositions, vote, exécution et évaluation.",
+    "properties": {
+      "scope": "product-vision-draft"
+    },
+    "sources": [
+      {
+        "path": "docs/besoins/SCENARIO-METIER-TEAMPULSE.md",
+        "line": 6,
+        "symbol": "## Finalite du produit"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "rule:audit-concurrency",
+    "type": "Rule",
+    "name": "Audit et concurrence",
+    "description": "Les écritures gèrent identité technique, audit et version en persistance. L'audit lit un acteur distinct du tenant. Les updates concurrentes détectées se traduisent selon le vocabulaire du module.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-app/src/main/java/io/teampulse/config/JpaAuditingConfiguration.java",
+        "line": 19,
+        "symbol": "actorContextProvider.current()"
+      },
+      {
+        "path": "tp-identity/src/test/java/io/teampulse/identity/infrastructure/persistence/repository/JpaUserRepositoryAdapterIdentityJpaIT.java",
+        "line": 309,
+        "symbol": "void translatesAnOptimisticLockConflictWithoutOverwritingTheCommittedUpdate"
+      },
+      {
+        "path": "tp-team/src/test/java/io/teampulse/team/infrastructure/persistence/repository/JpaTeamMemberRepositoryAdapterIT.java",
+        "line": 158,
+        "symbol": "void translatesOptimisticLockConflictWithoutOverwritingTheCommittedUpdate"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "ref": "../ontology.md#rule-audit-concurrency"
+  },
+  {
+    "id": "rule:local-bootstrap",
+    "type": "Rule",
+    "name": "Limite de l’amorçage local",
+    "description": "Parcours local standard adressé au tenant mémoire. Une organisation créée par l'API obtient une nouvelle référence propre. Les opérations exigeant l'existence/activité du tenant mémoire ne sont donc pas amorçables par ce seul parcours. Identity peut créer sous cette référence sans vérifier l'organisation.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-app/src/main/java/io/teampulse/context/LocalTenantConfiguration.java",
+        "line": 13,
+        "symbol": "@Profile"
+      },
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/application/service/organization/OrganizationLifecycleService.java",
+        "line": 42,
+        "symbol": "public OrganizationLifecycleResult create"
+      },
+      {
+        "path": "tp-administration/src/main/java/io/teampulse/administration/application/service/identity/UserLifecycleAdministrationService.java",
+        "line": 78,
+        "symbol": "private void ensureOrganizationExists"
+      },
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/application/service/user/UserLifecycleService.java",
+        "line": 40,
+        "symbol": "public UserLifecycleResult create"
+      }
+    ],
+    "confidence": "INFERRED",
+    "ref": "../ontology.md#rule-local-bootstrap"
+  },
+  {
+    "id": "rule:local-tenant",
+    "type": "Rule",
+    "name": "Résolution du tenant local",
+    "description": "Le profil local résout paresseusement un tenant par processus. Il conserve la première résolution valide et peut réessayer après un échec. La résolution n'écrit aucune organisation en base.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-app/src/main/java/io/teampulse/context/LocalTenantContextProvider.java",
+        "line": 29,
+        "symbol": "public TenantContext current"
+      },
+      {
+        "path": "tp-app/src/test/java/io/teampulse/context/LocalTenantContextProviderTest.java",
+        "line": 146,
+        "symbol": "void retriesResolutionAfterGenerationFailure"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "ref": "../ontology.md#rule-local-tenant"
+  },
+  {
+    "id": "rule:member-close",
+    "type": "Rule",
+    "name": "Suspension et retrait d’une appartenance",
+    "description": "Suspension ou retrait cherche une appartenance courante dans une équipe active ou suspendue. Les transitions de l'appartenance restent applicables. Les annuaires d'éligibilité ne sont pas consultés sur ces chemins.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/service/teammember/TeamMembershipService.java",
+        "line": 74,
+        "symbol": "public TeamMember suspendMember"
+      },
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/service/teammember/TeamMembershipService.java",
+        "line": 96,
+        "symbol": "public TeamMember removeMember"
+      },
+      {
+        "path": "tp-team/src/test/java/io/teampulse/team/application/service/teammember/TeamMembershipServiceIT.java",
+        "line": 335,
+        "symbol": "void allowsRemovingAMemberWhenTheTeamIsSuspended"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "ref": "../ontology.md#rule-member-close"
+  },
+  {
+    "id": "rule:member-dates",
+    "type": "Rule",
+    "name": "Invariants temporels",
+    "description": "INVITED a deux dates nulles. ACTIVE/SUSPENDED exige le début et une fin nulle. REMOVED exige la fin. Début et fin présents impliquent endedAt ≥ startedAt. La réactivation conserve le début initial.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/domain/team/model/TeamMember.java",
+        "line": 110,
+        "symbol": "private void validateTemporalState"
+      },
+      {
+        "path": "tp-team/src/main/resources/db/migration/team/V0.1.1__create_team_members.sql",
+        "line": 27,
+        "symbol": "ck_team_members_dates_by_status"
+      },
+      {
+        "path": "tp-team/src/test/java/io/teampulse/team/domain/team/model/TeamMemberTest.java",
+        "line": 68,
+        "symbol": "void suspendsAndReactivatesWithoutChangingTheInitialStartDate"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "ref": "../ontology.md#rule-member-dates"
+  },
+  {
+    "id": "rule:member-lifecycle",
+    "type": "Rule",
+    "name": "Cycle de vie appartenance",
+    "description": "Invitation en INVITED, ajout en ACTIVE. Activation depuis INVITED, suspension depuis ACTIVE, réactivation depuis SUSPENDED. Retrait de tout état courant vers REMOVED terminal.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/domain/team/model/TeamMember.java",
+        "line": 47,
+        "symbol": "public static TeamMember invite"
+      },
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/domain/team/model/TeamMember.java",
+        "line": 74,
+        "symbol": "public void activate"
+      },
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/domain/team/model/TeamMemberStatus.java",
+        "line": 15,
+        "symbol": "ALLOWED_TRANSITIONS"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "ref": "../ontology.md#rule-member-lifecycle"
+  },
+  {
+    "id": "rule:member-open",
+    "type": "Rule",
+    "name": "Ouverture d’une appartenance",
+    "description": "Ajout, invitation, activation et réactivation exigent équipe active et organisation disponible. L'utilisateur doit être AVAILABLE, avec admission de PENDING pour l'invitation. Ajout ou invitation exige l'absence d'appartenance courante.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/service/teammember/TeamMembershipService.java",
+        "line": 37,
+        "symbol": "public TeamMember addMember"
+      },
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/service/teammember/TeamMembershipService.java",
+        "line": 84,
+        "symbol": "public TeamMember reactivateMember"
+      },
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/service/teammember/TeamMemberUserAvailabilityValidator.java",
+        "line": 40,
+        "symbol": "private static void validateAvailability"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "ref": "../ontology.md#rule-member-open"
+  },
+  {
+    "id": "rule:member-tenant-fk",
+    "type": "Rule",
+    "name": "Équipe du même tenant",
+    "description": "Pour chaque appartenance, (team_id, organization_reference) doit résoudre une équipe du même tenant en base. Le rattachement utilisateur passe par sa référence et les contrôles applicatifs.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-team/src/main/resources/db/migration/team/V0.1.1__create_team_members.sql",
+        "line": 24,
+        "symbol": "CONSTRAINT fk_team_members_team"
+      },
+      {
+        "path": "tp-team/src/test/java/io/teampulse/team/infrastructure/persistence/repository/JpaTeamMemberRepositoryAdapterIT.java",
+        "line": 128,
+        "symbol": "void keepsForeignKeyViolationsAsTechnicalFailures"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "ref": "../ontology.md#rule-member-tenant-fk"
+  },
+  {
+    "id": "rule:member-unique",
+    "type": "Rule",
+    "name": "Unicité de l’appartenance courante",
+    "description": "(organizationReference, teamId, userReference) identifie au plus une appartenance courante. Après retrait, l'historique persiste et un nouvel épisode est possible. L'index partiel arbitre les collisions concurrentes.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/service/teammember/TeamMembershipService.java",
+        "line": 132,
+        "symbol": "private void ensureNoCurrentMembership"
+      },
+      {
+        "path": "tp-team/src/main/resources/db/migration/team/V0.1.1__create_team_members.sql",
+        "line": 46,
+        "symbol": "CREATE UNIQUE INDEX uk_team_members_current"
+      },
+      {
+        "path": "tp-team/src/test/java/io/teampulse/team/infrastructure/persistence/repository/JpaTeamMemberRepositoryAdapterIT.java",
+        "line": 115,
+        "symbol": "void translatesCurrentMembershipCollision"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "ref": "../ontology.md#rule-member-unique"
+  },
+  {
+    "id": "rule:org-activation-deferred",
+    "type": "Rule",
+    "name": "Affectation finale différée",
+    "description": "Une affectation en CREATING/SUSPENDED qui compléterait les deux rôles avec des utilisateurs disponibles est refusée avant mutation (LIFECYCLE_TRANSITION_DEFERRED). L'affectation admise ne change jamais l'état. Les méthodes de domaine d'activation existent, avec entrée applicative reportée.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/application/service/organization/OrganizationResponsibleUsersService.java",
+        "line": 176,
+        "symbol": "private void rejectDeferredTransition"
+      },
+      {
+        "path": "tp-organization/src/test/java/io/teampulse/organization/application/service/organization/OrganizationResponsibleUsersServiceIT.java",
+        "line": 54,
+        "symbol": "void refusesTheFinalAvailableAssignmentAndPersistsNoActiveTransition"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "ref": "../ontology.md#rule-org-activation-deferred"
+  },
+  {
+    "id": "rule:org-assign",
+    "type": "Rule",
+    "name": "Affectation en organisation",
+    "description": "Affecter un administrateur en CREATING. Affecter un manager en CREATING ou en SUSPENDED si absent. En CREATING, une nouvelle référence peut remplacer un candidat. Dans T05, le candidat doit être AVAILABLE dans le tenant, y compris avant le cas de réaffectation identique autorisée.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/domain/organization/model/Organization.java",
+        "line": 134,
+        "symbol": "public void assignAdministrator"
+      },
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/domain/organization/model/Organization.java",
+        "line": 161,
+        "symbol": "public void assignManager"
+      },
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/application/service/organization/OrganizationResponsibleUsersService.java",
+        "line": 36,
+        "symbol": "public Organization assignAdministrator"
+      },
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/application/service/organization/OrganizationResponsibleUsersValidator.java",
+        "line": 195,
+        "symbol": "private UserAvailability validateAssignable"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "ref": "../ontology.md#rule-org-assign"
+  },
+  {
+    "id": "rule:org-availability",
+    "type": "Rule",
+    "name": "Disponibilité organisation",
+    "description": "Seul ACTIVE est AVAILABLE. Les autres états persistés donnent UNAVAILABLE, l'absence NOT_FOUND. Le contrat de responsabilités peut retourner une vue pour tout état persisté, avec références facultatives.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/application/service/organization/OrganizationDirectoryService.java",
+        "line": 49,
+        "symbol": "public Optional<OrganizationResponsibilities> findByOrganizationReference"
+      },
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/application/service/organization/OrganizationDirectoryService.java",
+        "line": 81,
+        "symbol": "private static OrganizationAvailability toAvailability"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "ref": "../ontology.md#rule-org-availability"
+  },
+  {
+    "id": "rule:org-data",
+    "type": "Rule",
+    "name": "Données d’organisation",
+    "description": "Le nom normalisé par strip() est non blanc avec un maximum de 200 caractères Java. Le fuseau doit être reconnu par ZoneId.of.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/domain/organization/model/Organization.java",
+        "line": 439,
+        "symbol": "private static String validateName"
+      },
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/domain/organization/model/Organization.java",
+        "line": 471,
+        "symbol": "private static ZoneId validateTimezone"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "ref": "../ontology.md#rule-org-data"
+  },
+  {
+    "id": "rule:org-lifecycle",
+    "type": "Rule",
+    "name": "Cycle de vie organisation",
+    "description": "Création CREATING sans responsables. Transitions de domaine CREATING/SUSPENDED → ACTIVE, ACTIVE → SUSPENDED, et de tout état non terminal vers ARCHIVED, en conservant les responsables à l'archivage. Le contrat T05 expose création, suspension et archivage.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/domain/organization/model/Organization.java",
+        "line": 78,
+        "symbol": "public static Organization create"
+      },
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/domain/organization/model/OrganizationStatus.java",
+        "line": 15,
+        "symbol": "ALLOWED_TRANSITIONS"
+      },
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/api/lifecycle/OrganizationLifecycle.java"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "ref": "../ontology.md#rule-org-lifecycle"
+  },
+  {
+    "id": "rule:org-remove-manager",
+    "type": "Rule",
+    "name": "Retrait du manager d’organisation",
+    "description": "Retirer le manager depuis ACTIVE/SUSPENDED. Le retrait depuis ACTIVE suspend l'organisation. Si déjà suspendue sans manager, le domaine conserve cet état.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/domain/organization/model/Organization.java",
+        "line": 264,
+        "symbol": "public void removeManager"
+      },
+      {
+        "path": "tp-organization/src/test/java/io/teampulse/organization/application/service/organization/OrganizationResponsibleUsersServiceIT.java",
+        "line": 155,
+        "symbol": "void removesManagerAndSuspendsTheOrganization"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "ref": "../ontology.md#rule-org-remove-manager"
+  },
+  {
+    "id": "rule:org-replace",
+    "type": "Rule",
+    "name": "Remplacement en organisation",
+    "description": "Remplacement de l'administrateur ou du manager en ACTIVE/SUSPENDED. Le manager doit exister. Un nouveau candidat doit être AVAILABLE. Même référence dans un état admissible = aucune écriture.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/domain/organization/model/Organization.java",
+        "line": 209,
+        "symbol": "public void replaceAdministrator"
+      },
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/domain/organization/model/Organization.java",
+        "line": 237,
+        "symbol": "public void replaceManager"
+      },
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/application/service/organization/OrganizationResponsibleUsersService.java",
+        "line": 132,
+        "symbol": "public Organization replaceManager"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "ref": "../ontology.md#rule-org-replace"
+  },
+  {
+    "id": "rule:org-responsibility-shape",
+    "type": "Rule",
+    "name": "Responsabilités selon l’état",
+    "description": "ACTIVE requiert deux références, SUSPENDED requiert l'administrateur, CREATING/ARCHIVED tolèrent les références absentes. Les responsables peuvent partager un titulaire. Le domaine vérifie les valeurs lors de la restauration et des transitions.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/domain/organization/model/Organization.java",
+        "line": 344,
+        "symbol": "private void validateResponsibleStructure"
+      },
+      {
+        "path": "tp-organization/src/main/resources/db/migration/organization/V0.1.0__create_organizations.sql",
+        "line": 28,
+        "symbol": "ck_organizations_responsibles_by_status"
+      },
+      {
+        "path": "tp-organization/src/test/java/io/teampulse/organization/domain/organization/model/OrganizationTest.java",
+        "line": 282,
+        "symbol": "void acceptsSameUserAsAdministratorAndManager"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "ref": "../ontology.md#rule-org-responsibility-shape"
+  },
+  {
+    "id": "rule:platform-guard",
+    "type": "Rule",
+    "name": "Garde de responsabilités plateforme",
+    "description": "Avant suspension ou désactivation, une responsabilité dans une organisation non archivée ou une équipe active/suspendue du tenant bloque l'opération. Une simple appartenance ou un périmètre archivé ne bloque pas. Les annuaires sont vérifiés dans la transaction d'orchestration.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-administration/src/main/java/io/teampulse/administration/application/service/identity/UserLifecycleAdministrationService.java",
+        "line": 105,
+        "symbol": "private void ensureNoActiveResponsibilities"
+      },
+      {
+        "path": "tp-team/src/test/java/io/teampulse/team/application/service/team/TeamResponsibilityDirectoryServiceIT.java",
+        "line": 59,
+        "symbol": "void returnsTenantScopedTeamResponsibilitiesAndExcludesMemberships"
+      },
+      {
+        "path": "tp-administration/src/test/java/io/teampulse/administration/application/service/identity/UserLifecycleAdministrationServiceIT.java",
+        "line": 223,
+        "symbol": "void allowsDeactivationForOrdinaryTeamMembershipWithoutResponsibility"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "ref": "../ontology.md#rule-platform-guard"
+  },
+  {
+    "id": "rule:platform-provision",
+    "type": "Rule",
+    "name": "Provisionnement de l’utilisateur initial",
+    "description": "La plateforme vérifie l'existence de l'organisation du tenant et délègue à Identity la création/invitation. L'organisation peut être CREATING. Un échec de l'utilisateur laisse l'organisation préexistante en place. Le résultat contient les deux références.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-administration/src/main/java/io/teampulse/administration/application/service/identity/UserLifecycleAdministrationService.java",
+        "line": 68,
+        "symbol": "private UserLifecycleAdministrationResult provisionInitialUser"
+      },
+      {
+        "path": "tp-administration/src/test/java/io/teampulse/administration/application/service/identity/UserLifecycleAdministrationServiceIT.java",
+        "line": 102,
+        "symbol": "void leavesTheExistingOrganizationInPlaceWhenInitialUserCreationFails"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "ref": "../ontology.md#rule-platform-provision"
+  },
+  {
+    "id": "rule:product-actor-boundary",
+    "type": "Rule",
+    "name": "Séparation des identités plateforme et tenant",
+    "description": "Vision Draft. Le rôle administrateur plateforme et le compte tenant sont exclusifs. Les rôles d'organisation et d'équipe sont contextualisés et cumulables.",
+    "properties": {
+      "scope": "product-vision-draft"
+    },
+    "sources": [
+      {
+        "path": "docs/besoins/SCENARIO-METIER-TEAMPULSE.md",
+        "line": 27,
+        "symbol": "## Frontiere des organisations"
+      },
+      {
+        "path": "docs/besoins/SCENARIO-METIER-TEAMPULSE.md",
+        "line": 43,
+        "symbol": "## Roles"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "ref": "../ontology.md#rule-product-actor-boundary"
+  },
+  {
+    "id": "rule:product-removal",
+    "type": "Rule",
+    "name": "Politique de retrait et conservation",
+    "description": "Vision Draft. Le retrait préserve les contributions antérieures et prive l'ancien membre de l'accès à l'équipe. Le normal peut être différé, l'urgent est immédiat avec motif audité. La réintégration ouvre une nouvelle période. T05 implémente le retrait daté et permet une nouvelle appartenance si les préconditions d’ouverture sont satisfaites.",
+    "properties": {
+      "scope": "product-vision-draft"
+    },
+    "sources": [
+      {
+        "path": "docs/besoins/SCENARIO-METIER-TEAMPULSE.md",
+        "line": 142,
+        "symbol": "## Retrait d'un membre"
+      },
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/service/teammember/TeamMembershipService.java",
+        "line": 96,
+        "symbol": "public TeamMember removeMember"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "ref": "../ontology.md#rule-product-removal"
+  },
+  {
+    "id": "rule:product-response",
+    "type": "Rule",
+    "name": "Réponse unique et confidentialité",
+    "description": "Vision Draft. Un membre répond au plus une fois par équipe et campagne. La réponse peut évoluer jusqu'à clôture. Les résultats sont calculés et masqués sous le seuil de confidentialité.",
+    "properties": {
+      "scope": "product-vision-draft"
+    },
+    "sources": [
+      {
+        "path": "docs/besoins/SCENARIO-METIER-TEAMPULSE.md",
+        "line": 95,
+        "symbol": "## Campagne hebdomadaire"
+      },
+      {
+        "path": "docs/besoins/SCENARIO-METIER-TEAMPULSE.md",
+        "line": 119,
+        "symbol": "Les aggregats sont masques"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "ref": "../ontology.md#rule-product-response"
+  },
+  {
+    "id": "rule:product-vote",
+    "type": "Rule",
+    "name": "Secret et unicité du vote",
+    "description": "Vision Draft. Au plus un vote secret par membre et scrutin, modifiable jusqu'à clôture. L'ensemble éligible est figé à l'ouverture. L'acceptation transforme la proposition en action suivie.",
+    "properties": {
+      "scope": "product-vision-draft"
+    },
+    "sources": [
+      {
+        "path": "docs/besoins/SCENARIO-METIER-TEAMPULSE.md",
+        "line": 123,
+        "symbol": "## Actions et votes"
+      },
+      {
+        "path": "docs/besoins/SCENARIO-METIER-TEAMPULSE.md",
+        "line": 161,
+        "symbol": "Les participants eligibles sont figes"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "ref": "../ontology.md#rule-product-vote"
+  },
+  {
+    "id": "rule:reference-format",
+    "type": "Rule",
+    "name": "Format des références",
+    "description": "Une référence respecte le format syntaxique commun et le préfixe de son type. La fabrique garantit l'unicité de ses émissions au sein d'une instance.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-common/src/main/java/io/teampulse/common/reference/ReferenceFormat.java",
+        "line": 33,
+        "symbol": "public static boolean matches"
+      },
+      {
+        "path": "tp-common/src/main/java/io/teampulse/common/reference/MonotonicReferenceFactory.java",
+        "line": 154,
+        "symbol": "private GenerationState reserveNextState"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "ref": "../ontology.md#rule-reference-format"
+  },
+  {
+    "id": "rule:team-data",
+    "type": "Rule",
+    "name": "Données d’équipe",
+    "description": "Le nom d'équipe normalisé est non blanc et a une longueur maximale de 200 caractères Java. Les deux références de responsables sont obligatoires.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/domain/team/model/Team.java",
+        "line": 138,
+        "symbol": "private static String validateName"
+      },
+      {
+        "path": "tp-team/src/main/resources/db/migration/team/V0.1.0__create_teams.sql",
+        "line": 8,
+        "symbol": "CREATE TABLE"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "ref": "../ontology.md#rule-team-data"
+  },
+  {
+    "id": "rule:team-lifecycle",
+    "type": "Rule",
+    "name": "Cycle de vie équipe",
+    "description": "Créer en ACTIVE ou réactiver depuis SUSPENDED exige l'organisation et les deux responsables AVAILABLE. Suspendre depuis ACTIVE, ou archiver depuis ACTIVE/SUSPENDED, n'exige pas ces disponibilités et préserve les références. ARCHIVED est terminal.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/service/team/TeamLifecycleService.java",
+        "line": 32,
+        "symbol": "public Team create"
+      },
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/service/team/TeamLifecycleService.java",
+        "line": 59,
+        "symbol": "public Team reactivate"
+      },
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/domain/team/model/TeamStatus.java",
+        "line": 14,
+        "symbol": "ALLOWED_TRANSITIONS"
+      },
+      {
+        "path": "tp-team/src/test/java/io/teampulse/team/application/service/team/TeamLifecycleServiceIT.java",
+        "line": 562,
+        "symbol": "void archivesEvenWhenOrganizationAndUsersAreUnavailable"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "ref": "../ontology.md#rule-team-lifecycle"
+  },
+  {
+    "id": "rule:team-replace",
+    "type": "Rule",
+    "name": "Remplacement en équipe",
+    "description": "Le remplacement effectif est possible si l'équipe est active ou suspendue et le candidat disponible dans le tenant. Une référence identique rend immédiatement l'équipe chargée sans écriture, avant le garde d'état du service.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/service/team/TeamResponsibleUsersService.java",
+        "line": 28,
+        "symbol": "public Team replaceAdministrator"
+      },
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/domain/team/model/Team.java",
+        "line": 112,
+        "symbol": "public void validateReplacementAllowed"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "ref": "../ontology.md#rule-team-replace"
+  },
+  {
+    "id": "rule:tenant-scope",
+    "type": "Rule",
+    "name": "Isolation du tenant",
+    "description": "Les commandes et requêtes tenantées Identity, Team et Administration se font avec le tenant résolu par le serveur. Les lectures/écritures d'utilisateur ou d'équipe incluent le tenant. Les opérations Organization de plateforme utilisent la référence de l'organisation cible.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/infrastructure/web/user/UserController.java",
+        "line": 38,
+        "symbol": "tenantContextProvider.current()"
+      },
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/infrastructure/web/team/TeamController.java",
+        "line": 35,
+        "symbol": "tenantContextProvider.current()"
+      },
+      {
+        "path": "tp-administration/src/main/java/io/teampulse/administration/infrastructure/web/identity/UserLifecycleAdministrationController.java",
+        "line": 44,
+        "symbol": "tenantContextProvider.current()"
+      },
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/infrastructure/web/organization/OrganizationController.java",
+        "line": 45,
+        "symbol": "public OrganizationResponsibilities responsibilities"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "ref": "../ontology.md#rule-tenant-scope"
+  },
+  {
+    "id": "rule:user-availability",
+    "type": "Rule",
+    "name": "Disponibilité utilisateur",
+    "description": "ACTIVE → AVAILABLE, INVITED/CREATING → PENDING, SUSPENDED/DEACTIVATED → UNAVAILABLE. Absence dans le tenant → NOT_FOUND. Défaillance de lookup → exception dédiée.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/application/service/user/UserDirectoryService.java",
+        "line": 25,
+        "symbol": "public UserAvailability check"
+      },
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/application/service/user/UserDirectoryService.java",
+        "line": 44,
+        "symbol": "private UserAvailability toAvailability"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "ref": "../ontology.md#rule-user-availability"
+  },
+  {
+    "id": "rule:user-email-unique",
+    "type": "Rule",
+    "name": "Unicité de l’email par tenant",
+    "description": "(organizationReference, email canonique) identifie au plus un utilisateur. La création vérifie le doublon avant l'écriture. PostgreSQL applique l'unicité sans filtre de statut et l'adaptateur traduit la collision.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/application/service/user/UserLifecycleService.java",
+        "line": 89,
+        "symbol": "private User persistIfEmailAvailable"
+      },
+      {
+        "path": "tp-identity/src/main/resources/db/migration/identity/V0.1.0__create_users.sql",
+        "line": 24,
+        "symbol": "uk_users_organization_email"
+      },
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/infrastructure/persistence/repository/JpaUserRepositoryAdapter.java",
+        "line": 93,
+        "symbol": "if (EMAIL_UNIQUE_CONSTRAINT.equals"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "ref": "../ontology.md#rule-user-email-unique"
+  },
+  {
+    "id": "rule:user-invited",
+    "type": "Rule",
+    "name": "Publication du fait UserInvited",
+    "description": "Une invitation d'identité réussie produit UserInvited avec deux références après la persistance. Un doublon d'email échoue avant la publication.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/application/service/user/UserLifecycleService.java",
+        "line": 69,
+        "symbol": "identityEventPublisher.publish"
+      },
+      {
+        "path": "tp-identity/src/test/java/io/teampulse/identity/application/service/user/UserLifecycleServiceTest.java",
+        "line": 242,
+        "symbol": "void persistsAnInvitedUserAndPublishesOnlyReferencesAfterPersistence"
+      },
+      {
+        "path": "tp-identity/src/test/java/io/teampulse/identity/application/service/user/UserLifecycleServiceTest.java",
+        "line": 271,
+        "symbol": "void doesNotPublishAnInvitationWhenTheEmailIsAlreadyUsed"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "ref": "../ontology.md#rule-user-invited"
+  },
+  {
+    "id": "rule:user-lifecycle",
+    "type": "Rule",
+    "name": "Cycle de vie utilisateur",
+    "description": "Création directe en CREATING, invitation en INVITED. Le domaine permet INVITED → CREATING, CREATING/SUSPENDED → ACTIVE, ACTIVE → SUSPENDED, et tout état non terminal → DEACTIVATED. L'activation n'est pas exposée dans T05.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/domain/user/model/User.java",
+        "line": 53,
+        "symbol": "public static User create"
+      },
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/domain/user/model/UserStatus.java",
+        "line": 16,
+        "symbol": "ALLOWED_TRANSITIONS"
+      },
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/api/lifecycle/UserLifecycle.java"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "ref": "../ontology.md#rule-user-lifecycle"
+  },
+  {
+    "id": "rule:user-profile-data",
+    "type": "Rule",
+    "name": "Normalisation des données utilisateur",
+    "description": "Les noms sont normalisés par strip(), non blancs et bornés à 100 caractères Java. L'email est normalisé par strip() et minuscules, syntaxiquement validé et borné à 254 caractères Java.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/domain/user/model/User.java",
+        "line": 153,
+        "symbol": "private static String validateEmail"
+      },
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/domain/user/model/User.java",
+        "line": 176,
+        "symbol": "private static String validateName"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "ref": "../ontology.md#rule-user-profile-data"
+  },
+  {
+    "id": "rule:validation-ownership",
+    "type": "Rule",
+    "name": "Propriété des validations",
+    "description": "Contrat structurel à l'entrée, invariants dans les agrégats, existences et éligibilités en application, contraintes locales en SQL. Les absences et refus métier sont distincts des défaillances d'annuaire. Les advices propriétaires et partagé traduisent vers ApiError.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "AGENTS.md",
+        "line": 363,
+        "symbol": "### Repartition par responsabilite"
+      },
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/application/service/user/UserDirectoryService.java",
+        "line": 36,
+        "symbol": "throw new UserDirectoryException"
+      },
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/infrastructure/web/TeamHttpErrorAdvice.java"
+      },
+      {
+        "path": "tp-web-support/src/main/java/io/teampulse/websupport/error/SharedHttpErrorAdvice.java"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "ref": "../ontology.md#rule-validation-ownership"
+  },
+  {
+    "id": "table:organizations",
+    "type": "Table",
+    "name": "tp_organization.organizations",
+    "description": "Cycle, nom, fuseau et responsables d’organisation.",
+    "properties": {
+      "schema": "tp_organization",
+      "primaryKey": [
+        "id"
+      ]
+    },
+    "sources": [
+      {
+        "path": "tp-organization/src/main/resources/db/migration/organization/V0.1.0__create_organizations.sql",
+        "line": 8,
+        "symbol": "CREATE TABLE"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "ref": "../cdm.md#entity-organization"
+  },
+  {
+    "id": "table:team-members",
+    "type": "Table",
+    "name": "tp_team.team_members",
+    "description": "Appartenances historisées avec clé étrangère composite vers teams.",
+    "properties": {
+      "schema": "tp_team",
+      "primaryKey": [
+        "id"
+      ]
+    },
+    "sources": [
+      {
+        "path": "tp-team/src/main/resources/db/migration/team/V0.1.1__create_team_members.sql",
+        "line": 8,
+        "symbol": "CREATE TABLE"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "ref": "../cdm.md#entity-team-membership"
+  },
+  {
+    "id": "table:teams",
+    "type": "Table",
+    "name": "tp_team.teams",
+    "description": "Équipes tenantées et responsabilités obligatoires.",
+    "properties": {
+      "schema": "tp_team",
+      "primaryKey": [
+        "id"
+      ]
+    },
+    "sources": [
+      {
+        "path": "tp-team/src/main/resources/db/migration/team/V0.1.0__create_teams.sql",
+        "line": 8,
+        "symbol": "CREATE TABLE"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "ref": "../cdm.md#entity-team"
+  },
+  {
+    "id": "table:users",
+    "type": "Table",
+    "name": "tp_identity.users",
+    "description": "Identités tenantées avec référence et email canonique.",
+    "properties": {
+      "schema": "tp_identity",
+      "primaryKey": [
+        "id"
+      ]
+    },
+    "sources": [
+      {
+        "path": "tp-identity/src/main/resources/db/migration/identity/V0.1.0__create_users.sql",
+        "line": 8,
+        "symbol": "CREATE TABLE"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "ref": "../cdm.md#entity-user"
+  },
+  {
+    "id": "test:actor-audit",
+    "type": "Test",
+    "name": "ActorContextAuditConfigurationTest",
+    "description": "Acteur par défaut et adaptation au mécanisme JPA.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-app/src/test/java/io/teampulse/config/ActorContextAuditConfigurationTest.java",
+        "line": 9,
+        "symbol": "class ActorContextAuditConfigurationTest"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "test:archunit",
+    "type": "Test",
+    "name": "InternalArchitectureTests",
+    "description": "Frontières des modules et couches applicatives.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-app/src/test/java/io/teampulse/architecture/InternalArchitectureTests.java",
+        "line": 15,
+        "symbol": "class InternalArchitectureTests"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "test:member-http-it",
+    "type": "Test",
+    "name": "TeamMemberControllerIT",
+    "description": "Accès HTTP aux transitions d’appartenance.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-team/src/test/java/io/teampulse/team/infrastructure/web/teammember/TeamMemberControllerIT.java",
+        "line": 38,
+        "symbol": "class TeamMemberControllerIT"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "test:member-model",
+    "type": "Test",
+    "name": "TeamMemberTest",
+    "description": "États, temporalité, cas d’une invitation retirée et historique.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-team/src/test/java/io/teampulse/team/domain/team/model/TeamMemberTest.java",
+        "line": 15,
+        "symbol": "class TeamMemberTest"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "test:member-persistence-it",
+    "type": "Test",
+    "name": "JpaTeamMemberRepositoryAdapterIT",
+    "description": "Historique, collision sur le courant, FK et concurrence.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-team/src/test/java/io/teampulse/team/infrastructure/persistence/repository/JpaTeamMemberRepositoryAdapterIT.java",
+        "line": 29,
+        "symbol": "class JpaTeamMemberRepositoryAdapterIT"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "test:membership-it",
+    "type": "Test",
+    "name": "TeamMembershipServiceIT",
+    "description": "Éligibilité, transitions, absence de doublon et restrictions de l’équipe parente.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-team/src/test/java/io/teampulse/team/application/service/teammember/TeamMembershipServiceIT.java",
+        "line": 50,
+        "symbol": "class TeamMembershipServiceIT"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "test:modulith",
+    "type": "Test",
+    "name": "ModulithArchitectureTests",
+    "description": "Vérification des dépendances et interfaces nommées.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-app/src/test/java/io/teampulse/architecture/ModulithArchitectureTests.java",
+        "line": 38,
+        "symbol": "class ModulithArchitectureTests"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "test:org-directory-it",
+    "type": "Test",
+    "name": "OrganizationDirectoryServiceIT",
+    "description": "Projection de l’état et des responsabilités persistées.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-organization/src/test/java/io/teampulse/organization/application/service/organization/OrganizationDirectoryServiceIT.java",
+        "line": 31,
+        "symbol": "class OrganizationDirectoryServiceIT"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "test:org-http-it",
+    "type": "Test",
+    "name": "OrganizationControllerIT",
+    "description": "Contrat HTTP organisation et vérification de persistance.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-organization/src/test/java/io/teampulse/organization/infrastructure/web/organization/OrganizationControllerIT.java",
+        "line": 35,
+        "symbol": "class OrganizationControllerIT"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "test:org-lifecycle-it",
+    "type": "Test",
+    "name": "OrganizationLifecycleServiceIT",
+    "description": "Création et archivage en transaction.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-organization/src/test/java/io/teampulse/organization/application/service/organization/OrganizationLifecycleServiceIT.java",
+        "line": 29,
+        "symbol": "class OrganizationLifecycleServiceIT"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "test:org-model",
+    "type": "Test",
+    "name": "OrganizationTest",
+    "description": "Structure des responsables, format des données et transitions.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-organization/src/test/java/io/teampulse/organization/domain/organization/model/OrganizationTest.java",
+        "line": 21,
+        "symbol": "class OrganizationTest"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "test:org-responsibles-it",
+    "type": "Test",
+    "name": "OrganizationResponsibleUsersServiceIT",
+    "description": "Refus de transition différée, refus de PENDING, remplacement et retrait.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-organization/src/test/java/io/teampulse/organization/application/service/organization/OrganizationResponsibleUsersServiceIT.java",
+        "line": 24,
+        "symbol": "class OrganizationResponsibleUsersServiceIT"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "test:platform-it",
+    "type": "Test",
+    "name": "UserLifecycleAdministrationIT",
+    "description": "Orchestration applicative PostgreSQL et endpoints MVC d'administration.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-administration/src/test/java/io/teampulse/administration/application/service/identity/UserLifecycleAdministrationServiceIT.java",
+        "line": 45,
+        "symbol": "class UserLifecycleAdministrationServiceIT"
+      },
+      {
+        "path": "tp-administration/src/test/java/io/teampulse/administration/infrastructure/web/identity/UserLifecycleAdministrationControllerIT.java",
+        "line": 31,
+        "symbol": "class UserLifecycleAdministrationControllerIT"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "test:reference-factory",
+    "type": "Test",
+    "name": "MonotonicReferenceFactoryTest",
+    "description": "Format, collisions locales et génération monotone.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-common/src/test/java/io/teampulse/common/reference/MonotonicReferenceFactoryTest.java",
+        "line": 32,
+        "symbol": "class MonotonicReferenceFactoryTest"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "test:reference-format",
+    "type": "Test",
+    "name": "ReferenceFormatTest",
+    "description": "Format syntaxique et préfixe correct.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-common/src/test/java/io/teampulse/common/reference/ReferenceFormatTest.java",
+        "line": 11,
+        "symbol": "class ReferenceFormatTest"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "test:team-directory-it",
+    "type": "Test",
+    "name": "TeamResponsibilityDirectoryServiceIT",
+    "description": "Lecture des responsabilités tenantées et exclusion des appartenances.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-team/src/test/java/io/teampulse/team/application/service/team/TeamResponsibilityDirectoryServiceIT.java",
+        "line": 24,
+        "symbol": "class TeamResponsibilityDirectoryServiceIT"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "test:team-http-it",
+    "type": "Test",
+    "name": "TeamControllerIT",
+    "description": "Frontière HTTP équipes sur vrai PostgreSQL.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-team/src/test/java/io/teampulse/team/infrastructure/web/team/TeamControllerIT.java",
+        "line": 33,
+        "symbol": "class TeamControllerIT"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "test:team-lifecycle-it",
+    "type": "Test",
+    "name": "TeamLifecycleServiceIT",
+    "description": "Création, suspension, réactivation et archivage, disponibilité et isolation.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-team/src/test/java/io/teampulse/team/application/service/team/TeamLifecycleServiceIT.java",
+        "line": 50,
+        "symbol": "class TeamLifecycleServiceIT"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "test:team-responsibles-it",
+    "type": "Test",
+    "name": "TeamResponsibleUsersServiceIT",
+    "description": "Remplacements effectifs et refus sans changement.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-team/src/test/java/io/teampulse/team/application/service/team/TeamResponsibleUsersServiceIT.java",
+        "line": 35,
+        "symbol": "class TeamResponsibleUsersServiceIT"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "test:team-responsibles-unit",
+    "type": "Test",
+    "name": "TeamResponsibleUsersServiceTest",
+    "description": "Cas nominal, remplacement identique et garde archive.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-team/src/test/java/io/teampulse/team/application/service/team/TeamResponsibleUsersServiceTest.java",
+        "line": 31,
+        "symbol": "class TeamResponsibleUsersServiceTest"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "test:tenant-local",
+    "type": "Test",
+    "name": "LocalTenantContextProviderTest",
+    "description": "Résolution paresseuse, concurrence initiale et nouvelle tentative.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-app/src/test/java/io/teampulse/context/LocalTenantContextProviderTest.java",
+        "line": 22,
+        "symbol": "class LocalTenantContextProviderTest"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "test:tenant-query",
+    "type": "Test",
+    "name": "JpaUserRepositoryQueryArchitectureTest",
+    "description": "Filtrage tenant sur les requêtes déclarées Identity.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-identity/src/test/java/io/teampulse/identity/infrastructure/persistence/repository/JpaUserRepositoryQueryArchitectureTest.java",
+        "line": 9,
+        "symbol": "class JpaUserRepositoryQueryArchitectureTest"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "test:user-directory-it",
+    "type": "Test",
+    "name": "UserDirectoryServiceIdentityJpaIT",
+    "description": "Absence réelle ou hors tenant, transaction de lecture.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-identity/src/test/java/io/teampulse/identity/application/service/user/UserDirectoryServiceIdentityJpaIT.java",
+        "line": 26,
+        "symbol": "class UserDirectoryServiceIdentityJpaIT"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "test:user-http-it",
+    "type": "Test",
+    "name": "UserControllerIT",
+    "description": "Création, invitation, liste et erreurs via MockMvc/PostgreSQL.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-identity/src/test/java/io/teampulse/identity/infrastructure/web/user/UserControllerIT.java",
+        "line": 35,
+        "symbol": "class UserControllerIT"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "test:user-lifecycle-it",
+    "type": "Test",
+    "name": "UserLifecycleServiceIdentityJpaIT",
+    "description": "Écriture et transition tenantées, unicité d’email par organisation.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-identity/src/test/java/io/teampulse/identity/application/service/user/UserLifecycleServiceIdentityJpaIT.java",
+        "line": 32,
+        "symbol": "class UserLifecycleServiceIdentityJpaIT"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "test:user-lifecycle-unit",
+    "type": "Test",
+    "name": "UserLifecycleServiceTest",
+    "description": "Unicité canonique et contrat de publication après persistance.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-identity/src/test/java/io/teampulse/identity/application/service/user/UserLifecycleServiceTest.java",
+        "line": 38,
+        "symbol": "class UserLifecycleServiceTest"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "test:user-model",
+    "type": "Test",
+    "name": "UserTest",
+    "description": "Normalisation des données et opérations du modèle.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-identity/src/test/java/io/teampulse/identity/domain/user/model/UserTest.java",
+        "line": 14,
+        "symbol": "class UserTest"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "test:user-persistence-it",
+    "type": "Test",
+    "name": "JpaUserRepositoryAdapterIdentityJpaIT",
+    "description": "Contraintes, filtrage tenant, audit et verrouillage optimiste.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-identity/src/test/java/io/teampulse/identity/infrastructure/persistence/repository/JpaUserRepositoryAdapterIdentityJpaIT.java",
+        "line": 32,
+        "symbol": "class JpaUserRepositoryAdapterIdentityJpaIT"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "test:user-status",
+    "type": "Test",
+    "name": "UserStatusTest",
+    "description": "Transitions autorisées et refusées pour les états utilisateur.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-identity/src/test/java/io/teampulse/identity/domain/user/model/UserStatusTest.java",
+        "line": 18,
+        "symbol": "class UserStatusTest"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "uc:list-users",
+    "type": "UseCase",
+    "name": "ListUsersUseCase",
+    "description": "Lister les utilisateurs du tenant.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/application/port/in/user/ListUsersUseCase.java",
+        "line": 9,
+        "symbol": "public interface"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "uc:org-lifecycle",
+    "type": "UseCase",
+    "name": "OrganizationLifecycle",
+    "description": "Créer, suspendre et archiver une organisation.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/api/lifecycle/OrganizationLifecycle.java",
+        "line": 8,
+        "symbol": "public interface"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "uc:org-responsibles",
+    "type": "UseCase",
+    "name": "OrganizationResponsibleUsersUseCase",
+    "description": "Affecter, remplacer et retirer les responsables.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-organization/src/main/java/io/teampulse/organization/application/port/in/organization/OrganizationResponsibleUsersUseCase.java",
+        "line": 8,
+        "symbol": "public interface"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "uc:platform-user",
+    "type": "UseCase",
+    "name": "UserLifecycleAdministrationUseCase",
+    "description": "Provisionner un utilisateur et encadrer ses transitions de fermeture.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-administration/src/main/java/io/teampulse/administration/application/port/in/identity/UserLifecycleAdministrationUseCase.java",
+        "line": 10,
+        "symbol": "public interface"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "uc:team-lifecycle",
+    "type": "UseCase",
+    "name": "TeamLifecycleUseCase",
+    "description": "Créer, suspendre, réactiver et archiver une équipe.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/port/in/team/TeamLifecycleUseCase.java",
+        "line": 9,
+        "symbol": "public interface"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "uc:team-membership",
+    "type": "UseCase",
+    "name": "TeamMembershipUseCase",
+    "description": "Ajouter, inviter, activer, suspendre, réactiver et retirer une appartenance.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/port/in/teammember/TeamMembershipUseCase.java",
+        "line": 8,
+        "symbol": "public interface"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "uc:team-responsibles",
+    "type": "UseCase",
+    "name": "TeamResponsibleUsersUseCase",
+    "description": "Changer les responsables d’une équipe.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-team/src/main/java/io/teampulse/team/application/port/in/team/TeamResponsibleUsersUseCase.java",
+        "line": 8,
+        "symbol": "public interface"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  },
+  {
+    "id": "uc:user-lifecycle",
+    "type": "UseCase",
+    "name": "UserLifecycle",
+    "description": "Créer, inviter, suspendre et désactiver un utilisateur.",
+    "properties": {},
+    "sources": [
+      {
+        "path": "tp-identity/src/main/java/io/teampulse/identity/api/lifecycle/UserLifecycle.java",
+        "line": 12,
+        "symbol": "public interface"
+      }
+    ],
+    "confidence": "CONFIRMED"
+  }
+]

@@ -1,4 +1,4 @@
-package io.teampulse.administration.application.port.in;
+package io.teampulse.administration.application.port.in.identity;
 
 import io.teampulse.common.context.TenantContext;
 import io.teampulse.identity.api.lifecycle.UserProvisioningCommand;
@@ -9,12 +9,12 @@ import jakarta.validation.constraints.NotNull;
 /** Platform-admin operations for initial user provisioning and user lifecycle changes. */
 public interface UserLifecycleAdministrationUseCase {
 
-    PlatformProvisioningResult createInitialUser(
+    UserLifecycleAdministrationResult createInitialUser(
         @NotNull TenantContext tenantContext,
         @NotNull @Valid UserProvisioningCommand initialUser
     );
 
-    PlatformProvisioningResult inviteInitialUser(
+    UserLifecycleAdministrationResult inviteInitialUser(
         @NotNull TenantContext tenantContext,
         @NotNull @Valid UserProvisioningCommand initialUser
     );
